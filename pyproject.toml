@@ -1,0 +1,42 @@
+[project]
+name = "pet-doctor"
+version = "0.1.0"
+description = "AI-powered pet health diagnostic API"
+authors = [
+    { name = "Luke Ding", email = "lukeding@gmail.com" }
+]
+license = "MIT"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic",
+    "numpy",
+    "python-dotenv>=1.1.1",
+    "agentscope>=0.1.6",
+    "loguru>=0.6.0",
+    "pydantic-settings>=2.10.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "ruff",
+    "pytest",
+    "httpx"
+]
+
+[tool.uv]  # uv 自定义配置（可省略，uv 会自动解析）
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+
+[tool.pytest.ini_options]
+addopts = "-ra -q"
+testpaths = ["tests"]

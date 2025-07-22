@@ -91,10 +91,16 @@ function App() {
             <h3 className="my-2 font-bold text-[#8093f3]">AI 检查表勾选情况</h3>
             <p>{refer}</p>
             <h3 className="my-2 font-bold text-[#8093f3]">诊断图片</h3>
-            <div className="flex items-center justify-start flex-wrap gap-1">
-              {pics.map((pic, index) => (
-                <Image key={index} src={pic} alt={`诊断图片 ${index + 1}`} width={96} height={96} />
-              ))}
+            <div className="flex items-center justify-center flex-wrap gap-1">
+              <Image.PreviewGroup
+                items={pics}
+              >
+                {pics.map((pic, index) => (
+                  <Image key={index} src={pic} alt={`诊断图片 ${index + 1}`} width={96} height={96} />
+                ))}
+              </Image.PreviewGroup>
+
+
             </div>
             <h3 className="my-2 font-bold text-[#8093f3]">基础信息</h3>
             <div className="flex items-center text-sm justify-between bg-gray-50 rounded-lg px-3 py-2">

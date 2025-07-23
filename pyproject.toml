@@ -17,6 +17,7 @@ dependencies = [
     "agentscope>=0.1.6",
     "loguru>=0.6.0",
     "pydantic-settings>=2.10.1",
+    "pytest>=8.4.1",
 ]
 
 [project.optional-dependencies]

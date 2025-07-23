@@ -127,9 +127,9 @@ function App() {
               }}
             />
 
-            <img className={` ${state === '外部图' ? 'block' : 'hidden'}`} src="https://tc.z.wiki/autoupload/f/m_blQly9PSfGE1G7DOmbEQoyAJua5RorjteE-UQNnhGyl5f0KlZfm6UsKj-HyTuv/20250723/PZGn/700X530/image.png" alt="" />
-            <img className={` ${state === '内部图' ? 'block' : 'hidden'}`} src="https://tc.z.wiki/autoupload/f/m_blQly9PSfGE1G7DOmbEQoyAJua5RorjteE-UQNnhGyl5f0KlZfm6UsKj-HyTuv/20250723/4W9t/450X450/image.png" alt="" />
-            <img className={` ${state === '骨骼图' ? 'block' : 'hidden'}`} src="https://tc.z.wiki/autoupload/f/m_blQly9PSfGE1G7DOmbEQoyAJua5RorjteE-UQNnhGyl5f0KlZfm6UsKj-HyTuv/20250723/0jIl/diagram-dogs-body-with-organs-labeled-as-organs-body_1287512-49095.avif" alt="" />
+            <img className={` ${state === '外部图' ? 'block' : 'hidden'}`} src="https://tc.z.wiki/autoupload/f/m_blQly9PSfGE1G7DOmbEQoyAJua5RorjteE-UQNnhGyl5f0KlZfm6UsKj-HyTuv/20250723/7f1I/640X560/image.png" alt="" />
+            <img className={` ${state === '骨骼图' ? 'block' : 'hidden'}`} src="https://tc.z.wiki/autoupload/f/m_blQly9PSfGE1G7DOmbEQoyAJua5RorjteE-UQNnhGyl5f0KlZfm6UsKj-HyTuv/20250723/4W9t/450X450/image.png" alt="" />
+            <img className={` ${state === '内部图' ? 'block' : 'hidden'}`} src="https://tc.z.wiki/autoupload/f/m_blQly9PSfGE1G7DOmbEQoyAJua5RorjteE-UQNnhGyl5f0KlZfm6UsKj-HyTuv/20250723/0jIl/diagram-dogs-body-with-organs-labeled-as-organs-body_1287512-49095.avif" alt="" />
 
 
           </VetCard>

@@ -5,7 +5,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 
+from backend.routers import diagnosis
 from config.logger import logger
+
+from .settings import settings
 
 FORMAT = (
     "{time:YYYY-MM-DD HH:mm:ss.SSS} | "
@@ -18,7 +21,6 @@ FORMAT = (
 logger.add("server.log", format=FORMAT, level="INFO", rotation="1 week", retention="90 days")
 
 prefix = "/api/v1"
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -84,48 +86,13 @@ def create_app() -> FastAPI:
         max_age=settings.CORS_MAX_AGE,
     )
 
+    # /*--------------------------------------- diagnosis ------------------------------------------*/
     app.include_router(
-        health.router,
+        diagnosis.router,
         prefix=prefix,
-        tags=["System"],
+        tags=["diagnosis"],
         responses={
-            500: {"description": "Internal server error"},
-            503: {"description": "Service unavailable"},
-        },
-    )
-    # /*--------------------------------------- user ------------------------------------------*/
-    app.include_router(
-        user.router,
-        prefix=prefix,
-        tags=["User"],
-        responses={
-            404: {"description": "User not found"},
-            400: {"description": "Bad request"},
-            401: {"description": "Unauthorized"},
-            403: {"description": "Forbidden"},
-            500: {"description": "用户服务错误"},
-        },
-    )
-    # /*--------------------------------------- login ------------------------------------------*/
-    app.include_router(
-        auth.router,
-        prefix=prefix,
-        tags=["Auth"],
-        responses={
-            404: {"description": "Auth not found"},
-            400: {"description": "Bad request"},
-            401: {"description": "Unauthorized"},
-            403: {"description": "Forbidden"},
-            500: {"description": "认证服务错误"},
-        },
-    )
-    # /*--------------------------------------- sessions ------------------------------------------*/
-    app.include_router(
-        sessions.router,
-        prefix=prefix,
-        tags=["Sessions"],
-        responses={
-            404: {"description": "Session not found"},
+            404: {"description": "Diagnosis not found"},
             400: {"description": "Bad request"},
             401: {"description": "Unauthorized"},
             403: {"description": "Forbidden"},
@@ -194,4 +161,5 @@ def main():
     run_server()
 
 if __name__ == "__main__":
+
     main()

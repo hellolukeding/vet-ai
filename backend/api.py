@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import traceback
 
 import uvicorn
 from fastapi import FastAPI
@@ -27,10 +28,11 @@ async def lifespan(app: FastAPI):
     logger.info("初始化系统资源")
 
     try:
-
+        # 可以在这里添加初始化代码
         yield
     except Exception as e:
         logger.error(f"应用启动失败: {e}")
+        logger.error(f"详细错误信息: {traceback.format_exc()}")
         raise
 
     finally:
@@ -100,50 +102,23 @@ def create_app() -> FastAPI:
         },
     )
 
-    # Configure OpenAPI security scheme for JWT
-    app.openapi_schema = None  # Reset to regenerate with security scheme
+    @app.get("/health", summary="健康检查", tags=["health"])
+    async def health_check():
+        """健康检查端点"""
+        return {"status": "healthy", "message": "服务运行正常"}
 
     return app
 
 
-def custom_api():
-    if app.openapi_schema:
-        return app.openapi_schema
-    openapi_schema = get_openapi(
-        title=app.title,
-        version=app.version,
-        description=app.description,
-        routes=app.routes,
-        contact=app.contact,
-        license_info=app.license_info,
-        terms_of_service=app.terms_of_service,
+if __name__ == "__main__":
+    app = create_app()
+    uvicorn.run(
+        "backend.api:app",
+        host=settings.HOST,
+        port=settings.PORT,
+        reload=settings.DEBUG,
+        log_level="info"
     )
-    # Add JWT Bearer security scheme
-    openapi_schema["components"]["securitySchemes"] = {
-        "BearerAuth": {
-            "type": "http",
-            "scheme": "bearer",
-            "bearerFormat": "JWT",
-            "description": "Enter your JWT token in the format: your-jwt-token",
-        }
-    }
-
-    # Add WebSocket message schemas
-    if "components" not in openapi_schema:
-        openapi_schema["components"] = {}
-    if "schemas" not in openapi_schema["components"]:
-        openapi_schema["components"]["schemas"] = {}
-
-    # Add security to protected endpoints
-    for path_name, path_item in openapi_schema["paths"].items():
-        # Add security to auth and users endpoints (protected routes)
-        if "/auth/me" in path_name or "/users/" in path_name:
-            for method_name, method_item in path_item.items():
-                if method_name in ["get", "post", "put", "delete", "patch"]:
-                    method_item["security"] = [{"BearerAuth": []}]
-
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
 
 app = create_app()
 

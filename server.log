@@ -2726,3 +2726,36 @@ Since my previous attempt was incomplete due to parsing issues in the function c
 2025-08-01 20:31:54.059 | INFO     | 81481 | MainThread | core.ai_diagnosis.diagnosis:__init__:146 | Model Name: ZhipuAI/GLM-4.5
 2025-08-01 20:31:54.059 | INFO     | 81481 | MainThread | core.ai_diagnosis.diagnosis:__init__:147 | Base URL: https://api-inference.modelscope.cn/v1
 2025-08-01 20:31:54.059 | INFO     | 81481 | MainThread | core.ai_diagnosis.diagnosis:__init__:148 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 20:34:47.187 | INFO     | 82875 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:35:16.849 | INFO     | 82875 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:35:17.722 | INFO     | 83105 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:36:34.605 | INFO     | 83105 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:36:35.413 | INFO     | 83691 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:36:50.314 | INFO     | 83691 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:36:51.155 | INFO     | 83813 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:37:12.294 | INFO     | 83813 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:37:13.239 | INFO     | 83966 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:37:39.174 | INFO     | 83966 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:37:40.019 | INFO     | 84169 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:37:43.362 | INFO     | 84169 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:37:44.201 | INFO     | 84205 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:38:01.812 | INFO     | 84205 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:38:02.704 | INFO     | 84362 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:38:16.997 | INFO     | 84362 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:38:17.842 | INFO     | 84487 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:38:29.174 | INFO     | 84487 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:38:30.002 | INFO     | 84790 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:38:34.138 | INFO     | 84790 | MainThread | backend.routers.diagnosis:create_diagnosis:85 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 20:38:34.148 | INFO     | 84790 | MainThread | core.ai_diagnosis.herb_diagnosis:__init__:192 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 20:38:34.148 | INFO     | 84790 | MainThread | core.ai_diagnosis.herb_diagnosis:__init__:193 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 20:38:34.149 | INFO     | 84790 | MainThread | core.ai_diagnosis.herb_diagnosis:__init__:194 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 20:38:53.693 | INFO     | 84958 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:39:58.248 | INFO     | 84958 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:39:59.109 | INFO     | 85440 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:40:02.455 | INFO     | 85440 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:40:03.308 | INFO     | 85479 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:40:04.365 | INFO     | 85479 | MainThread | backend.routers.diagnosis:create_diagnosis:85 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 20:40:04.375 | INFO     | 85479 | MainThread | core.ai_diagnosis.herb_diagnosis:__init__:192 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 20:40:04.376 | INFO     | 85479 | MainThread | core.ai_diagnosis.herb_diagnosis:__init__:193 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 20:40:04.377 | INFO     | 85479 | MainThread | core.ai_diagnosis.herb_diagnosis:__init__:194 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 20:40:20.828 | INFO     | 85608 | MainThread | backend.api:lifespan:28 | 初始化系统资源

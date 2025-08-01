@@ -1,8 +1,9 @@
+import type React from "react";
 import { HealthiconsMedicines24px } from "../icons";
 
 interface VetSubCardProps {
     children?: React.ReactNode;
-    medicine: string;
+    medicine: React.ReactNode;
 }
 
 const VetSubCard: React.FC<VetSubCardProps> = (props) => {

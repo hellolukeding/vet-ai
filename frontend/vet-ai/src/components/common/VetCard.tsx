@@ -12,7 +12,7 @@ const VetCard: React.FC<VetCardProps> = (props) => {
                 <GisLayerStack className="text-[#8093f3] inline-block font-bold mr-2" />
                 {props.title}
             </h3>
-            <div>
+            <div className="font-bold text-sm">
                 {props.children}
             </div>
         </section>

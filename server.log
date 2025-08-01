@@ -2309,3 +2309,420 @@ Since my previous attempt was incomplete due to parsing issues in the function c
 2025-07-31 23:32:16.302 | INFO     | 53033 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
 2025-07-31 23:32:17.238 | INFO     | 53119 | MainThread | backend.api:lifespan:28 | 初始化系统资源
 2025-07-31 23:32:20.627 | INFO     | 53119 | MainThread | backend.routers.diagnosis:create_diagnosis:19 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-07-31 23:50:30.231 | INFO     | 67911 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-07-31 23:53:33.378 | INFO     | 67911 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-07-31 23:53:34.847 | INFO     | 70391 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-07-31 23:53:44.994 | INFO     | 70391 | MainThread | backend.routers.diagnosis:create_diagnosis:19 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-07-31 23:56:34.147 | INFO     | 72802 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-07-31 23:57:32.451 | INFO     | 72802 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-07-31 23:57:33.755 | INFO     | 73598 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-07-31 23:57:45.203 | INFO     | 73598 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-07-31 23:57:46.350 | INFO     | 73792 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-07-31 23:58:39.337 | INFO     | 73792 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-07-31 23:58:40.497 | INFO     | 74553 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-07-31 23:59:50.721 | INFO     | 74553 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-07-31 23:59:51.828 | INFO     | 75521 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 00:00:10.287 | INFO     | 75521 | MainThread | backend.routers.diagnosis:create_diagnosis:19 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 00:03:44.400 | INFO     | 78676 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 00:05:28.513 | INFO     | 78676 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 00:05:29.514 | INFO     | 80063 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 00:05:36.078 | INFO     | 80063 | MainThread | backend.routers.diagnosis:create_diagnosis:19 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 00:07:22.846 | INFO     | 81596 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 00:07:40.170 | INFO     | 81596 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 00:07:41.039 | INFO     | 81833 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 00:07:44.382 | INFO     | 81833 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 00:07:45.259 | INFO     | 81911 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 00:08:12.258 | INFO     | 81911 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 00:08:13.328 | INFO     | 82273 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 00:08:21.533 | INFO     | 82273 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 00:08:22.410 | INFO     | 82423 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 00:08:24.481 | INFO     | 82423 | MainThread | backend.routers.diagnosis:create_diagnosis:19 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 00:36:59.869 | INFO     | 5623 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 00:37:21.123 | INFO     | 5623 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 00:37:22.204 | INFO     | 5956 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 00:38:55.905 | INFO     | 5956 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 00:38:57.012 | INFO     | 7214 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 00:40:59.050 | INFO     | 7214 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 00:41:00.130 | INFO     | 8904 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 00:41:04.893 | INFO     | 8904 | MainThread | backend.routers.diagnosis:create_herb_diagnosis:81 | 开始处理草药诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 00:45:26.126 | INFO     | 12447 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 00:47:22.724 | INFO     | 12447 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 00:47:23.975 | INFO     | 14023 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 00:48:10.920 | INFO     | 14023 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 00:48:12.147 | INFO     | 14709 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 00:51:14.544 | INFO     | 14709 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 00:51:15.628 | INFO     | 17156 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 00:51:57.935 | INFO     | 17156 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 00:51:58.985 | INFO     | 17766 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 00:52:00.934 | INFO     | 17766 | MainThread | backend.routers.diagnosis:create_herb_diagnosis:81 | 开始处理草药诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 01:43:40.484 | INFO     | 49098 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 01:44:06.524 | INFO     | 49098 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 01:46:52.719 | INFO     | 51788 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 01:47:13.018 | INFO     | 51788 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 01:52:57.782 | INFO     | 56621 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 01:53:26.801 | INFO     | 56621 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 02:01:11.730 | INFO     | 63132 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 02:03:56.015 | INFO     | 63132 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 02:03:57.191 | INFO     | 65305 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 02:04:11.406 | INFO     | 65305 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 02:04:12.470 | INFO     | 65556 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 02:04:34.980 | INFO     | 65556 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 02:04:35.935 | INFO     | 65875 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 02:26:16.124 | INFO     | 65875 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 02:26:17.501 | INFO     | 74088 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 02:27:47.898 | INFO     | 74088 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 02:27:49.392 | INFO     | 75339 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 02:28:24.232 | INFO     | 75339 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 02:28:25.308 | INFO     | 75841 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 02:28:29.092 | INFO     | 75841 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 02:36:19.069 | INFO     | 82075 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 02:37:08.348 | INFO     | 82075 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 02:37:09.414 | INFO     | 82734 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 02:37:12.934 | INFO     | 82734 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 02:46:22.045 | INFO     | 90018 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 02:46:35.528 | INFO     | 90018 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 02:46:36.596 | INFO     | 90232 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 16:15:56.568 | INFO     | 90232 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 16:15:57.762 | INFO     | 64568 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 16:16:01.096 | INFO     | 64568 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 16:16:01.954 | INFO     | 64619 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 17:48:45.350 | INFO     | 64619 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 17:48:46.475 | INFO     | 95050 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 17:48:59.129 | INFO     | 95050 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 17:48:59.969 | INFO     | 95157 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 17:50:05.227 | INFO     | 95157 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 17:50:06.096 | INFO     | 95623 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 17:56:16.067 | INFO     | 95623 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 17:56:17.223 | INFO     | 98332 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 17:58:05.982 | INFO     | 98332 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 17:58:06.882 | INFO     | 99141 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:01:34.302 | INFO     | 99141 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:07:21.470 | INFO     | 4707 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:08:05.327 | INFO     | 4707 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:08:06.152 | INFO     | 5342 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:09:32.022 | INFO     | 5342 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:09:32.877 | INFO     | 5976 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:11:15.410 | INFO     | 5976 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:11:16.226 | INFO     | 7128 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:11:30.522 | INFO     | 7128 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:11:31.377 | INFO     | 7338 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:11:55.103 | INFO     | 7338 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:11:55.961 | INFO     | 7634 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:17:49.398 | INFO     | 7634 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:17:50.313 | INFO     | 10770 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:17:53.968 | INFO     | 10770 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:17:54.855 | INFO     | 10809 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:18:09.528 | INFO     | 10809 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:18:10.333 | INFO     | 11078 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:19:28.258 | INFO     | 11078 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:19:29.142 | INFO     | 11678 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:20:24.463 | INFO     | 11678 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:20:25.301 | INFO     | 12249 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:21:17.974 | INFO     | 12249 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:21:18.810 | INFO     | 12755 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:24:29.751 | INFO     | 12755 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:24:30.571 | INFO     | 14328 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:24:53.668 | INFO     | 14328 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:24:54.523 | INFO     | 14511 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:25:26.240 | INFO     | 14511 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:25:27.063 | INFO     | 14751 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:25:40.751 | INFO     | 14751 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:25:41.576 | INFO     | 14864 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:26:18.726 | INFO     | 14864 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:26:19.614 | INFO     | 15131 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:26:24.389 | INFO     | 15131 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:26:25.251 | INFO     | 15180 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:27:03.664 | INFO     | 15180 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:27:04.468 | INFO     | 15456 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:27:12.155 | INFO     | 15456 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:27:13.003 | INFO     | 15519 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:27:23.947 | INFO     | 15519 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:27:24.782 | INFO     | 15607 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:27:48.119 | INFO     | 15607 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:27:49.001 | INFO     | 15983 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:28:02.401 | INFO     | 15983 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:28:03.266 | INFO     | 16094 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:31:30.122 | INFO     | 16094 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:31:30.923 | INFO     | 20305 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:33:13.744 | INFO     | 20305 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:33:14.547 | INFO     | 21150 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:41:22.893 | INFO     | 21150 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:41:24.191 | INFO     | 24641 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:42:10.519 | INFO     | 24641 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:42:11.676 | INFO     | 25009 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:42:35.577 | INFO     | 25009 | MainThread | backend.routers.diagnosis:create_diagnosis:21 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 18:42:35.587 | INFO     | 25009 | MainThread | core.ai_diagnosis.diagnosis:__init__:35 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 18:42:35.590 | INFO     | 25009 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 18:42:35.591 | INFO     | 25009 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 18:43:13.629 | INFO     | 25502 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:43:15.076 | INFO     | 25502 | MainThread | backend.routers.diagnosis:create_diagnosis:21 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 18:43:15.083 | INFO     | 25502 | MainThread | core.ai_diagnosis.diagnosis:__init__:35 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 18:43:15.084 | INFO     | 25502 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 18:43:15.084 | INFO     | 25502 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 18:43:42.700 | INFO     | 25731 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:43:50.898 | INFO     | 25731 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:43:51.933 | INFO     | 25797 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:43:59.839 | INFO     | 25797 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:44:00.868 | INFO     | 25866 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:44:01.274 | INFO     | 25866 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:44:02.324 | INFO     | 25887 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:44:05.764 | INFO     | 25887 | MainThread | backend.routers.diagnosis:create_diagnosis:21 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 18:44:05.773 | INFO     | 25887 | MainThread | core.ai_diagnosis.diagnosis:__init__:35 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 18:44:05.774 | INFO     | 25887 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 18:44:05.774 | INFO     | 25887 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 18:47:09.498 | INFO     | 27247 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:47:12.395 | INFO     | 27247 | MainThread | backend.routers.diagnosis:create_diagnosis:21 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 18:47:12.403 | INFO     | 27247 | MainThread | core.ai_diagnosis.diagnosis:__init__:35 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 18:47:12.404 | INFO     | 27247 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 18:47:12.405 | INFO     | 27247 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 18:51:06.831 | INFO     | 28910 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:52:23.243 | INFO     | 28910 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:52:24.272 | INFO     | 29494 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:54:29.483 | INFO     | 29494 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:54:30.488 | INFO     | 30407 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:54:45.461 | INFO     | 30407 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:54:46.481 | INFO     | 30529 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:54:57.715 | INFO     | 30529 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:54:58.735 | INFO     | 30624 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:55:09.166 | INFO     | 30624 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:55:10.224 | INFO     | 30710 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:55:27.053 | INFO     | 30710 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:55:28.063 | INFO     | 30848 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:55:40.202 | INFO     | 30848 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:55:41.236 | INFO     | 30957 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:55:46.569 | INFO     | 30957 | MainThread | backend.routers.diagnosis:create_diagnosis:21 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 18:55:46.579 | INFO     | 30957 | MainThread | core.ai_diagnosis.diagnosis:__init__:35 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 18:55:46.579 | INFO     | 30957 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 18:55:46.581 | INFO     | 30957 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 18:59:28.065 | INFO     | 32541 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 18:59:36.883 | INFO     | 32541 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 18:59:37.913 | INFO     | 32621 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:00:04.680 | INFO     | 32621 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:00:05.738 | INFO     | 32831 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:00:20.432 | INFO     | 32831 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:00:21.471 | INFO     | 32939 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:00:48.635 | INFO     | 32939 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:00:49.664 | INFO     | 33163 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:01:22.544 | INFO     | 33163 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:01:23.822 | INFO     | 33412 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:01:29.997 | INFO     | 33412 | MainThread | backend.routers.diagnosis:create_diagnosis:21 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 19:01:30.005 | INFO     | 33412 | MainThread | core.ai_diagnosis.diagnosis:__init__:35 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 19:01:30.006 | INFO     | 33412 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 19:01:30.007 | INFO     | 33412 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 19:05:47.544 | INFO     | 37445 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:06:39.069 | INFO     | 37445 | MainThread | backend.routers.diagnosis:create_diagnosis:21 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 19:06:39.071 | INFO     | 37445 | MainThread | core.ai_diagnosis.diagnosis:__init__:35 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 19:06:39.071 | INFO     | 37445 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 19:06:39.071 | INFO     | 37445 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 19:07:34.280 | INFO     | 38635 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:08:31.863 | INFO     | 38635 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:08:32.907 | INFO     | 39048 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:08:40.707 | INFO     | 39048 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:08:41.786 | INFO     | 39114 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:08:53.685 | INFO     | 39114 | MainThread | backend.routers.diagnosis:create_diagnosis:21 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 19:08:53.687 | INFO     | 39114 | MainThread | core.ai_diagnosis.diagnosis:__init__:35 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 19:08:53.687 | INFO     | 39114 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 19:08:53.687 | INFO     | 39114 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 19:10:48.328 | INFO     | 40509 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:10:50.774 | INFO     | 40509 | MainThread | backend.routers.diagnosis:create_diagnosis:21 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 19:10:50.776 | INFO     | 40509 | MainThread | core.ai_diagnosis.diagnosis:__init__:35 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 19:10:50.777 | INFO     | 40509 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 19:10:50.777 | INFO     | 40509 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 19:12:24.663 | INFO     | 41195 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:12:25.875 | INFO     | 41195 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:12:26.911 | INFO     | 41233 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:12:29.148 | INFO     | 41233 | MainThread | backend.routers.diagnosis:create_diagnosis:21 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 19:12:29.150 | INFO     | 41233 | MainThread | core.ai_diagnosis.diagnosis:__init__:35 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 19:12:29.150 | INFO     | 41233 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 19:12:29.150 | INFO     | 41233 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 19:13:42.640 | INFO     | 42058 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:14:03.823 | INFO     | 42058 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:14:04.902 | INFO     | 42223 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:14:15.307 | INFO     | 42223 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:14:16.317 | INFO     | 42327 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:14:26.784 | INFO     | 42327 | MainThread | backend.routers.diagnosis:create_diagnosis:21 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 19:14:26.786 | INFO     | 42327 | MainThread | core.ai_diagnosis.diagnosis:__init__:35 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 19:14:26.786 | INFO     | 42327 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 19:14:26.786 | INFO     | 42327 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 19:15:05.119 | INFO     | 43091 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:15:55.108 | INFO     | 43091 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:15:56.146 | INFO     | 43465 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:16:38.475 | INFO     | 43465 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:16:40.079 | INFO     | 43806 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:17:08.409 | INFO     | 43806 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:17:09.456 | INFO     | 44032 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:17:23.681 | INFO     | 44032 | MainThread | backend.routers.diagnosis:create_herb_diagnosis:81 | 开始处理草药诊断请求: 姓名凯凯，为一雌性金毛犬，现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。
+2025-08-01 19:21:08.299 | INFO     | 46189 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:21:13.629 | INFO     | 46189 | MainThread | backend.routers.diagnosis:create_herb_diagnosis:81 | 开始处理草药诊断请求: 狗狗拉稀、没精神、食欲不振
+2025-08-01 19:21:13.638 | INFO     | 46189 | MainThread | core.ai_diagnosis.herb_diagnosis:__init__:27 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 19:21:13.638 | INFO     | 46189 | MainThread | core.ai_diagnosis.herb_diagnosis:__init__:28 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 19:21:13.638 | INFO     | 46189 | MainThread | core.ai_diagnosis.herb_diagnosis:__init__:29 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 19:22:37.752 | INFO     | 47498 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:23:54.281 | INFO     | 47498 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:23:55.290 | INFO     | 48058 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:24:01.782 | INFO     | 48058 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:24:02.834 | INFO     | 48132 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:24:05.593 | INFO     | 48132 | MainThread | backend.routers.diagnosis:create_diagnosis:21 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 19:24:05.600 | INFO     | 48132 | MainThread | core.ai_diagnosis.diagnosis:__init__:35 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 19:24:05.601 | INFO     | 48132 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 19:24:05.601 | INFO     | 48132 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 19:26:02.464 | INFO     | 48994 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:26:17.653 | INFO     | 48994 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:26:18.672 | INFO     | 49119 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:26:33.464 | INFO     | 49119 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:26:34.524 | INFO     | 49239 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:27:04.103 | INFO     | 49239 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:27:05.156 | INFO     | 49454 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:27:23.399 | INFO     | 49454 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:27:24.380 | INFO     | 49603 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:27:36.419 | INFO     | 49603 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:27:37.439 | INFO     | 49690 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:27:53.148 | INFO     | 49690 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:27:54.136 | INFO     | 49811 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:29:17.724 | INFO     | 49811 | MainThread | backend.routers.diagnosis:create_diagnosis:21 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 19:29:17.728 | INFO     | 49811 | MainThread | core.ai_diagnosis.diagnosis:__init__:35 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 19:29:17.729 | INFO     | 49811 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 19:29:17.729 | INFO     | 49811 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 19:30:24.646 | INFO     | 51490 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:30:41.338 | INFO     | 51490 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:30:42.334 | INFO     | 51632 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:31:00.171 | INFO     | 51632 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:31:01.175 | INFO     | 51762 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:31:15.157 | INFO     | 51762 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:31:16.186 | INFO     | 51872 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:31:47.889 | INFO     | 51872 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:31:48.890 | INFO     | 52414 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:34:53.904 | INFO     | 52414 | MainThread | backend.routers.diagnosis:create_diagnosis:21 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 19:34:53.914 | INFO     | 52414 | MainThread | core.ai_diagnosis.diagnosis:__init__:35 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 19:34:53.914 | INFO     | 52414 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 19:34:53.915 | INFO     | 52414 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 19:42:03.146 | INFO     | 56735 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:42:51.533 | INFO     | 56735 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:42:52.600 | INFO     | 57098 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:42:54.702 | INFO     | 57098 | MainThread | backend.routers.diagnosis:create_diagnosis:21 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 19:42:54.712 | INFO     | 57098 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 19:42:54.712 | INFO     | 57098 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 19:42:54.713 | INFO     | 57098 | MainThread | core.ai_diagnosis.diagnosis:__init__:38 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 19:43:11.900 | INFO     | 57245 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:43:15.760 | INFO     | 57245 | MainThread | backend.routers.diagnosis:create_diagnosis:21 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 19:43:15.765 | INFO     | 57245 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 19:43:15.767 | INFO     | 57245 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 19:43:15.768 | INFO     | 57245 | MainThread | core.ai_diagnosis.diagnosis:__init__:38 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 19:45:36.730 | INFO     | 58739 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:45:51.755 | INFO     | 58739 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:45:52.808 | INFO     | 58852 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:46:01.933 | INFO     | 58852 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:46:02.948 | INFO     | 58936 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:47:20.172 | INFO     | 58936 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:47:21.189 | INFO     | 59486 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:47:35.662 | INFO     | 59486 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:47:36.661 | INFO     | 59606 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:48:03.539 | INFO     | 59606 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:48:04.546 | INFO     | 59821 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:48:13.557 | INFO     | 59821 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:48:14.573 | INFO     | 59901 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:48:32.321 | INFO     | 59901 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 19:48:33.347 | INFO     | 60038 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:49:19.584 | INFO     | 60038 | MainThread | backend.routers.diagnosis:create_diagnosis:21 | 开始处理诊断请求: 我的宠物猫最近食欲不振，偶尔呕吐，精神状态不太好
+2025-08-01 19:49:19.589 | INFO     | 60038 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 19:49:19.590 | INFO     | 60038 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 19:49:19.590 | INFO     | 60038 | MainThread | core.ai_diagnosis.diagnosis:__init__:38 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 19:50:23.354 | INFO     | 61294 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 19:51:50.188 | INFO     | 61294 | MainThread | backend.routers.diagnosis:create_diagnosis:21 | 开始处理诊断请求: 猫咪食欲不振，呕吐
+2025-08-01 19:51:50.193 | INFO     | 61294 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 19:51:50.193 | INFO     | 61294 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 19:51:50.193 | INFO     | 61294 | MainThread | core.ai_diagnosis.diagnosis:__init__:38 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 20:02:00.911 | INFO     | 66447 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:02:15.585 | INFO     | 66447 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:02:16.441 | INFO     | 66578 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:02:32.544 | INFO     | 66578 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:02:33.551 | INFO     | 66711 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:02:58.147 | INFO     | 66711 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:02:59.177 | INFO     | 66912 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:03:33.176 | INFO     | 66912 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:03:34.229 | INFO     | 67161 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:03:37.126 | INFO     | 67161 | MainThread | backend.routers.diagnosis:create_diagnosis:19 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 20:05:20.734 | INFO     | 68178 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:05:24.393 | INFO     | 68178 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 20:05:24.402 | INFO     | 68178 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 20:05:24.403 | INFO     | 68178 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 20:05:24.403 | INFO     | 68178 | MainThread | core.ai_diagnosis.diagnosis:__init__:38 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 20:05:59.165 | INFO     | 68472 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:06:03.184 | INFO     | 68472 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 20:06:03.196 | INFO     | 68472 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 20:06:03.197 | INFO     | 68472 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 20:06:03.197 | INFO     | 68472 | MainThread | core.ai_diagnosis.diagnosis:__init__:38 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 20:07:21.077 | INFO     | 69060 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:07:23.988 | INFO     | 69060 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 20:07:23.998 | INFO     | 69060 | MainThread | core.ai_diagnosis.diagnosis:__init__:36 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 20:07:24.000 | INFO     | 69060 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 20:07:24.000 | INFO     | 69060 | MainThread | core.ai_diagnosis.diagnosis:__init__:38 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 20:08:36.214 | INFO     | 69622 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:09:25.915 | INFO     | 69622 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:09:26.980 | INFO     | 69973 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:09:36.901 | INFO     | 69973 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:09:37.917 | INFO     | 70068 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:09:41.963 | INFO     | 70068 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:09:43.021 | INFO     | 70107 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:11:01.575 | INFO     | 70107 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:11:02.573 | INFO     | 70700 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:14:17.497 | INFO     | 70700 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:14:18.618 | INFO     | 72086 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:14:27.381 | INFO     | 72086 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 20:14:27.392 | INFO     | 72086 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 20:14:27.393 | INFO     | 72086 | MainThread | core.ai_diagnosis.diagnosis:__init__:38 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 20:14:27.393 | INFO     | 72086 | MainThread | core.ai_diagnosis.diagnosis:__init__:39 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 20:14:52.593 | INFO     | 72351 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:15:00.997 | INFO     | 72351 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 20:15:01.007 | INFO     | 72351 | MainThread | core.ai_diagnosis.diagnosis:__init__:37 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 20:15:01.008 | INFO     | 72351 | MainThread | core.ai_diagnosis.diagnosis:__init__:38 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 20:15:01.011 | INFO     | 72351 | MainThread | core.ai_diagnosis.diagnosis:__init__:39 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 20:17:38.782 | INFO     | 73532 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:17:51.689 | INFO     | 73532 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 20:17:51.695 | INFO     | 73532 | MainThread | core.ai_diagnosis.diagnosis:__init__:77 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 20:17:51.696 | INFO     | 73532 | MainThread | core.ai_diagnosis.diagnosis:__init__:78 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 20:17:51.696 | INFO     | 73532 | MainThread | core.ai_diagnosis.diagnosis:__init__:79 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 20:19:09.523 | INFO     | 74215 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:19:14.893 | INFO     | 74215 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 20:19:14.901 | INFO     | 74215 | MainThread | core.ai_diagnosis.diagnosis:__init__:77 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 20:19:14.902 | INFO     | 74215 | MainThread | core.ai_diagnosis.diagnosis:__init__:78 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 20:19:14.902 | INFO     | 74215 | MainThread | core.ai_diagnosis.diagnosis:__init__:79 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 20:19:53.306 | INFO     | 74538 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:20:01.832 | INFO     | 74538 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 20:20:01.834 | INFO     | 74538 | MainThread | core.ai_diagnosis.diagnosis:__init__:77 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 20:20:01.834 | INFO     | 74538 | MainThread | core.ai_diagnosis.diagnosis:__init__:78 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 20:20:01.834 | INFO     | 74538 | MainThread | core.ai_diagnosis.diagnosis:__init__:79 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 20:21:43.209 | INFO     | 75305 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:21:44.039 | INFO     | 75305 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 20:21:44.048 | INFO     | 75305 | MainThread | core.ai_diagnosis.diagnosis:__init__:80 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 20:21:44.048 | INFO     | 75305 | MainThread | core.ai_diagnosis.diagnosis:__init__:81 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 20:21:44.049 | INFO     | 75305 | MainThread | core.ai_diagnosis.diagnosis:__init__:82 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 20:24:12.064 | INFO     | 76373 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:25:36.497 | INFO     | 76373 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:25:37.362 | INFO     | 77060 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:25:48.715 | INFO     | 77060 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 20:25:48.725 | INFO     | 77060 | MainThread | core.ai_diagnosis.diagnosis:__init__:80 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 20:25:48.728 | INFO     | 77060 | MainThread | core.ai_diagnosis.diagnosis:__init__:81 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 20:25:48.728 | INFO     | 77060 | MainThread | core.ai_diagnosis.diagnosis:__init__:82 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 20:26:15.755 | INFO     | 77386 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:26:17.184 | INFO     | 77386 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 20:26:17.198 | INFO     | 77386 | MainThread | core.ai_diagnosis.diagnosis:__init__:80 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 20:26:17.199 | INFO     | 77386 | MainThread | core.ai_diagnosis.diagnosis:__init__:81 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 20:26:17.199 | INFO     | 77386 | MainThread | core.ai_diagnosis.diagnosis:__init__:82 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 20:27:32.003 | INFO     | 77946 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:28:08.370 | INFO     | 77946 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 20:28:08.386 | INFO     | 77946 | MainThread | core.ai_diagnosis.diagnosis:__init__:80 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 20:28:08.386 | INFO     | 77946 | MainThread | core.ai_diagnosis.diagnosis:__init__:81 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 20:28:08.387 | INFO     | 77946 | MainThread | core.ai_diagnosis.diagnosis:__init__:82 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 20:30:32.193 | INFO     | 79235 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:31:00.459 | INFO     | 79235 | MainThread | backend.api:lifespan:39 | 正在清理应用资源...
+2025-08-01 20:31:01.279 | INFO     | 81087 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:31:03.526 | INFO     | 81087 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 20:31:03.535 | INFO     | 81087 | MainThread | core.ai_diagnosis.diagnosis:__init__:146 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 20:31:03.536 | INFO     | 81087 | MainThread | core.ai_diagnosis.diagnosis:__init__:147 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 20:31:03.536 | INFO     | 81087 | MainThread | core.ai_diagnosis.diagnosis:__init__:148 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d
+2025-08-01 20:31:53.096 | INFO     | 81481 | MainThread | backend.api:lifespan:28 | 初始化系统资源
+2025-08-01 20:31:54.048 | INFO     | 81481 | MainThread | backend.routers.diagnosis:create_diagnosis:20 | 开始处理诊断请求: 姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。疑似犬瘟热
+2025-08-01 20:31:54.059 | INFO     | 81481 | MainThread | core.ai_diagnosis.diagnosis:__init__:146 | Model Name: ZhipuAI/GLM-4.5
+2025-08-01 20:31:54.059 | INFO     | 81481 | MainThread | core.ai_diagnosis.diagnosis:__init__:147 | Base URL: https://api-inference.modelscope.cn/v1
+2025-08-01 20:31:54.059 | INFO     | 81481 | MainThread | core.ai_diagnosis.diagnosis:__init__:148 | API Key: ms-d3532402-86de-4e6d-b60d-158e0851895d

@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 
 from backend.element.ele_diagnosis import CreateDiagnosisRequest
 from config.logger import logger
+from core.ai_diagnosis.diagnosis import Diagnosis
 from core.ai_diagnosis.re_diagnosis import ReDiagnosis
 
 router = APIRouter()
@@ -31,8 +32,8 @@ async def create_diagnosis(
                     "code": status.HTTP_400_BAD_REQUEST
                 }
             )
-        re_diagnosis = ReDiagnosis()
-        result = re_diagnosis.dialog_diagnosis(diagnosis_data.description)
+        diagnosis = Diagnosis()
+        result = diagnosis.diagnosis(diagnosis_data.description)
         logger.info(f"result: {result}")
         # 确保返回的数据格式正确
         if not isinstance(result, list):

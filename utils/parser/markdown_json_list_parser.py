@@ -246,7 +246,15 @@ def extract_clean_json(raw_output: str) -> Union[List[Dict[str, Any]], None]:
         logger.info("extract_clean_json: 使用 format_json_diagnosis 成功")
         return fmt_res.content
 
-    # Step 3: fallback 尝试清洗和直接 json.loads
+    # Step 3: 尝试使用repair_broken_json修复
+    repair_res = repair_broken_json(raw_json_str)
+    if repair_res.status == ServiceExecStatus.SUCCESS:
+        logger.info("extract_clean_json: 使用 repair_broken_json 成功")
+        # 验证结果是列表
+        if isinstance(repair_res.content, list):
+            return repair_res.content
+
+    # Step 4: fallback 尝试清洗和直接 json.loads
     try:
         fallback_cleaned = re.sub(r"[‘’“”]", '"', raw_output)  # 替换中文引号
         fallback_cleaned = re.sub(r"```json|```", "", fallback_cleaned).strip()

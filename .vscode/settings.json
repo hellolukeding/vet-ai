@@ -1,3 +1,4 @@
 {
-  "cSpell.words": ["agentscope", "dotenv", "msghub"]
+  "cSpell.words": ["agentscope", "dotenv", "msghub"],
+  "commentTranslate.hover.enabled": false
 }

@@ -1,6 +1,5 @@
-from .diagnosis import Diagnosis, cus_diagnosis
+from .diagnosis import Diagnosis
 
 __all__ = [
     "Diagnosis",
-    "cus_diagnosis",
 ]

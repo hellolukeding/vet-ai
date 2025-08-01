@@ -21,6 +21,18 @@ def clean_json_string(json_str: str) -> str:
     # 修复多余的控制字符
     json_str = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', json_str)
     
+    # 修复键中的换行符和多余空格
+    json_str = re.sub(r'"\s*\n\s*"', '""', json_str)  # 修复被换行符分隔的空字符串键
+    json_str = re.sub(r'"(\w+)\s*\n\s*"', r'"\1"', json_str)  # 修复键中的换行
+    json_str = re.sub(r'"\s*\n\s*([^"]+)"', r'"\1"', json_str)  # 修复键中的换行和空格
+    
+    # 修复值中的换行符
+    json_str = re.sub(r'(:\s*)"\s*\n\s*([^"]*)\s*\n\s*"', r'\1"\2"', json_str)
+    
+    # 修复键名中的空格和换行
+    json_str = re.sub(r'"([^"]*)\s*\n\s*([^"]*)"', r'"\1\2"', json_str)
+    json_str = re.sub(r'"([^"]*)\s+([^"]*)"', r'"\1 \2"', json_str)
+    
     # 为没有引号的字符串值添加引号
     json_str = re.sub(r'(:\s*)([^\d\[\{\]\}\s"\'"][^,}\n]*?)([,\n}])', 
                      lambda m: f'{m.group(1)}"{m.group(2).strip()}"{m.group(3)}' 
@@ -83,6 +95,11 @@ def format_json_diagnosis(raw_json_str: str) -> ServiceResponse:
             # 确保必需字段存在
             required_keys = ["disease", "p", "base", "continue", "suggest"]
             for key in required_keys:
+                # 检查键是否为字符串类型
+                if not isinstance(key, str):
+                    logger.warning(f"项目 {i} 的键不是字符串类型: {type(key)}")
+                    continue
+                    
                 if key not in item:
                     # 尝试修复缩写字段
                     if key == "disease" and "d" in item:
@@ -93,15 +110,30 @@ def format_json_diagnosis(raw_json_str: str) -> ServiceResponse:
                         item["suggest"] = item.pop("sugg")
                     else:
                         item[key] = f"缺失的{key}字段"
+                        logger.warning(f"项目 {i} 缺少必需字段 {key}，已用默认值填充")
             
             # 确保置信度在有效范围内
             try:
                 item["p"] = float(item["p"])
                 if not (0 <= item["p"] <= 1):
+                    original_p = item["p"]
                     item["p"] = max(0, min(1, item["p"]))
+                    logger.warning(f"项目 {i} 的置信度值 {original_p} 超出有效范围，已调整为 {item['p']}")
             except (ValueError, TypeError):
                 item["p"] = 0.5
+                logger.warning(f"项目 {i} 的置信度格式无效，已设置默认值 0.5")
                 
+            # 处理可选的药物相关字段
+            optional_med_fields = [
+                "base_medicine", "base_medicine_usage", 
+                "continue_medicine", "continue_medicine_usage",
+                "suggest_medicine", "suggest_medicine_usage"
+            ]
+            
+            for field in optional_med_fields:
+                if field not in item:
+                    item[field] = ""
+            
             validated_items.append(item)
         
         return ServiceResponse(
@@ -167,22 +199,6 @@ def extract_json_block(text: str) -> ServiceResponse:
         )
 
 
-def return_result(result: Any) -> ServiceResponse:
-    """
-    返回最终结果
-    
-    Args:
-        result (Any): 要返回的结果
-        
-    Returns:
-        ServiceResponse: 包含结果的响应
-    """
-    return ServiceResponse(
-        status=ServiceExecStatus.SUCCESS,
-        content=result
-    )
-
-
 def repair_broken_json(text: str) -> ServiceResponse:
     """
     尝试修复格式错误或被破坏的 JSON 字符串。
@@ -212,8 +228,20 @@ def repair_broken_json(text: str) -> ServiceResponse:
                 .replace("＂", '"')
         )
 
+        # 修复键中的换行符和多余空格
+        text = re.sub(r'"\s*\n\s*"', '""', text)  # 修复被换行符分隔的空字符串键
+        text = re.sub(r'"(\w+)\s*\n\s*"', r'"\1"', text)  # 修复键中的换行
+        text = re.sub(r'"\s*\n\s*([^"]+)"', r'"\1"', text)  # 修复键中的换行和空格
+        
+        # 修复值中的换行符
+        text = re.sub(r'(:\s*)"\s*\n\s*([^"]*)\s*\n\s*"', r'\1"\2"', text)
+        
         # 修复错用的冒号（中文冒号）
         text = re.sub(r'“([^"]+)”\s*：', r'"\1":', text)
+        
+        # 修复键名中的空格和换行
+        text = re.sub(r'"([^"]*)\s*\n\s*([^"]*)"', r'"\1\2"', text)
+        text = re.sub(r'"([^"]*)\s+([^"]*)"', r'"\1 \2"', text)
 
         # 删除非法末尾逗号
         text = re.sub(r',(\s*[\]}])', r'\1', text)
@@ -225,7 +253,8 @@ def repair_broken_json(text: str) -> ServiceResponse:
             text += "}"
 
         # 清理换行、空行等
-        text = "\n".join([line.strip() for line in text.splitlines() if line.strip()])
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+        text = "".join(lines)
 
         # 最终尝试解析
         parsed = json.loads(text)
@@ -243,3 +272,20 @@ def repair_broken_json(text: str) -> ServiceResponse:
                 "raw_input": text
             }
         )
+
+
+def return_result(result: Any) -> ServiceResponse:
+    """
+    返回最终结果
+    
+    Args:
+        result (Any): 要返回的结果
+        
+    Returns:
+        ServiceResponse: 包含结果的响应
+    """
+    return ServiceResponse(
+        status=ServiceExecStatus.SUCCESS,
+        content=result
+    )
+

@@ -16,6 +16,7 @@ dependencies = [
     "python-dotenv>=1.1.1",
     "agentscope>=0.1.6",
     "loguru>=0.6.0",
+    "langchain-openai>=0.1.0",
     "pydantic-settings>=2.10.1",
     "pytest>=8.4.1",
     "pandas>=2.3.1",
@@ -46,4 +47,4 @@ testpaths = ["tests"]
 [project.scripts]
 # Console script to start the FastAPI application. Installs a `run-server` entry
 # that calls the `main` function in `backend.api` (which launches uvicorn).
-start-server = "backend.api:main"
+start_server = "backend.api:main"

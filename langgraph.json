@@ -1,0 +1,9 @@
+{
+  "python_modules": ["core/langgraph/agent.py"],
+  "graphs": {
+    "vet_agent": "core.langgraph.agent:graph"
+  },
+  "python_version": null,
+  "dependencies": ["langchain-openai"],
+  "env": ".env"
+}

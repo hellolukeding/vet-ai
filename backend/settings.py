@@ -1,6 +1,6 @@
 """Application configuration using Pydantic settings."""
 
-from typing import List
+from typing import List, Optional
 
 from pydantic import Field
 from pydantic_settings import BaseSettings
@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     WORKSPACE_ROOT: str = Field(description="WebSocket管理器的内部工作空间根目录")
     EXTERNAL_WORKSPACE_ROOT: str = Field(description="WebSocket管理器的外部工作空间根目录")
     INSIDE_DOCKER: bool = Field(description="应用是否运行在Docker容器内")
+
+    # LLM Configuration
+    MODEL_NAME: Optional[str] = Field(default="deepseek-ai/DeepSeek-V3", description="Model name for LLM")
+    BASE_URL: Optional[str] = Field(default="https://api-inference.modelscope.cn/v1", description="Base URL for LLM API")
+    API_KEY: Optional[str] = Field(default="", description="API key for LLM service")
 
     # Legacy database settings (kept for compatibility but not used)
     DATABASE_ECHO: bool = Field(description="Legacy setting, not used with MongoDB")

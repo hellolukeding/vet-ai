@@ -1,21 +1,28 @@
-from contextlib import asynccontextmanager
-import traceback
-import sys
-import os
+"""宠物医院AI诊断系统后端API入口文件"""
 
-# Add the project root to the Python path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# 导入日志配置
+import os
+import sys
+import traceback
+from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+# 导入FastAPI相关模块
 from fastapi.openapi.utils import get_openapi
 
-from backend.routers import diagnosis
+# 导入诊断路由
+from backend.routers import diagnosis_router, graph_router
+# 导入应用配置
+from backend.settings import settings
 from config.logger import logger
 
-from backend.settings import settings
+# 将项目根目录添加到Python路径中
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+
+# 定义日志格式
 FORMAT = (
     "{time:YYYY-MM-DD HH:mm:ss.SSS} | "
     "{level: <8} | "
@@ -24,12 +31,18 @@ FORMAT = (
     "{message}"
 )
 
-logger.add("server.log", format=FORMAT, level="INFO", rotation="1 week", retention="90 days")
+# 配置日志文件输出
+logger.add("server.log", format=FORMAT, level="INFO",
+           rotation="1 week", retention="90 days")
 
+# API前缀
 prefix = "/api/v1"
 
+
+# 应用生命周期管理器
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """应用生命周期管理函数"""
     logger.info("初始化系统资源")
 
     try:
@@ -45,7 +58,10 @@ async def lifespan(app: FastAPI):
         # todo
         pass
 
+
 def create_app() -> FastAPI:
+    """创建FastAPI应用实例"""
+    # 定义API标签元数据
     tags_metadata = []
     app = FastAPI(
         title="vet-ai restful api",
@@ -70,7 +86,7 @@ def create_app() -> FastAPI:
         redoc_url="/api/redoc" if settings.DEBUG else None,
         openapi_url="/api/openapi.json" if settings.DEBUG else None,
         lifespan=lifespan,  # 添加生命周期管理
-        # Custom Swagger UI configuration
+        # 自定义Swagger UI配置
         swagger_ui_parameters={
             "deepLinking": True,
             "displayRequestDuration": True,
@@ -83,6 +99,7 @@ def create_app() -> FastAPI:
         },
     )
 
+    # 添加CORS中间件
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.ALLOWED_HOSTS,
@@ -94,8 +111,9 @@ def create_app() -> FastAPI:
     )
 
     # /*--------------------------------------- diagnosis ------------------------------------------*/
+    # 注册诊断路由
     app.include_router(
-        diagnosis.router,
+        diagnosis_router,
         prefix=prefix,
         tags=["diagnosis"],
         responses={
@@ -107,6 +125,21 @@ def create_app() -> FastAPI:
         },
     )
 
+    # graph
+    app.include_router(
+        graph_router,
+        prefix=prefix,
+        tags=["graph"],
+        responses={
+            404: {"description": "Graph not found"},
+            400: {"description": "Bad request"},
+            401: {"description": "Unauthorized"},
+            403: {"description": "Forbidden"},
+            500: {"description": "会话服务错误"},
+        },
+    )
+
+    # 健康检查端点
     @app.get("/health", summary="健康检查", tags=["health"])
     async def health_check():
         """健康检查端点"""
@@ -115,6 +148,7 @@ def create_app() -> FastAPI:
     return app
 
 
+# 主程序入口
 if __name__ == "__main__":
     app = create_app()
     uvicorn.run(
@@ -125,21 +159,25 @@ if __name__ == "__main__":
         log_level="info"
     )
 
+# 创建应用实例
 app = create_app()
 
+
 def run_server() -> None:
-    """Run the FastAPI server."""
+    """运行FastAPI服务器"""
     uvicorn.run(
-    "backend.api:app",
+        "backend.api:app",
         host=settings.HOST,
         port=settings.PORT,
         reload=settings.DEBUG,
         log_level="info" if settings.DEBUG else "warning",
     )
 
+
 def main():
+    """主函数"""
     run_server()
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     main()

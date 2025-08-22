@@ -1,5 +1,10 @@
 from contextlib import asynccontextmanager
 import traceback
+import sys
+import os
+
+# Add the project root to the Python path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import uvicorn
 from fastapi import FastAPI
@@ -9,7 +14,7 @@ from fastapi.openapi.utils import get_openapi
 from backend.routers import diagnosis
 from config.logger import logger
 
-from .settings import settings
+from backend.settings import settings
 
 FORMAT = (
     "{time:YYYY-MM-DD HH:mm:ss.SSS} | "
@@ -125,7 +130,7 @@ app = create_app()
 def run_server() -> None:
     """Run the FastAPI server."""
     uvicorn.run(
-        "bella-backend.main:app",
+    "backend.api:app",
         host=settings.HOST,
         port=settings.PORT,
         reload=settings.DEBUG,

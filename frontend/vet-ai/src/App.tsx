@@ -71,7 +71,9 @@ function App() {
 
             <div className="flex mt-2">
               <span>报告日期：</span>
-              <span className="flex-1 flex justify-end">2025年4月1日 14:00</span>
+              <span className="flex-1 flex justify-end">{
+                new Date().toLocaleString()
+              }</span>
             </div>
 
             <div className="flex mt-2">
@@ -83,7 +85,7 @@ function App() {
             <Divider />
             <div className="flex mt-2">
               <span>病情主诉：</span>
-              <p className="flex-1 px-2">姓名凯凯，为一雌性金毛犬，:现年7岁，体重26 kg。送来时主诉:最近几天精神不好，食欲不振，有浓鼻液、浓眼屎，打喷嚏，拉稀。</p>
+              <p className="flex-1 px-2">{des}</p>
             </div>
           </section>
 
@@ -314,36 +316,24 @@ function App() {
 
 export default App
 
+const des = "猫咪一岁，在家突然精神差，发烧，没有呕吐，有拉稀，以前在家有吃吊兰的习惯"
+
 const mock_data = {
   "message": "诊断成功",
   "data": [
     {
-      "disease": "犬瘟热",
-      "description": "出现精神沉郁、食欲废绝、脓性鼻液和眼分泌物增多及腹泻等典型全身症状",
+      "disease": "植物中毒性肠胃炎",
+      "description": "猫咪因食用吊兰导致的肠胃炎，表现为精神差、发烧和腹泻",
       "p": 0.7,
-      "base": "保持环境温暖干燥，提供充足饮水与易消化食物如白粥鸡胸肉；每日用温水清洁眼周及鼻部脓性分泌物；限制剧烈运动并隔离其他犬只避免交叉感染",
-      "continue": "若24小时内精神状态改善可逐步恢复原有饮食并观察体温变化；持续监测排便形态与频率记录异常情况；每日测量肛温早晚各一次维持记录以便后续就医参考",
-      "suggest": "[紧急]出现持续高热超过39.5℃、[紧急]抽搐或神经症状、[紧急]血便或呕血、[紧急]完全拒食超过48小时需立即前往具备传染病收治资质的动物医院做PCR确诊并进行静脉补液抗病毒治疗",
-      "base_medicine": "",
-      "base_medicine_usage": "",
-      "continue_medicine": "",
-      "continue_medicine_usage": "",
-      "suggest_medicine": "干扰素注射液+头孢曲松钠+补液盐",
-      "suggest_medicine_usage": "由执业兽医按体重计算剂量进行皮下或静脉给药禁止自行使用"
-    },
-    {
-      "disease": "细菌性呼吸道感染继发胃肠炎",
-      "description": "浓鼻涕与喷嚏提示上呼吸道细菌感染,腹泻可能为毒素或继发肠道菌群失衡所致",
-      "p": 0.25,
-      "base": "保持空气流通但避免直吹冷风,喂食低脂易消化食物例如南瓜泥配少量狗粮分多次少量给予;可用生理盐水雾化帮助缓解鼻塞每次10分钟每日2次",
-      "continue": "若3天内鼻涕转清食欲恢复可逐渐恢复正常饮食;继续补充益生菌调理肠胃连续使用7天巩固效果;每周称重确保无持续体重下降",
-      "suggest": "[需就诊]若出现黄绿色恶臭鼻涕带血、[需就诊]咳嗽加重呈湿咳伴呼吸困难、[需就诊]腹泻转为水样带黏液血丝其中任一情况需在12小时内前往动物医院接受血常规及X光检查以排除肺炎",
-      "base_medicine": "",
-      "base_medicine_usage": "",
-      "continue_medicine": "",
-      "continue_medicine_usage": "",
-      "suggest_medicine": "速诺片(阿莫西林克拉维酸钾)+蒙脱石散",
-      "suggest_medicin e_usage": "剂量必须由兽医根据体重确定严禁自行购买人用抗生素"
+      "base": "停止接触吊兰，禁食8-12小时，提供少量清水",
+      "continue": "观察症状变化，如持续腹泻或精神状况恶化",
+      "suggest": "带猫咪就医进行详细检查",
+      "base_medicine": "益生菌调理肠道菌群",
+      "base_medicine_usage": "每日一次，连续3-5天",
+      "continue_medicine": "口服补液盐",
+      "continue_medicine_usage": "按说明调配，自由饮用",
+      "suggest_medicine": "活性炭",
+      "suggest_medicine_usage": "按体重给药，吸附毒素"
     }
   ],
   "code": 200

@@ -1,0 +1,65 @@
+# Git相关文件
+.git
+.gitignore
+
+# Python相关
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.pytest_cache
+.coverage
+htmlcov/
+
+# 虚拟环境
+venv/
+env/
+.venv/
+.env/
+
+# IDE相关
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 日志文件
+*.log
+logs/
+runs/
+
+# 临时文件
+tmp/
+temp/
+
+# 操作系统相关
+.DS_Store
+Thumbs.db
+
+# 开发相关
+node_modules/
+.npm/
+
+# Docker相关
+docker-compose.override.yml
+.dockerignore
+
+# 环境变量文件
+.env
+.env.local
+.env.production
+
+# 测试文件
+test/
+tests/
+*test*.py
+
+# 文档
+README.md
+docs/
+
+# 前端资源 (如果不需要)
+frontend/

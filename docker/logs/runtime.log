@@ -1,0 +1,47 @@
+2025-09-26 08:21:53 | INFO | backend.api:lifespan:46 - 初始化系统资源
+2025-09-26 08:25:58 | INFO | backend.api:lifespan:57 - 正在清理应用资源...
+2025-09-26 08:26:29 | INFO | backend.api:lifespan:46 - 初始化系统资源
+2025-09-26 08:34:17 | INFO | backend.api:lifespan:57 - 正在清理应用资源...
+2025-09-26 08:34:19 | INFO | backend.api:lifespan:46 - 初始化系统资源
+2025-09-26 08:35:27 | INFO | backend.api:lifespan:57 - 正在清理应用资源...
+2025-09-26 08:35:32 | INFO | backend.api:lifespan:46 - 初始化系统资源
+2025-09-26 08:41:51 | INFO | backend.routers.diagnosis:create_diagnosis:85 - 开始处理诊断请求: 四个月小狗，晚上刚到家，到家后吃了点粮一口气喝了三百毫升水，之后兴奋的一直蹦跳转圈，半小时后睡觉，突发呕吐
+2025-09-26 08:41:51 | INFO | core.ai_diagnosis.herb_diagnosis:__init__:192 - Model Name: None
+2025-09-26 08:41:51 | INFO | core.ai_diagnosis.herb_diagnosis:__init__:193 - Base URL: None
+2025-09-26 08:41:51 | INFO | core.ai_diagnosis.herb_diagnosis:__init__:194 - API Key: None
+2025-09-26 08:41:51 | WARNING | core.ai_diagnosis.herb_diagnosis:__init__:222 - 模型配置不完整，AgentScope 未初始化
+2025-09-26 08:41:51 | ERROR | core.ai_diagnosis.herb_diagnosis:diagnosis:256 - 中医诊断模型未初始化
+2025-09-26 08:41:51 | INFO | backend.routers.diagnosis:create_diagnosis:102 - result: []
+2025-09-26 08:41:51 | INFO | backend.routers.diagnosis:create_diagnosis:110 - 未获得有效诊断结果
+2025-09-26 08:41:55 | INFO | backend.routers.diagnosis:create_diagnosis:85 - 开始处理诊断请求: 四个月小狗，晚上刚到家，到家后吃了点粮一口气喝了三百毫升水，之后兴奋的一直蹦跳转圈，半小时后睡觉，突发呕吐
+2025-09-26 08:41:55 | INFO | core.ai_diagnosis.herb_diagnosis:__init__:192 - Model Name: None
+2025-09-26 08:41:55 | INFO | core.ai_diagnosis.herb_diagnosis:__init__:193 - Base URL: None
+2025-09-26 08:41:55 | INFO | core.ai_diagnosis.herb_diagnosis:__init__:194 - API Key: None
+2025-09-26 08:41:55 | WARNING | core.ai_diagnosis.herb_diagnosis:__init__:222 - 模型配置不完整，AgentScope 未初始化
+2025-09-26 08:41:55 | ERROR | core.ai_diagnosis.herb_diagnosis:diagnosis:256 - 中医诊断模型未初始化
+2025-09-26 08:41:55 | INFO | backend.routers.diagnosis:create_diagnosis:102 - result: []
+2025-09-26 08:41:55 | INFO | backend.routers.diagnosis:create_diagnosis:110 - 未获得有效诊断结果
+2025-09-26 08:46:32 | INFO | backend.api:lifespan:57 - 正在清理应用资源...
+2025-09-26 08:46:37 | INFO | backend.api:lifespan:46 - 初始化系统资源
+2025-09-26 08:46:57 | INFO | backend.routers.diagnosis:create_diagnosis:85 - 开始处理诊断请求: 四个月小狗，晚上刚到家，到家后吃了点粮一口气喝了三百毫升水，之后兴奋的一直蹦跳转圈，半小时后睡觉，突发呕吐
+2025-09-26 08:46:57 | INFO | core.ai_diagnosis.herb_diagnosis:__init__:192 - Model Name: None
+2025-09-26 08:46:57 | INFO | core.ai_diagnosis.herb_diagnosis:__init__:193 - Base URL: None
+2025-09-26 08:46:57 | INFO | core.ai_diagnosis.herb_diagnosis:__init__:194 - API Key: None
+2025-09-26 08:46:57 | WARNING | core.ai_diagnosis.herb_diagnosis:__init__:222 - 模型配置不完整，AgentScope 未初始化
+2025-09-26 08:46:57 | ERROR | core.ai_diagnosis.herb_diagnosis:diagnosis:256 - 中医诊断模型未初始化
+2025-09-26 08:46:57 | INFO | backend.routers.diagnosis:create_diagnosis:102 - result: []
+2025-09-26 08:46:57 | INFO | backend.routers.diagnosis:create_diagnosis:110 - 未获得有效诊断结果
+2025-09-26 08:47:18 | INFO | backend.routers.diagnosis:create_diagnosis:85 - 开始处理诊断请求: 四个月小狗，晚上刚到家，到家后吃了点粮一口气喝了三百毫升水，之后兴奋的一直蹦跳转圈，半小时后睡觉，突发呕吐
+2025-09-26 08:47:18 | INFO | core.ai_diagnosis.herb_diagnosis:__init__:192 - Model Name: None
+2025-09-26 08:47:18 | INFO | core.ai_diagnosis.herb_diagnosis:__init__:193 - Base URL: None
+2025-09-26 08:47:18 | INFO | core.ai_diagnosis.herb_diagnosis:__init__:194 - API Key: None
+2025-09-26 08:47:18 | WARNING | core.ai_diagnosis.herb_diagnosis:__init__:222 - 模型配置不完整，AgentScope 未初始化
+2025-09-26 08:47:18 | ERROR | core.ai_diagnosis.herb_diagnosis:diagnosis:256 - 中医诊断模型未初始化
+2025-09-26 08:47:18 | INFO | backend.routers.diagnosis:create_diagnosis:102 - result: []
+2025-09-26 08:47:18 | INFO | backend.routers.diagnosis:create_diagnosis:110 - 未获得有效诊断结果
+2025-09-26 08:47:40 | INFO | backend.api:lifespan:57 - 正在清理应用资源...
+2025-09-26 08:47:57 | INFO | backend.api:lifespan:46 - 初始化系统资源
+2025-09-26 08:48:37 | INFO | backend.routers.diagnosis:create_diagnosis:85 - 开始处理诊断请求: 四个月小狗，晚上刚到家，到家后吃了点粮一口气喝了三百毫升水，之后兴奋的一直蹦跳转圈，半小时后睡觉，突发呕吐
+2025-09-26 08:48:37 | INFO | core.ai_diagnosis.herb_diagnosis:__init__:192 - Model Name: glm-4.5
+2025-09-26 08:48:37 | INFO | core.ai_diagnosis.herb_diagnosis:__init__:193 - Base URL: https://open.bigmodel.cn/api/paas/v4
+2025-09-26 08:48:37 | INFO | core.ai_diagnosis.herb_diagnosis:__init__:194 - API Key: 98011ee7cd1a4a5984a73350770b032a.NLhLw1VjqsQN5TQc

@@ -14,15 +14,16 @@ router = APIRouter()
 
 # /*--------------------------------------- api ------------------------------------------*/
 
+
 @router.post("/diagnosis", response_model=dict, status_code=status.HTTP_200_OK)
 async def create_diagnosis(
     diagnosis_data: CreateDiagnosisRequest
 ) -> JSONResponse:
     """创建诊断并返回诊断结果。"""
     logger.info(f"开始处理诊断请求: {diagnosis_data.description}")
-    
+
     try:
-        
+
         # 检查输入是否为空
         if not diagnosis_data.description or not diagnosis_data.description.strip():
             logger.warning("诊断描述为空")
@@ -41,7 +42,7 @@ async def create_diagnosis(
         if not isinstance(result, list):
             logger.warning(f"诊断结果不是列表格式: {type(result)}")
             result = []
-        
+
         # 如果结果为空，返回友好提示
         if len(result) == 0:
             logger.info("未获得有效诊断结果")
@@ -53,9 +54,9 @@ async def create_diagnosis(
                     "code": status.HTTP_200_OK
                 }
             )
-        
+
         logger.info(f"诊断完成，返回 {len(result)} 个诊断结果")
-        
+
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
@@ -74,18 +75,17 @@ async def create_diagnosis(
                 "code": status.HTTP_200_OK
             }
         )
-        
-        
 
-@router.post("/herb", response_model=dict, status_code=status.HTTP_200_OK)
+
+@router.post("/vet/herb", response_model=dict, status_code=status.HTTP_200_OK)
 async def create_diagnosis(
     diagnosis_data: CreateDiagnosisRequest
 ) -> JSONResponse:
     """创建诊断并返回诊断结果。"""
     logger.info(f"开始处理诊断请求: {diagnosis_data.description}")
-    
+
     try:
-        
+
         # 检查输入是否为空
         if not diagnosis_data.description or not diagnosis_data.description.strip():
             logger.warning("诊断描述为空")
@@ -104,7 +104,7 @@ async def create_diagnosis(
         if not isinstance(result, list):
             logger.warning(f"诊断结果不是列表格式: {type(result)}")
             result = []
-        
+
         # 如果结果为空，返回友好提示
         if len(result) == 0:
             logger.info("未获得有效诊断结果")
@@ -116,9 +116,9 @@ async def create_diagnosis(
                     "code": status.HTTP_200_OK
                 }
             )
-        
+
         logger.info(f"诊断完成，返回 {len(result)} 个诊断结果")
-        
+
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={

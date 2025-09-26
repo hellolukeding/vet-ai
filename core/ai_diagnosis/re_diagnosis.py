@@ -22,9 +22,9 @@ from utils.react_tool.toolkit import (extract_json_block,
 class ReDiagnosis:
     def __init__(self):
         load_dotenv(".env")
-        self.model_name = os.getenv("model_name")
-        self.base_url = os.getenv("base_url")
-        self.api_key = os.getenv("api_key")
+        self.model_name = os.getenv("MODEL_NAME")
+        self.base_url = os.getenv("BASE_URL")
+        self.api_key = os.getenv("API_KEY")
         self.model = self.model_name or "vet-logicstorm-lora"
         self.initialized = False
 
@@ -62,7 +62,8 @@ class ReDiagnosis:
         # toolkit.add(extract_json_block, func_description="从文本中提取JSON代码块")
         # toolkit.add(format_json_diagnosis, func_description="格式化诊断JSON字符串，修复各种格式问题")
         # toolkit.add(return_result, func_description="返回最终结果")
-        toolkit.add(execute_python_code, func_description="执行Python代码", timeout=300, use_docker=False)
+        toolkit.add(execute_python_code, func_description="执行Python代码",
+                    timeout=300, use_docker=False)
 
         sys_prompt = (
             f"Current time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
@@ -112,9 +113,7 @@ class ReDiagnosis:
             max_iters=3,
             verbose=True,
         )
-            
 
-    
     def dialog_diagnosis(self, desc: str) -> List[Dict[str, Any]]:
         """执行宠物症状诊断，返回诊断结果数组"""
 
@@ -127,13 +126,14 @@ class ReDiagnosis:
             return []
 
         try:
-            
+
            # 发送任务
             task = Msg("User", f"症状描述：{desc}", "user")
             result = self.agent(task)
 
             # 获取原始模型输出
-            raw_output = result.content if isinstance(result.content, str) else getattr(result.content, 'text', str(result.content))
+            raw_output = result.content if isinstance(result.content, str) else getattr(
+                result.content, 'text', str(result.content))
             logger.debug("模型原始输出:\n%s", raw_output)
             logger.debug("模型输出类型: %s", type(raw_output))
 
@@ -163,7 +163,8 @@ class ReDiagnosis:
                     logger.info("通过 extract_clean_json 提取成功")
                     return json_result
             except Exception as e:
-                logger.error("extract_clean_json 解析失败: %s", str(e), exc_info=True)
+                logger.error("extract_clean_json 解析失败: %s",
+                             str(e), exc_info=True)
 
             logger.error("最终未能成功解析 JSON 格式")
             return []

@@ -21,7 +21,8 @@ def parse_diagnosis_table(table_str: str) -> List[Dict[str, str]]:
     """
     解析Markdown表格，自动补齐缺失列，避免因列数不匹配导致丢失整行
     """
-    lines = [line.strip() for line in table_str.strip().split('\n') if line.strip()]
+    lines = [line.strip()
+             for line in table_str.strip().split('\n') if line.strip()]
     if len(lines) < 3:
         return []
 
@@ -50,21 +51,21 @@ def parse_probability(p_value: str) -> float:
     """
     if not p_value:
         return 0.0
-    
+
     # 移除空格和常见的中文字符
     p_clean = p_value.strip()
-    
+
     # 尝试直接转换为浮点数
     try:
         return float(p_clean)
     except ValueError:
         pass
-    
+
     # 尝试提取数字（支持百分比）
     import re
     number_pattern = r'(\d+(?:\.\d+)?)'
     matches = re.findall(number_pattern, p_clean)
-    
+
     if matches:
         try:
             num = float(matches[0])
@@ -78,7 +79,7 @@ def parse_probability(p_value: str) -> float:
                 return num
         except ValueError:
             pass
-    
+
     # 根据关键词给出默认概率值
     if any(keyword in p_clean for keyword in ['良好', '优', '高']):
         return 0.8
@@ -86,7 +87,7 @@ def parse_probability(p_value: str) -> float:
         return 0.6
     elif any(keyword in p_clean for keyword in ['差', '低', '严重', '危险']):
         return 0.3
-    
+
     logger.warning(f"无法解析概率值: {p_value}，使用默认值 0.5")
     return 0.5
 
@@ -98,7 +99,7 @@ def format_json_herb_diagnosis(parsed: List[Dict[str, str]]) -> List[Dict[str, A
         try:
             p_value = row.get("p", "0.0")
             probability = parse_probability(p_value)
-            
+
             result.append({
                 "zhengming": row.get("zhengming", ""),
                 "description": row.get("description", ""),
@@ -114,7 +115,8 @@ def format_json_herb_diagnosis(parsed: List[Dict[str, str]]) -> List[Dict[str, A
                 "suggest_prescription": row.get("suggest_prescription", ""),
                 "suggest_prescription_usage": row.get("suggest_prescription_usage", ""),
             })
-            logger.info(f"成功格式化中医诊断: {row.get('zhengming', 'Unknown')} - 概率: {probability}")
+            logger.info(
+                f"成功格式化中医诊断: {row.get('zhengming', 'Unknown')} - 概率: {probability}")
         except Exception as e:
             logger.warning(f"格式化单行失败: {e}, 行数据: {row}")
             # 即使格式化失败，也尝试保留基本信息
@@ -143,7 +145,7 @@ def format_json_diagnosis(parsed: List[Dict[str, str]]) -> List[Dict[str, Any]]:
         try:
             p_value = row.get("p", "0.0")
             probability = parse_probability(p_value)
-            
+
             result.append({
                 "disease": row.get("disease", ""),
                 "description": row.get("description", ""),
@@ -158,7 +160,8 @@ def format_json_diagnosis(parsed: List[Dict[str, str]]) -> List[Dict[str, Any]]:
                 "suggest_medicine": row.get("suggest_medicine", ""),
                 "suggest_medicine_usage": row.get("suggest_medicine_usage", ""),
             })
-            logger.info(f"成功格式化诊断: {row.get('disease', 'Unknown')} - 概率: {probability}")
+            logger.info(
+                f"成功格式化诊断: {row.get('disease', 'Unknown')} - 概率: {probability}")
         except Exception as e:
             logger.warning(f"格式化单行失败: {e}, 行数据: {row}")
             # 即使格式化失败，也尝试保留基本信息
@@ -182,9 +185,9 @@ def format_json_diagnosis(parsed: List[Dict[str, str]]) -> List[Dict[str, Any]]:
 class HerbDiagnosis:
     def __init__(self):
         load_dotenv(".env")
-        self.model_name = os.getenv("model_name")
-        self.base_url = os.getenv("base_url")
-        self.api_key = os.getenv("api_key")
+        self.model_name = os.getenv("MODEL_NAME")
+        self.base_url = os.getenv("BASE_URL")
+        self.api_key = os.getenv("API_KEY")
         self.sys_prompt = None
         self.initialized = False
         self.agent: DialogAgent = None
@@ -309,6 +312,6 @@ class HerbDiagnosis:
                 "suggest_prescription_usage": "高热时配合物理降温西医退烧药中药频服小量每2-3小时1次"
             }
         ]
-        
+
         logger.info("测试中医诊断格式化功能")
         return format_json_herb_diagnosis(sample_data)

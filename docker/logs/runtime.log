@@ -46,3 +46,4 @@
 2025-09-26 08:48:37 | INFO | core.ai_diagnosis.herb_diagnosis:__init__:193 - Base URL: https://open.bigmodel.cn/api/paas/v4
 2025-09-26 08:48:37 | INFO | core.ai_diagnosis.herb_diagnosis:__init__:194 - API Key: 98011ee7cd1a4a5984a73350770b032a.NLhLw1VjqsQN5TQc
 2025-09-26 08:51:24 | INFO | backend.api:lifespan:46 - 初始化系统资源
+2025-09-26 08:54:18 | INFO | backend.api:lifespan:57 - 正在清理应用资源...

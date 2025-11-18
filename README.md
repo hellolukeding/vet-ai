@@ -1,5 +1,3 @@
-
-
 # 🐾 VET AI - 宠物智能诊断系统
 
 基于 AI 的宠物诊断系统，提供 **智能诊断**、**中医诊断** 和 **复诊建议** 功能。
@@ -8,9 +6,9 @@
 
 ## 🌟 功能特性
 
-- 🩺 **智能诊断**：基于症状描述，提供专业的宠物疾病诊断建议  
-- 🌿 **中医诊断**：从中医视角分析宠物健康状态，推荐草药方剂  
-- 🔄 **复诊服务**：跟踪治疗效果，动态生成后续诊疗建议  
+- 🩺 **智能诊断**：基于症状描述，提供专业的宠物疾病诊断建议
+- 🌿 **中医诊断**：从中医视角分析宠物健康状态，推荐草药方剂
+- 🔄 **复诊服务**：跟踪治疗效果，动态生成后续诊疗建议
 - 📊 **LangGraph 工作流**：采用多步骤 AI 工作流，实现结构化、可解释的诊断推理
 
 ---
@@ -20,12 +18,14 @@
 ### 使用 Docker Compose（推荐）
 
 1. **克隆项目**
+
    ```bash
    git clone <repository-url>
    cd vet-ai
    ```
 
 2. **配置环境变量**
+
    ```bash
    cd docker
    cp .env.example .env
@@ -33,6 +33,7 @@
    ```
 
 3. **启动服务**
+
    ```bash
    docker compose up -d
    ```
@@ -47,6 +48,7 @@
 ### 本地开发
 
 1. **安装依赖**
+
    ```bash
    uv sync
    ```
@@ -96,6 +98,7 @@ SECRET_KEY=your-secret-key
 检查服务是否正常运行。
 
 **响应示例：**
+
 ```json
 {
   "status": "healthy",
@@ -112,6 +115,7 @@ SECRET_KEY=your-secret-key
 基于症状描述，调用 AI 工作流生成多维度诊断与用药建议。
 
 #### 请求参数
+
 ```json
 {
   "description": "宠物症状描述（建议包含年龄、品种、行为、饮食、症状等）"
@@ -119,6 +123,7 @@ SECRET_KEY=your-secret-key
 ```
 
 #### 请求示例
+
 ```bash
 curl -X POST http://localhost:8080/api/v1/vet/diagnose \
   -H "Content-Type: application/json" \
@@ -128,128 +133,129 @@ curl -X POST http://localhost:8080/api/v1/vet/diagnose \
 ```
 
 #### 响应示例
+
 ```json
 {
-    "description": "四个月小狗，晚上刚到家，到家后吃了点粮一口气喝了三百毫升水，之后兴奋的一直蹦跳转圈，半小时后睡觉，突发呕吐",
-    "diagnosis": [
-        {
-            "symptom": "急性胃扩张",
-            "reason": "短时间内大量饮水(300ml)后剧烈活动(蹦跳转圈)，随后突发呕吐",
-            "probability": 0.4
-        },
-        {
-            "symptom": "饮食不当",
-            "reason": "刚到家后急促进食饮水，加上幼犬消化系统发育不完全",
-            "probability": 0.25
-        },
-        {
-            "symptom": "应激反应",
-            "reason": "新环境导致兴奋和行为异常，影响消化系统功能",
-            "probability": 0.15
-        },
-        {
-            "symptom": "传染病早期",
-            "reason": "四月龄幼犬免疫力较低，突发呕吐可能是传染病初期症状",
-            "probability": 0.12
-        },
-        {
-            "symptom": "异物摄入",
-            "reason": "幼犬在新环境中可能误食异物导致呕吐",
-            "probability": 0.08
-        }
-    ],
-    "medications": [
-        {
-            "symptom": "急性胃扩张",
-            "drug_name": "甲氧氯普胺",
-            "dosage": "0.2-0.5 mg/kg PO q8h",
-            "frequency": "q8h"
-        },
-        {
-            "symptom": "急性胃扩张",
-            "drug_name": "雷尼替丁",
-            "dosage": "2 mg/kg PO q12h",
-            "frequency": "q12h"
-        },
-        {
-            "symptom": "急性胃扩张",
-            "drug_name": "奥美拉唑",
-            "dosage": "0.5-1 mg/kg PO q24h",
-            "frequency": "q24h"
-        },
-        {
-            "symptom": "饮食不当",
-            "drug_name": "益生菌",
-            "dosage": "按产品说明使用",
-            "frequency": "每日一次或两次"
-        },
-        {
-            "symptom": "饮食不当",
-            "drug_name": "蒙脱石散",
-            "dosage": "每千克体重1-2g，口服，每8小时一次",
-            "frequency": "q8h"
-        },
-        {
-            "symptom": "饮食不当",
-            "drug_name": "多酶片",
-            "dosage": "每千克体重1-2片，口服，每12小时一次",
-            "frequency": "q12h"
-        },
-        {
-            "symptom": "应激反应",
-            "drug_name": "氟西汀",
-            "dosage": "1-2 mg/kg PO q24h",
-            "frequency": "q24h"
-        },
-        {
-            "symptom": "应激反应",
-            "drug_name": "赛庚啶",
-            "dosage": "0.1-0.5 mg/kg PO q12h",
-            "frequency": "q12h"
-        },
-        {
-            "symptom": "应激反应",
-            "drug_name": "苯二氮卓类药物",
-            "dosage": "地西泮 0.2-0.5 mg/kg PO q8-12h",
-            "frequency": "q8-12h"
-        },
-        {
-            "symptom": "传染病早期",
-            "drug_name": "阿莫西林克拉维酸钾",
-            "dosage": "12.5-25 mg/kg PO q12h",
-            "frequency": "q12h"
-        },
-        {
-            "symptom": "传染病早期",
-            "drug_name": "恩诺沙星",
-            "dosage": "5-10 mg/kg PO q24h",
-            "frequency": "q24h"
-        },
-        {
-            "symptom": "传染病早期",
-            "drug_name": "多西环素",
-            "dosage": "5-10 mg/kg PO q12h",
-            "frequency": "q12h"
-        },
-        {
-            "symptom": "异物摄入",
-            "drug_name": "液体石蜡",
-            "dosage": "每千克体重5-10ml，口服，每12小时一次",
-            "frequency": "q12h"
-        },
-        {
-            "symptom": "异物摄入",
-            "drug_name": "乳果糖",
-            "dosage": "每千克体重0.5-1ml，口服，每8小时一次",
-            "frequency": "q8h"
-        },
-        {
-            "symptom": "异物摄入",
-            "drug_name": "甲氧氯普胺",
-            "dosage": "0.2-0.5 mg/kg PO q8h",
-            "frequency": "q8h"
-        }
-    ]
+  "description": "四个月小狗，晚上刚到家，到家后吃了点粮一口气喝了三百毫升水，之后兴奋的一直蹦跳转圈，半小时后睡觉，突发呕吐",
+  "diagnosis": [
+    {
+      "symptom": "急性胃扩张",
+      "reason": "短时间内大量饮水(300ml)后剧烈活动(蹦跳转圈)，随后突发呕吐",
+      "probability": 0.4
+    },
+    {
+      "symptom": "饮食不当",
+      "reason": "刚到家后急促进食饮水，加上幼犬消化系统发育不完全",
+      "probability": 0.25
+    },
+    {
+      "symptom": "应激反应",
+      "reason": "新环境导致兴奋和行为异常，影响消化系统功能",
+      "probability": 0.15
+    },
+    {
+      "symptom": "传染病早期",
+      "reason": "四月龄幼犬免疫力较低，突发呕吐可能是传染病初期症状",
+      "probability": 0.12
+    },
+    {
+      "symptom": "异物摄入",
+      "reason": "幼犬在新环境中可能误食异物导致呕吐",
+      "probability": 0.08
+    }
+  ],
+  "medications": [
+    {
+      "symptom": "急性胃扩张",
+      "drug_name": "甲氧氯普胺",
+      "dosage": "0.2-0.5 mg/kg PO q8h",
+      "frequency": "q8h"
+    },
+    {
+      "symptom": "急性胃扩张",
+      "drug_name": "雷尼替丁",
+      "dosage": "2 mg/kg PO q12h",
+      "frequency": "q12h"
+    },
+    {
+      "symptom": "急性胃扩张",
+      "drug_name": "奥美拉唑",
+      "dosage": "0.5-1 mg/kg PO q24h",
+      "frequency": "q24h"
+    },
+    {
+      "symptom": "饮食不当",
+      "drug_name": "益生菌",
+      "dosage": "按产品说明使用",
+      "frequency": "每日一次或两次"
+    },
+    {
+      "symptom": "饮食不当",
+      "drug_name": "蒙脱石散",
+      "dosage": "每千克体重1-2g，口服，每8小时一次",
+      "frequency": "q8h"
+    },
+    {
+      "symptom": "饮食不当",
+      "drug_name": "多酶片",
+      "dosage": "每千克体重1-2片，口服，每12小时一次",
+      "frequency": "q12h"
+    },
+    {
+      "symptom": "应激反应",
+      "drug_name": "氟西汀",
+      "dosage": "1-2 mg/kg PO q24h",
+      "frequency": "q24h"
+    },
+    {
+      "symptom": "应激反应",
+      "drug_name": "赛庚啶",
+      "dosage": "0.1-0.5 mg/kg PO q12h",
+      "frequency": "q12h"
+    },
+    {
+      "symptom": "应激反应",
+      "drug_name": "苯二氮卓类药物",
+      "dosage": "地西泮 0.2-0.5 mg/kg PO q8-12h",
+      "frequency": "q8-12h"
+    },
+    {
+      "symptom": "传染病早期",
+      "drug_name": "阿莫西林克拉维酸钾",
+      "dosage": "12.5-25 mg/kg PO q12h",
+      "frequency": "q12h"
+    },
+    {
+      "symptom": "传染病早期",
+      "drug_name": "恩诺沙星",
+      "dosage": "5-10 mg/kg PO q24h",
+      "frequency": "q24h"
+    },
+    {
+      "symptom": "传染病早期",
+      "drug_name": "多西环素",
+      "dosage": "5-10 mg/kg PO q12h",
+      "frequency": "q12h"
+    },
+    {
+      "symptom": "异物摄入",
+      "drug_name": "液体石蜡",
+      "dosage": "每千克体重5-10ml，口服，每12小时一次",
+      "frequency": "q12h"
+    },
+    {
+      "symptom": "异物摄入",
+      "drug_name": "乳果糖",
+      "dosage": "每千克体重0.5-1ml，口服，每8小时一次",
+      "frequency": "q8h"
+    },
+    {
+      "symptom": "异物摄入",
+      "drug_name": "甲氧氯普胺",
+      "dosage": "0.2-0.5 mg/kg PO q8h",
+      "frequency": "q8h"
+    }
+  ]
 }
 ```
 
@@ -271,12 +277,12 @@ curl -X POST http://localhost:8080/api/v1/vet/diagnose \
 
 ##### `medications` 对象字段
 
-| 字段名      | 类型   | 说明                             |
-| ----------- | ------ | -------------------------------- |
-| `symptom`   | string | 对应的诊断症状                   |
-| `drug_name` | string | 药物名称                         |
-| `dosage`    | string | 剂量（如 mg/kg）                 |
-| `frequency` | string | 用药频率（如 q8h = 每8小时一次） |
+| 字段名      | 类型   | 说明                               |
+| ----------- | ------ | ---------------------------------- |
+| `symptom`   | string | 对应的诊断症状                     |
+| `drug_name` | string | 药物名称                           |
+| `dosage`    | string | 剂量（如 mg/kg）                   |
+| `frequency` | string | 用药频率（如 q8h = 每 8 小时一次） |
 
 ---
 
@@ -287,6 +293,7 @@ curl -X POST http://localhost:8080/api/v1/vet/diagnose \
 基于中医理论，提供证候辨识与草药方剂建议。
 
 #### 请求参数
+
 ```json
 {
   "description": "宠物症状描述"
@@ -294,6 +301,7 @@ curl -X POST http://localhost:8080/api/v1/vet/diagnose \
 ```
 
 #### 请求示例
+
 ```bash
 curl -X POST http://localhost:8080/api/v1/vet/herb \
   -H "Content-Type: application/json" \
@@ -303,6 +311,7 @@ curl -X POST http://localhost:8080/api/v1/vet/herb \
 ```
 
 #### 响应示例
+
 ```json
 {
   "message": "诊断成功",
@@ -355,6 +364,212 @@ curl -X POST http://localhost:8080/api/v1/vet/herb \
 
 ---
 
+### 4. 宠物护理计划（智能护理方案）
+
+**POST** `/api/v1/pet-care/plan`
+
+基于 LangGraph 工作流，根据宠物信息生成个性化的营养计划和日常护理计划。该接口使用并行执行优化，可同时生成营养和护理方案，大幅提升响应速度。
+
+#### 请求参数
+
+```json
+{
+  "user_query": "我家有一只3岁的金毛犬Lucky，体重30公斤，希望制定营养和护理计划",
+  "pet_name": "Lucky", // 可选
+  "pet_species": "狗", // 可选
+  "pet_breed": "金毛", // 可选
+  "pet_age": "3岁", // 可选
+  "pet_weight": 30.0, // 可选，单位：kg
+  "pet_sex": "male", // 可选：male/female
+  "pet_neutered": true // 可选：是否绝育
+}
+```
+
+**必填字段**：
+
+- `user_query` (string): 用户查询或需求描述
+
+**可选字段**（提供更多信息可获得更精准的计划）：
+
+- `pet_name` (string): 宠物名称
+- `pet_species` (string): 物种（如：狗、猫、兔）
+- `pet_breed` (string): 品种
+- `pet_age` (string): 年龄
+- `pet_weight` (float): 体重（kg）
+- `pet_sex` (string): 性别
+- `pet_neutered` (boolean): 是否绝育
+
+#### 请求示例
+
+```bash
+curl -X POST http://localhost:8080/api/v1/pet-care/plan \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_query": "我家有一只3岁的金毛犬Lucky，体重30公斤，最近食欲不太好，希望制定营养和护理计划",
+    "pet_name": "Lucky",
+    "pet_species": "狗",
+    "pet_breed": "金毛",
+    "pet_age": "3岁",
+    "pet_weight": 30.0,
+    "pet_sex": "male"
+  }' \
+  --max-time 120
+```
+
+#### 响应示例
+
+```json
+{
+  "message": "宠物护理计划生成成功",
+  "code": 200,
+  "data": {
+    "pet_info": {
+      "name": "Lucky",
+      "species": "犬",
+      "breed": "金毛",
+      "age": "3岁",
+      "weight": 30.0,
+      "sex": "male",
+      "neutered": true,
+      "health_conditions": [],
+      "allergies": [],
+      "activity_level": "medium"
+    },
+    "nutrition_plan": {
+      "daily_calories": 1450.0,
+      "macro_ratio": {
+        "protein": 28.0,
+        "fat": 14.0,
+        "carbs": 58.0
+      },
+      "recommended_foods": [
+        "优质成犬大型犬干粮",
+        "高蛋白成犬粮（鸡肉配方）",
+        "煮熟的鸡胸肉"
+      ],
+      "avoid_foods": ["巧克力", "葡萄和葡萄干", "洋葱和大蒜"],
+      "supplements": ["鱼油（omega-3脂肪酸）", "葡萄糖胺和软骨素"],
+      "feeding_schedule": ["早上8:00", "晚上18:00"]
+    },
+    "care_plan": {
+      "grooming": [
+        {
+          "type": "刷毛",
+          "frequency": "每天",
+          "notes": "金毛犬毛发浓密，需要每天梳理"
+        }
+      ],
+      "medical": [
+        {
+          "type": "体检",
+          "frequency": "每年一次",
+          "notes": "包括血液检查、尿液检查"
+        }
+      ],
+      "exercise": [
+        {
+          "type": "散步",
+          "duration": "60分钟",
+          "frequency": "每天两次"
+        }
+      ],
+      "vaccination": [
+        {
+          "name": "狂犬疫苗",
+          "schedule": "每年一次"
+        }
+      ],
+      "environment": [
+        {
+          "aspect": "温度",
+          "recommendation": "保持在18-24°C"
+        }
+      ]
+    },
+    "validation": {
+      "risk_analysis": "整体风险评估：低风险。该金毛犬的营养计划和护理计划全面且合理。",
+      "contradictions": []
+    },
+    "status": {
+      "nutrition_plan_ready": true,
+      "care_plan_ready": true,
+      "final_output_ready": true
+    }
+  }
+}
+```
+
+#### 字段说明
+
+| 字段名    | 类型   | 说明                 |
+| --------- | ------ | -------------------- |
+| `message` | string | 接口提示信息         |
+| `code`    | number | 状态码（200 = 成功） |
+| `data`    | object | 护理计划详细数据     |
+
+##### `data` 对象字段
+
+| 字段名           | 类型   | 说明               |
+| ---------------- | ------ | ------------------ |
+| `pet_info`       | object | 宠物基本信息       |
+| `nutrition_plan` | object | 营养计划           |
+| `care_plan`      | object | 护理计划           |
+| `validation`     | object | 计划验证与风险评估 |
+| `status`         | object | 各计划的生成状态   |
+
+##### `nutrition_plan` 对象字段
+
+| 字段名              | 类型   | 说明                               |
+| ------------------- | ------ | ---------------------------------- |
+| `daily_calories`    | number | 每日卡路里需求（kcal）             |
+| `macro_ratio`       | object | 营养比例（蛋白质/脂肪/碳水化合物） |
+| `recommended_foods` | array  | 推荐食物列表                       |
+| `avoid_foods`       | array  | 应避免的食物                       |
+| `supplements`       | array  | 推荐的营养补充剂                   |
+| `feeding_schedule`  | array  | 喂养时间表                         |
+
+##### `care_plan` 对象字段
+
+| 字段名        | 类型  | 说明             |
+| ------------- | ----- | ---------------- |
+| `grooming`    | array | 美容护理建议列表 |
+| `medical`     | array | 医疗护理建议列表 |
+| `exercise`    | array | 运动建议列表     |
+| `vaccination` | array | 疫苗接种计划     |
+| `environment` | array | 环境管理建议     |
+
+#### 工作流程
+
+该接口采用 LangGraph 多节点并行工作流：
+
+1. **PetInfoNode**：提取和补全宠物基本信息
+2. **并行生成**（性能优化）：
+   - **NutritionNode**：生成营养计划
+   - **CareNode**：生成护理计划
+3. **ValidatorNode**：验证计划一致性并进行风险评估
+4. **FinalOutputNode**：生成最终结构化输出
+
+> 💡 **性能提示**：营养和护理计划采用并行生成，相比串行执行性能提升约 36%，平均响应时间为 60-90 秒。
+
+#### 健康检查接口
+
+**GET** `/api/v1/pet-care/health`
+
+检查宠物护理计划服务的运行状态。
+
+**响应示例：**
+
+```json
+{
+  "message": "宠物护理计划服务运行正常",
+  "code": 200,
+  "service": "pet-care-plan",
+  "version": "1.0.0"
+}
+```
+
+---
+
 ## ⚠️ 注意事项
 
 1. **API 调用限制**：避免高频请求，防止触发限流。
@@ -402,9 +617,9 @@ vet-ai/
 
 ## 🤝 贡献指南
 
-1. Fork 本仓库  
-2. 创建功能分支（`git checkout -b feature/xxx`）  
-3. 提交代码（`git commit -m "Add xxx"`）  
+1. Fork 本仓库
+2. 创建功能分支（`git checkout -b feature/xxx`）
+3. 提交代码（`git commit -m "Add xxx"`）
 4. 发起 Pull Request
 
 ---
@@ -417,4 +632,3 @@ vet-ai/
 
 > 💡 **提示**：本系统整合了 Apifox 等现代 API 工具链，支持高效调试与团队协作。  
 > 🌐 了解更多：[Apifox 官网](https://apifox.com)
-

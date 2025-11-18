@@ -1,0 +1,156 @@
+2025-11-18 16:04:48.050 | INFO     | 52996 | MainThread | backend.api:lifespan:46 | 初始化系统资源
+2025-11-18 16:04:48.050 | INFO     | 52996 | MainThread | backend.api:lifespan:46 | 初始化系统资源
+2025-11-18 16:05:36.645 | INFO     | 52996 | MainThread | backend.api:lifespan:57 | 正在清理应用资源...
+2025-11-18 16:05:36.645 | INFO     | 52996 | MainThread | backend.api:lifespan:57 | 正在清理应用资源...
+2025-11-18 16:05:37.721 | INFO     | 53602 | MainThread | backend.api:lifespan:46 | 初始化系统资源
+2025-11-18 16:05:37.721 | INFO     | 53602 | MainThread | backend.api:lifespan:46 | 初始化系统资源
+2025-11-18 16:05:39.245 | INFO     | 53602 | MainThread | backend.api:lifespan:57 | 正在清理应用资源...
+2025-11-18 16:05:39.245 | INFO     | 53602 | MainThread | backend.api:lifespan:57 | 正在清理应用资源...
+2025-11-18 16:05:40.308 | INFO     | 53653 | MainThread | backend.api:lifespan:46 | 初始化系统资源
+2025-11-18 16:05:40.308 | INFO     | 53653 | MainThread | backend.api:lifespan:46 | 初始化系统资源
+2025-11-18 16:05:44.255 | INFO     | 53653 | MainThread | backend.api:lifespan:57 | 正在清理应用资源...
+2025-11-18 16:05:44.255 | INFO     | 53653 | MainThread | backend.api:lifespan:57 | 正在清理应用资源...
+2025-11-18 16:05:45.323 | INFO     | 53735 | MainThread | backend.api:lifespan:46 | 初始化系统资源
+2025-11-18 16:05:45.323 | INFO     | 53735 | MainThread | backend.api:lifespan:46 | 初始化系统资源
+2025-11-18 16:05:53.630 | INFO     | 53735 | MainThread | backend.routers.pet_care:create_pet_care_plan:41 | 收到宠物护理计划请求: 我家有一只3岁的金毛犬Lucky，体重30公斤，最近食欲不太好，希望制定营养和护理计划...
+2025-11-18 16:05:53.630 | INFO     | 53735 | MainThread | backend.routers.pet_care:create_pet_care_plan:41 | 收到宠物护理计划请求: 我家有一只3岁的金毛犬Lucky，体重30公斤，最近食欲不太好，希望制定营养和护理计划...
+2025-11-18 16:05:53.656 | INFO     | 53735 | MainThread | core.plan.agent:run:132 | 开始执行宠物护理计划工作流
+2025-11-18 16:05:53.656 | INFO     | 53735 | MainThread | core.plan.agent:run:132 | 开始执行宠物护理计划工作流
+2025-11-18 16:05:53.658 | INFO     | 53735 | MainThread | core.plan.nodes.pet_info_node:PetInfoNode:51 | 【PetInfoNode】开始提取宠物信息
+2025-11-18 16:05:53.658 | INFO     | 53735 | MainThread | core.plan.nodes.pet_info_node:PetInfoNode:51 | 【PetInfoNode】开始提取宠物信息
+2025-11-18 16:06:02.287 | INFO     | 53735 | MainThread | core.plan.nodes.pet_info_node:PetInfoNode:118 | 结构化输出成功
+2025-11-18 16:06:02.287 | INFO     | 53735 | MainThread | core.plan.nodes.pet_info_node:PetInfoNode:118 | 结构化输出成功
+2025-11-18 16:06:02.287 | INFO     | 53735 | MainThread | core.plan.nodes.pet_info_node:PetInfoNode:149 | 宠物信息提取完成
+2025-11-18 16:06:02.287 | INFO     | 53735 | MainThread | core.plan.nodes.pet_info_node:PetInfoNode:149 | 宠物信息提取完成
+2025-11-18 16:06:02.288 | INFO     | 53735 | MainThread | core.plan.nodes.care_node:CareNode:44 | 【CareNode】开始生成护理计划
+2025-11-18 16:06:02.288 | INFO     | 53735 | MainThread | core.plan.nodes.care_node:CareNode:44 | 【CareNode】开始生成护理计划
+2025-11-18 16:06:02.290 | INFO     | 53735 | MainThread | core.plan.nodes.nutrition_node:NutritionNode:49 | 【NutritionNode】开始生成营养计划
+2025-11-18 16:06:02.290 | INFO     | 53735 | MainThread | core.plan.nodes.nutrition_node:NutritionNode:49 | 【NutritionNode】开始生成营养计划
+2025-11-18 16:06:04.085 | WARNING  | 53735 | MainThread | core.plan.nodes.nutrition_node:NutritionNode:153 | 结构化输出失败: Error code: 429 - {'errors': {'message': 'Request limit exceeded.', 'request_id': 'da803666-6734-4a24-a63f-5de5d60b53a1'}}，尝试普通调用
+2025-11-18 16:06:04.085 | WARNING  | 53735 | MainThread | core.plan.nodes.nutrition_node:NutritionNode:153 | 结构化输出失败: Error code: 429 - {'errors': {'message': 'Request limit exceeded.', 'request_id': 'da803666-6734-4a24-a63f-5de5d60b53a1'}}，尝试普通调用
+2025-11-18 16:06:43.433 | INFO     | 53735 | MainThread | core.plan.nodes.care_node:CareNode:135 | 结构化输出成功
+2025-11-18 16:06:43.433 | INFO     | 53735 | MainThread | core.plan.nodes.care_node:CareNode:135 | 结构化输出成功
+2025-11-18 16:06:43.434 | INFO     | 53735 | MainThread | core.plan.nodes.care_node:CareNode:168 | 护理计划生成完成
+2025-11-18 16:06:43.434 | INFO     | 53735 | MainThread | core.plan.nodes.care_node:CareNode:168 | 护理计划生成完成
+2025-11-18 16:06:47.203 | INFO     | 53735 | MainThread | core.plan.nodes.nutrition_node:NutritionNode:162 | 普通调用成功
+2025-11-18 16:06:47.203 | INFO     | 53735 | MainThread | core.plan.nodes.nutrition_node:NutritionNode:162 | 普通调用成功
+2025-11-18 16:06:47.207 | INFO     | 53735 | MainThread | core.plan.nodes.nutrition_node:NutritionNode:185 | 营养计划生成完成
+2025-11-18 16:06:47.207 | INFO     | 53735 | MainThread | core.plan.nodes.nutrition_node:NutritionNode:185 | 营养计划生成完成
+2025-11-18 16:06:47.216 | INFO     | 53735 | MainThread | core.plan.nodes.validator_node:ValidatorNode:32 | 【ValidatorNode】开始验证计划一致性
+2025-11-18 16:06:47.216 | INFO     | 53735 | MainThread | core.plan.nodes.validator_node:ValidatorNode:32 | 【ValidatorNode】开始验证计划一致性
+2025-11-18 16:07:05.051 | INFO     | 53735 | MainThread | core.plan.nodes.validator_node:ValidatorNode:125 | 风险评估完成
+2025-11-18 16:07:05.051 | INFO     | 53735 | MainThread | core.plan.nodes.validator_node:ValidatorNode:125 | 风险评估完成
+2025-11-18 16:07:05.052 | INFO     | 53735 | MainThread | core.plan.nodes.validator_node:ValidatorNode:139 | 未发现明显冲突
+2025-11-18 16:07:05.052 | INFO     | 53735 | MainThread | core.plan.nodes.validator_node:ValidatorNode:139 | 未发现明显冲突
+2025-11-18 16:07:05.054 | INFO     | 53735 | MainThread | core.plan.nodes.final_output_node:FinalOutputNode:69 | ==================================================
+2025-11-18 16:07:05.054 | INFO     | 53735 | MainThread | core.plan.nodes.final_output_node:FinalOutputNode:69 | ==================================================
+2025-11-18 16:07:05.054 | INFO     | 53735 | MainThread | core.plan.nodes.final_output_node:FinalOutputNode:70 | 为宠物 Lucky 生成了护理计划
+✓ 营养计划：每日 1440.0kcal
+  - 推荐食物 8 项
+  - 补充剂 4 项
+✓ 护理计划：
+  - 美容护理 5 项
+  - 医疗护理 5 项
+  - 运动建议 4 项
+  - 疫苗接种 4 项
+
+风险评估：
+  整体风险评估：低风险
+2025-11-18 16:07:05.054 | INFO     | 53735 | MainThread | core.plan.nodes.final_output_node:FinalOutputNode:70 | 为宠物 Lucky 生成了护理计划
+✓ 营养计划：每日 1440.0kcal
+  - 推荐食物 8 项
+  - 补充剂 4 项
+✓ 护理计划：
+  - 美容护理 5 项
+  - 医疗护理 5 项
+  - 运动建议 4 项
+  - 疫苗接种 4 项
+
+风险评估：
+  整体风险评估：低风险
+2025-11-18 16:07:05.055 | INFO     | 53735 | MainThread | core.plan.nodes.final_output_node:FinalOutputNode:71 | ==================================================
+2025-11-18 16:07:05.055 | INFO     | 53735 | MainThread | core.plan.nodes.final_output_node:FinalOutputNode:71 | ==================================================
+2025-11-18 16:07:05.055 | INFO     | 53735 | MainThread | core.plan.nodes.final_output_node:FinalOutputNode:77 | 【FinalOutputNode】所有计划生成完成
+2025-11-18 16:07:05.055 | INFO     | 53735 | MainThread | core.plan.nodes.final_output_node:FinalOutputNode:77 | 【FinalOutputNode】所有计划生成完成
+2025-11-18 16:07:05.057 | INFO     | 53735 | MainThread | core.plan.agent:run:140 | 工作流执行完成
+2025-11-18 16:07:05.057 | INFO     | 53735 | MainThread | core.plan.agent:run:140 | 工作流执行完成
+2025-11-18 16:07:05.058 | INFO     | 53735 | MainThread | backend.routers.pet_care:create_pet_care_plan:82 | 宠物护理计划生成完成
+2025-11-18 16:07:05.058 | INFO     | 53735 | MainThread | backend.routers.pet_care:create_pet_care_plan:82 | 宠物护理计划生成完成
+2025-11-18 16:07:05.058 | INFO     | 53735 | MainThread | backend.routers.pet_care:create_pet_care_plan:136 | 所有计划生成成功
+2025-11-18 16:07:05.058 | INFO     | 53735 | MainThread | backend.routers.pet_care:create_pet_care_plan:136 | 所有计划生成成功
+2025-11-18 16:07:21.814 | INFO     | 53735 | MainThread | backend.routers.pet_care:create_pet_care_plan:41 | 收到宠物护理计划请求: 我家有一只2岁的猫咪，需要制定营养计划...
+2025-11-18 16:07:21.814 | INFO     | 53735 | MainThread | backend.routers.pet_care:create_pet_care_plan:41 | 收到宠物护理计划请求: 我家有一只2岁的猫咪，需要制定营养计划...
+2025-11-18 16:07:21.850 | INFO     | 53735 | MainThread | core.plan.agent:run:132 | 开始执行宠物护理计划工作流
+2025-11-18 16:07:21.850 | INFO     | 53735 | MainThread | core.plan.agent:run:132 | 开始执行宠物护理计划工作流
+2025-11-18 16:07:21.851 | INFO     | 53735 | MainThread | core.plan.nodes.pet_info_node:PetInfoNode:51 | 【PetInfoNode】开始提取宠物信息
+2025-11-18 16:07:21.851 | INFO     | 53735 | MainThread | core.plan.nodes.pet_info_node:PetInfoNode:51 | 【PetInfoNode】开始提取宠物信息
+2025-11-18 16:07:29.215 | INFO     | 53735 | MainThread | core.plan.nodes.pet_info_node:PetInfoNode:118 | 结构化输出成功
+2025-11-18 16:07:29.215 | INFO     | 53735 | MainThread | core.plan.nodes.pet_info_node:PetInfoNode:118 | 结构化输出成功
+2025-11-18 16:07:29.217 | INFO     | 53735 | MainThread | core.plan.nodes.pet_info_node:PetInfoNode:149 | 宠物信息提取完成
+2025-11-18 16:07:29.217 | INFO     | 53735 | MainThread | core.plan.nodes.pet_info_node:PetInfoNode:149 | 宠物信息提取完成
+2025-11-18 16:07:29.219 | INFO     | 53735 | MainThread | core.plan.nodes.care_node:CareNode:44 | 【CareNode】开始生成护理计划
+2025-11-18 16:07:29.219 | INFO     | 53735 | MainThread | core.plan.nodes.care_node:CareNode:44 | 【CareNode】开始生成护理计划
+2025-11-18 16:07:29.222 | INFO     | 53735 | MainThread | core.plan.nodes.nutrition_node:NutritionNode:49 | 【NutritionNode】开始生成营养计划
+2025-11-18 16:07:29.222 | INFO     | 53735 | MainThread | core.plan.nodes.nutrition_node:NutritionNode:49 | 【NutritionNode】开始生成营养计划
+2025-11-18 16:07:51.669 | INFO     | 53735 | MainThread | core.plan.nodes.nutrition_node:NutritionNode:151 | 结构化输出成功
+2025-11-18 16:07:51.669 | INFO     | 53735 | MainThread | core.plan.nodes.nutrition_node:NutritionNode:151 | 结构化输出成功
+2025-11-18 16:07:51.669 | INFO     | 53735 | MainThread | core.plan.nodes.nutrition_node:NutritionNode:185 | 营养计划生成完成
+2025-11-18 16:07:51.669 | INFO     | 53735 | MainThread | core.plan.nodes.nutrition_node:NutritionNode:185 | 营养计划生成完成
+2025-11-18 16:08:09.161 | INFO     | 53735 | MainThread | core.plan.nodes.care_node:CareNode:135 | 结构化输出成功
+2025-11-18 16:08:09.161 | INFO     | 53735 | MainThread | core.plan.nodes.care_node:CareNode:135 | 结构化输出成功
+2025-11-18 16:08:09.162 | INFO     | 53735 | MainThread | core.plan.nodes.care_node:CareNode:168 | 护理计划生成完成
+2025-11-18 16:08:09.162 | INFO     | 53735 | MainThread | core.plan.nodes.care_node:CareNode:168 | 护理计划生成完成
+2025-11-18 16:08:09.165 | INFO     | 53735 | MainThread | core.plan.nodes.validator_node:ValidatorNode:32 | 【ValidatorNode】开始验证计划一致性
+2025-11-18 16:08:09.165 | INFO     | 53735 | MainThread | core.plan.nodes.validator_node:ValidatorNode:32 | 【ValidatorNode】开始验证计划一致性
+2025-11-18 16:08:33.635 | INFO     | 53735 | MainThread | core.plan.nodes.validator_node:ValidatorNode:125 | 风险评估完成
+2025-11-18 16:08:33.635 | INFO     | 53735 | MainThread | core.plan.nodes.validator_node:ValidatorNode:125 | 风险评估完成
+2025-11-18 16:08:33.636 | WARNING  | 53735 | MainThread | core.plan.nodes.validator_node:ValidatorNode:137 | 发现 4 个潜在问题
+2025-11-18 16:08:33.636 | WARNING  | 53735 | MainThread | core.plan.nodes.validator_node:ValidatorNode:137 | 发现 4 个潜在问题
+2025-11-18 16:08:33.641 | INFO     | 53735 | MainThread | core.plan.nodes.final_output_node:FinalOutputNode:69 | ==================================================
+2025-11-18 16:08:33.641 | INFO     | 53735 | MainThread | core.plan.nodes.final_output_node:FinalOutputNode:69 | ==================================================
+2025-11-18 16:08:33.641 | INFO     | 53735 | MainThread | core.plan.nodes.final_output_node:FinalOutputNode:70 | 为 猫 生成了护理计划
+✓ 营养计划：每日 250.0kcal
+  - 推荐食物 7 项
+  - 补充剂 3 项
+✓ 护理计划：
+  - 美容护理 5 项
+  - 医疗护理 5 项
+  - 运动建议 4 项
+  - 疫苗接种 3 项
+
+风险评估：
+  整体风险评估：低风险。这是一只健康的2岁猫咪，营养计划和护理计划总体合理且符合其需求。
+
+发现 4 个潜在问题需要注意
+2025-11-18 16:08:33.641 | INFO     | 53735 | MainThread | core.plan.nodes.final_output_node:FinalOutputNode:70 | 为 猫 生成了护理计划
+✓ 营养计划：每日 250.0kcal
+  - 推荐食物 7 项
+  - 补充剂 3 项
+✓ 护理计划：
+  - 美容护理 5 项
+  - 医疗护理 5 项
+  - 运动建议 4 项
+  - 疫苗接种 3 项
+
+风险评估：
+  整体风险评估：低风险。这是一只健康的2岁猫咪，营养计划和护理计划总体合理且符合其需求。
+
+发现 4 个潜在问题需要注意
+2025-11-18 16:08:33.642 | INFO     | 53735 | MainThread | core.plan.nodes.final_output_node:FinalOutputNode:71 | ==================================================
+2025-11-18 16:08:33.642 | INFO     | 53735 | MainThread | core.plan.nodes.final_output_node:FinalOutputNode:71 | ==================================================
+2025-11-18 16:08:33.643 | INFO     | 53735 | MainThread | core.plan.nodes.final_output_node:FinalOutputNode:77 | 【FinalOutputNode】所有计划生成完成
+2025-11-18 16:08:33.643 | INFO     | 53735 | MainThread | core.plan.nodes.final_output_node:FinalOutputNode:77 | 【FinalOutputNode】所有计划生成完成
+2025-11-18 16:08:33.644 | INFO     | 53735 | MainThread | core.plan.agent:run:140 | 工作流执行完成
+2025-11-18 16:08:33.644 | INFO     | 53735 | MainThread | core.plan.agent:run:140 | 工作流执行完成
+2025-11-18 16:08:33.645 | INFO     | 53735 | MainThread | backend.routers.pet_care:create_pet_care_plan:82 | 宠物护理计划生成完成
+2025-11-18 16:08:33.645 | INFO     | 53735 | MainThread | backend.routers.pet_care:create_pet_care_plan:82 | 宠物护理计划生成完成
+2025-11-18 16:08:33.645 | INFO     | 53735 | MainThread | backend.routers.pet_care:create_pet_care_plan:136 | 所有计划生成成功
+2025-11-18 16:08:33.645 | INFO     | 53735 | MainThread | backend.routers.pet_care:create_pet_care_plan:136 | 所有计划生成成功
+2025-11-18 16:08:41.971 | INFO     | 53735 | MainThread | backend.api:lifespan:57 | 正在清理应用资源...
+2025-11-18 16:08:41.971 | INFO     | 53735 | MainThread | backend.api:lifespan:57 | 正在清理应用资源...
+2025-11-18 16:08:43.068 | INFO     | 55928 | MainThread | backend.api:lifespan:46 | 初始化系统资源
+2025-11-18 16:08:43.068 | INFO     | 55928 | MainThread | backend.api:lifespan:46 | 初始化系统资源
+2025-11-18 16:11:23.103 | INFO     | 55928 | MainThread | backend.api:lifespan:57 | 正在清理应用资源...
+2025-11-18 16:11:23.103 | INFO     | 55928 | MainThread | backend.api:lifespan:57 | 正在清理应用资源...
+2025-11-18 16:11:24.661 | INFO     | 57511 | MainThread | backend.api:lifespan:46 | 初始化系统资源
+2025-11-18 16:11:24.661 | INFO     | 57511 | MainThread | backend.api:lifespan:46 | 初始化系统资源

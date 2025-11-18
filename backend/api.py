@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 
 # 导入诊断路由
-from backend.routers import diagnosis_router, graph_router
+from backend.routers import diagnosis_router, graph_router, pet_care_router
 # 导入应用配置
 from backend.settings import settings
 from config.logger import logger
@@ -136,6 +136,20 @@ def create_app() -> FastAPI:
             401: {"description": "Unauthorized"},
             403: {"description": "Forbidden"},
             500: {"description": "会话服务错误"},
+        },
+    )
+
+    # pet care plan
+    app.include_router(
+        pet_care_router,
+        prefix=prefix,
+        tags=["pet-care"],
+        responses={
+            404: {"description": "Pet care plan not found"},
+            400: {"description": "Bad request"},
+            401: {"description": "Unauthorized"},
+            403: {"description": "Forbidden"},
+            500: {"description": "服务错误"},
         },
     )
 

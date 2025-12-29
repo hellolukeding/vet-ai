@@ -66,9 +66,10 @@ async def create_diagnosis(
             }
         )
     except Exception as e:
-        logger.error(f"诊断失败: {e}", exc_info=True)
+        error_msg = repr(e)
+        logger.error("诊断失败: %s", error_msg, exc_info=True)
         return JSONResponse(
-            status_code=status.HTTP_200_OK,  # 改为200状态码，但内容表示错误
+            status_code=status.HTTP_200_OK,
             content={
                 "message": "诊断服务暂时不可用，请稍后重试",
                 "data": [],
@@ -78,14 +79,13 @@ async def create_diagnosis(
 
 
 @router.post("/vet/herb", response_model=dict, status_code=status.HTTP_200_OK)
-async def create_diagnosis(
+async def create_herb_diagnosis(
     diagnosis_data: CreateDiagnosisRequest
 ) -> JSONResponse:
-    """创建诊断并返回诊断结果。"""
-    logger.info(f"开始处理诊断请求: {diagnosis_data.description}")
+    """创建中医诊断并返回诊断结果。"""
+    logger.info(f"开始处理中医诊断请求: {diagnosis_data.description}")
 
     try:
-
         # 检查输入是否为空
         if not diagnosis_data.description or not diagnosis_data.description.strip():
             logger.warning("诊断描述为空")
@@ -111,28 +111,29 @@ async def create_diagnosis(
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={
-                    "message": "未能根据提供的症状生成诊断结果，请提供更详细的症状描述",
+                    "message": "未能根据提供的症状生成中医诊断结果，请提供更详细的症状描述",
                     "data": [],
                     "code": status.HTTP_200_OK
                 }
             )
 
-        logger.info(f"诊断完成，返回 {len(result)} 个诊断结果")
+        logger.info(f"中医诊断完成，返回 {len(result)} 个诊断结果")
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
-                "message": "诊断成功",
+                "message": "中医诊断成功",
                 "data": result,
                 "code": status.HTTP_200_OK
             }
         )
     except Exception as e:
-        logger.error(f"诊断失败: {e}", exc_info=True)
+        error_msg = repr(e)
+        logger.error("中医诊断失败: %s", error_msg, exc_info=True)
         return JSONResponse(
-            status_code=status.HTTP_200_OK,  # 改为200状态码，但内容表示错误
+            status_code=status.HTTP_200_OK,
             content={
-                "message": "诊断服务暂时不可用，请稍后重试",
+                "message": "中医诊断服务暂时不可用，请稍后重试",
                 "data": [],
                 "code": status.HTTP_200_OK
             }

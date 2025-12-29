@@ -14,7 +14,7 @@ def get_llm():
     base_url = settings.BASE_URL or "https://api-inference.modelscope.cn/v1"
     api_key = settings.API_KEY or ""
     temperature = 0.6
-    
+
     return ChatOpenAI(
         model=model_name,
         base_url=base_url,

@@ -1,5 +1,4 @@
 import json
-import os
 import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -9,8 +8,8 @@ from agentscope.agents import ReActAgent
 from agentscope.message import Msg
 from agentscope.service import (ServiceExecStatus, ServiceResponse,
                                 ServiceToolkit, execute_python_code)
-from dotenv import load_dotenv
 
+from backend.settings import settings
 from config.logger import logger
 from utils.json.fix_broken_json import fix_broken_json
 from utils.parser.markdown_json_list_parser import extract_clean_json
@@ -21,10 +20,9 @@ from utils.react_tool.toolkit import (extract_json_block,
 
 class ReDiagnosis:
     def __init__(self):
-        load_dotenv(".env")
-        self.model_name = os.getenv("MODEL_NAME")
-        self.base_url = os.getenv("BASE_URL")
-        self.api_key = os.getenv("API_KEY")
+        self.model_name = settings.MODEL_NAME
+        self.base_url = settings.BASE_URL
+        self.api_key = settings.API_KEY
         self.model = self.model_name or "vet-logicstorm-lora"
         self.initialized = False
 

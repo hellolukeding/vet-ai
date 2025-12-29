@@ -1,12 +1,11 @@
-import os
 import re
 from typing import Any, Dict, List
 
 import agentscope
 from agentscope.agents import DialogAgent
 from agentscope.message import Msg
-from dotenv import load_dotenv
 
+from backend.settings import settings
 from config.logger import logger
 
 
@@ -184,10 +183,9 @@ def format_json_diagnosis(parsed: List[Dict[str, str]]) -> List[Dict[str, Any]]:
 
 class HerbDiagnosis:
     def __init__(self):
-        load_dotenv(".env")
-        self.model_name = os.getenv("MODEL_NAME")
-        self.base_url = os.getenv("BASE_URL")
-        self.api_key = os.getenv("API_KEY")
+        self.model_name = settings.MODEL_NAME
+        self.base_url = settings.BASE_URL
+        self.api_key = settings.API_KEY
         self.sys_prompt = None
         self.initialized = False
         self.agent: DialogAgent = None

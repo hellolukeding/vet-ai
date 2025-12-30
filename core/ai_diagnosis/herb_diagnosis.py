@@ -243,7 +243,14 @@ class HerbDiagnosis:
 - suggest_prescription: 急救方剂
 - suggest_prescription_usage: 急救方剂用法
 
-所有字段必须完整输出，p字段必须是0-1之间的数字，不得多余文字。请开始中医诊断："""
+要求：
+1. 必须输出至少5个中医诊断结果，按概率从高到低排序
+2. 每个诊断必须包含完整的13个字段
+3. p字段必须是0-1之间的数字，表示诊断概率
+4. 所有字段必须完整输出，不得多余文字
+5. 基于中医理论进行辨证论治，提供多种可能的证型鉴别
+
+请开始中医诊断："""
 
     def _init_agent(self) -> None:
         self.agent = DialogAgent(

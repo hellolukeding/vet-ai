@@ -181,7 +181,14 @@ class Diagnosis:
 | disease | description | p | base | continue | suggest | base_medicine | base_medicine_usage | continue_medicine | continue_medicine_usage | suggest_medicine | suggest_medicine_usage |
 |---------|-------------|---|------|----------|---------|---------------|---------------------|-------------------|-------------------------|------------------|------------------------|
 
-所有字段必须完整输出，不得多余文字。请开始诊断："""
+要求：
+1. 必须输出至少5个诊断结果，按概率从高到低排序
+2. 每个诊断必须包含完整的13个字段
+3. p字段必须是0-1之间的数字，表示诊断概率
+4. 所有字段必须完整输出，不得多余文字
+5. 如果症状信息有限，也要尽可能提供5个可能的鉴别诊断
+
+请开始诊断："""
 
     def _init_agent(self) -> None:
         self.agent = DialogAgent(

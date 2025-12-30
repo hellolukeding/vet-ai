@@ -58,13 +58,15 @@ async def DiagnosisNode(state: VetAgentState) -> Dict[str, List[DiagnosisItem]]:
     system_instructions = f"""
     当前时间：{current_time}
     你是一位资深兽医（中文输出），对小动物临床表现、鉴别诊断和常用处方非常熟悉。
-    任务：根据下面的症状描述，列出最多5个最可能的诊断。返回严格的JSON，不要包含额外的文本。JSON schema: {{"diagnosis": [{{"symptom": str, "reason": str, "probability": float}}]}}
+    任务：根据下面的症状描述，列出最少5个最可能的诊断。返回严格的JSON，不要包含额外的文本。JSON schema: {{"diagnosis": [{{"symptom": str, "reason": str, "probability": float}}]}}
 
     要求：
+      - 必须输出至少5个诊断结果，按可能性从高到低排序
       - 每个诊断的 `symptom` 字段写疾病或综合征的简短名称（中文）。
       - `reason` 简洁说明为何该诊断成立，引用症状/体征/病史要点（2-3项）。
       - `probability` 为 0 到 1 的小数，三位小数精度优先，总和不用严格为1，但请确保相对合理。
-      - 返回的诊断数量 <= 5，按可能性从高到低排序。
+      - 返回的诊断数量 >= 5，按可能性从高到低排序。
+      - 如果症状信息有限，也要尽可能提供5个可能的鉴别诊断
       - 不要返回诊断以外的段落说明或解释文本，严格只输出 JSON。
       - 不要使用任何Markdown代码块格式（如```json）包装结果。
     """
@@ -100,7 +102,8 @@ async def DiagnosisNode(state: VetAgentState) -> Dict[str, List[DiagnosisItem]]:
         if hasattr(response, "model_dump"):
             response = response.model_dump()
 
-        diag_list = response.get("diagnosis") if isinstance(response, dict) else None
+        diag_list = response.get("diagnosis") if isinstance(
+            response, dict) else None
         if not isinstance(diag_list, list):
             # try to extract from nested structure
             diag_list = []

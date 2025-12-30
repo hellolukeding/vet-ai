@@ -188,7 +188,7 @@ class HerbDiagnosis:
         self.api_key = settings.API_KEY
         self.sys_prompt = None
         self.initialized = False
-        self.agent: DialogAgent = None
+        self.model_wrapper = None  # 改为model_wrapper
 
         logger.info(f"Model Name: {self.model_name}")
         logger.info(f"Base URL: {self.base_url}")
@@ -207,8 +207,8 @@ class HerbDiagnosis:
                                 "base_url": self.base_url,
                             },
                             "generate_args": {
-                                "max_tokens": 2048,
-                                "temperature": 0.8,
+                                "max_tokens": 4096,
+                                "temperature": 0.7,
                                 "top_p": 0.8,
                             },
                         },
@@ -253,14 +253,25 @@ class HerbDiagnosis:
 请开始中医诊断："""
 
     def _init_agent(self) -> None:
-        self.agent = DialogAgent(
-            name="diagnosis",
-            model_config_name="diagnosis",
-            sys_prompt=self.sys_prompt,
+        # 直接创建模型实例，而不是使用DialogAgent
+        from agentscope.models import OpenAIChatWrapper
+
+        self.model_wrapper = OpenAIChatWrapper(
+            config_name="diagnosis",
+            model_name=self.model_name,
+            api_key=self.api_key,
+            client_args={
+                "base_url": self.base_url,
+            },
+            generate_args={
+                "max_tokens": 4096,
+                "temperature": 0.7,
+                "top_p": 0.8,
+            },
         )
 
     def diagnosis(self, desc: str) -> List[Dict[str, Any]]:
-        if not self.initialized or self.agent is None:
+        if not self.initialized or self.model_wrapper is None:
             logger.error("中医诊断模型未初始化")
             return []
 
@@ -268,19 +279,28 @@ class HerbDiagnosis:
 
 请基于中医理论进行分析，严格输出符合要求的中医诊断表格格式，字段齐全，不得缺失。特别注意p字段必须是0-1之间的数字。"""
 
-        task = Msg("User", user_message, "user")
-        result = self.agent(task)
-        logger.info(f"Raw Result: {result.content}")
-
-        cleaned_content = result.content
-        logger.info(f"Cleaned Result: {cleaned_content}")
+        # 构建消息格式
+        messages = [
+            {"role": "system", "content": self.sys_prompt},
+            {"role": "user", "content": user_message}
+        ]
 
         try:
+            result = self.model_wrapper(messages=messages)
+            logger.info(f"Raw Result: {result}")
+
+            # 获取文本内容
+            cleaned_content = result.text if hasattr(
+                result, 'text') else str(result)
+            logger.info(f"Cleaned Result: {cleaned_content}")
+
             parsed = parse_diagnosis_table(cleaned_content)
             logger.info(f"Parsed Result: {parsed}")
             return format_json_herb_diagnosis(parsed)
         except Exception as e:
             logger.error(f"中医诊断解析失败: {e}")
+            import traceback
+            traceback.print_exc()
             return []
 
     def test_with_sample_data(self) -> List[Dict[str, Any]]:

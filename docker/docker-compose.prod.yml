@@ -21,6 +21,7 @@ services:
     restart: unless-stopped
     depends_on:
       - mongo
+      - redis
     deploy:
       resources:
         limits:
@@ -76,6 +77,36 @@ services:
         max-file: "3"
     command: mongod --auth --bind_ip_all
 
+  redis:
+    image: redis:7-alpine
+    container_name: vet-ai-redis
+    ports:
+      - "127.0.0.1:6379:6379" # 只允许本地访问
+    volumes:
+      - redis_data:/data
+    networks:
+      - vet-ai-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   nginx:
     image: nginx:alpine
     container_name: vet-ai-nginx
@@ -130,6 +161,8 @@ volumes:
   mongo_data:
     driver: local
   mongo_config:
+    driver: local
+  redis_data:
     driver: local
   app_logs:
     driver: local

@@ -46,8 +46,14 @@ async def lifespan(app: FastAPI):
     logger.info("初始化系统资源")
 
     try:
-        # 可以在这里添加初始化代码
+        # 启动任务队列Worker
+        logger.info("正在启动任务队列Worker...")
+        from core.tasks.worker import start_worker
+        await start_worker()
+        logger.info("任务队列Worker已启动")
+
         yield
+
     except Exception as e:
         logger.error(f"应用启动失败: {e}")
         logger.error(f"详细错误信息: {traceback.format_exc()}")
@@ -55,8 +61,14 @@ async def lifespan(app: FastAPI):
 
     finally:
         logger.info("正在清理应用资源...")
-        # todo
-        pass
+
+        # 停止任务队列Worker
+        try:
+            from core.tasks.worker import stop_worker
+            await stop_worker()
+            logger.info("任务队列Worker已停止")
+        except Exception as e:
+            logger.error(f"停止Worker失败: {e}")
 
 
 def create_app() -> FastAPI:

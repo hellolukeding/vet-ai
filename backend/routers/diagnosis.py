@@ -1,14 +1,11 @@
-import json
-from typing import Any, Dict, List, Union
-
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, Query, status
 from fastapi.responses import JSONResponse
 
 from backend.element.ele_diagnosis import CreateDiagnosisRequest
 from config.logger import logger
 from core.ai_diagnosis.diagnosis import Diagnosis
 from core.ai_diagnosis.herb_diagnosis import HerbDiagnosis
-from core.ai_diagnosis.re_diagnosis import ReDiagnosis
+from core.tasks import TaskType, get_task_manager
 
 router = APIRouter()
 
@@ -17,13 +14,20 @@ router = APIRouter()
 
 @router.post("/diagnosis", response_model=dict, status_code=status.HTTP_200_OK)
 async def create_diagnosis(
-    diagnosis_data: CreateDiagnosisRequest
+    diagnosis_data: CreateDiagnosisRequest,
+    async_mode: bool = Query(False, description="是否使用异步模式")
 ) -> JSONResponse:
-    """创建诊断并返回诊断结果。"""
-    logger.info(f"开始处理诊断请求: {diagnosis_data.description}")
+    """
+    创建诊断并返回诊断结果。
+
+    参数:
+    - async_mode: 是否使用异步模式 (默认false)
+      - false: 同步模式，直接返回诊断结果 (保持原有行为)
+      - true: 异步模式，返回task_id，需要轮询 /diagnosis/task/{task_id} 查询结果
+    """
+    logger.info(f"开始处理诊断请求: {diagnosis_data.description}, async_mode={async_mode}")
 
     try:
-
         # 检查输入是否为空
         if not diagnosis_data.description or not diagnosis_data.description.strip():
             logger.warning("诊断描述为空")
@@ -35,9 +39,33 @@ async def create_diagnosis(
                     "code": status.HTTP_400_BAD_REQUEST
                 }
             )
+
+        # 异步模式：提交任务并返回task_id
+        if async_mode:
+            task_manager = get_task_manager()
+            task_id = task_manager.submit_task(
+                TaskType.DIAGNOSIS,
+                {"symptoms": diagnosis_data.description},
+                priority=0
+            )
+            logger.info(f"诊断任务已提交: {task_id}")
+            return JSONResponse(
+                status_code=status.HTTP_202_ACCEPTED,
+                content={
+                    "message": "诊断任务已提交，请使用task_id查询结果",
+                    "data": {
+                        "task_id": task_id,
+                        "status": "pending"
+                    },
+                    "code": status.HTTP_202_ACCEPTED
+                }
+            )
+
+        # 同步模式：直接执行并返回结果 (保持原有行为)
         diagnosis = Diagnosis()
         result = diagnosis.diagnosis(diagnosis_data.description)
         logger.info(f"result: {result}")
+
         # 确保返回的数据格式正确
         if not isinstance(result, list):
             logger.warning(f"诊断结果不是列表格式: {type(result)}")
@@ -78,12 +106,121 @@ async def create_diagnosis(
         )
 
 
+@router.get("/diagnosis/task/{task_id}", response_model=dict, status_code=status.HTTP_200_OK)
+async def get_diagnosis_task_status(
+    task_id: str
+) -> JSONResponse:
+    """
+    查询诊断任务状态和结果（仅用于异步模式）
+
+    返回:
+    - pending: 等待中
+    - processing: 处理中，包含进度信息
+    - completed: 已完成，包含诊断结果
+    - failed: 失败，包含错误信息
+    """
+    task_manager = get_task_manager()
+    status_info = task_manager.get_task_status(task_id)
+
+    if not status_info:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={
+                "message": "任务不存在或已过期",
+                "data": None,
+                "code": status.HTTP_404_NOT_FOUND
+            }
+        )
+
+    task_status = status_info["status"]
+
+    # 任务完成
+    if task_status == "completed":
+        result = task_manager.get_task_result(task_id)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "message": "诊断成功",
+                "data": result.get("diagnoses", []),
+                "code": status.HTTP_200_OK
+            }
+        )
+
+    # 任务失败
+    elif task_status == "failed":
+        result = task_manager.get_task_result(task_id)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "message": result.get("error", "诊断任务执行失败"),
+                "data": [],
+                "code": status.HTTP_200_OK
+            }
+        )
+
+    # 任务处理中
+    elif task_status == "processing":
+        progress = status_info.get("progress", {})
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "message": f"正在处理: {progress.get('stage', '诊断中')}",
+                "data": {
+                    "task_id": task_id,
+                    "status": "processing",
+                    "progress": progress
+                },
+                "code": status.HTTP_200_OK
+            }
+        )
+
+    # 任务等待中
+    else:  # pending
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "message": "任务排队中",
+                "data": {
+                    "task_id": task_id,
+                    "status": "pending"
+                },
+                "code": status.HTTP_200_OK
+            }
+        )
+
+
+@router.delete("/diagnosis/task/{task_id}", response_model=dict, status_code=status.HTTP_200_OK)
+async def cancel_diagnosis_task(
+    task_id: str
+) -> JSONResponse:
+    """取消诊断任务（仅用于异步模式）"""
+    task_manager = get_task_manager()
+    success = task_manager.cancel_task(task_id)
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "message": "任务已取消" if success else "任务无法取消（可能已完成或不存在）",
+            "data": {"task_id": task_id, "cancelled": success},
+            "code": status.HTTP_200_OK
+        }
+    )
+
+
 @router.post("/vet/herb", response_model=dict, status_code=status.HTTP_200_OK)
 async def create_herb_diagnosis(
-    diagnosis_data: CreateDiagnosisRequest
+    diagnosis_data: CreateDiagnosisRequest,
+    async_mode: bool = Query(False, description="是否使用异步模式")
 ) -> JSONResponse:
-    """创建中医诊断并返回诊断结果。"""
-    logger.info(f"开始处理中医诊断请求: {diagnosis_data.description}")
+    """
+    创建中医诊断并返回诊断结果。
+
+    参数:
+    - async_mode: 是否使用异步模式 (默认false)
+      - false: 同步模式，直接返回诊断结果 (保持原有行为)
+      - true: 异步模式，返回task_id，需要轮询 /vet/herb/task/{task_id} 查询结果
+    """
+    logger.info(f"开始处理中医诊断请求: {diagnosis_data.description}, async_mode={async_mode}")
 
     try:
         # 检查输入是否为空
@@ -97,9 +234,33 @@ async def create_herb_diagnosis(
                     "code": status.HTTP_400_BAD_REQUEST
                 }
             )
+
+        # 异步模式：提交任务并返回task_id
+        if async_mode:
+            task_manager = get_task_manager()
+            task_id = task_manager.submit_task(
+                TaskType.HERB_DIAGNOSIS,
+                {"symptoms": diagnosis_data.description},
+                priority=0
+            )
+            logger.info(f"中医诊断任务已提交: {task_id}")
+            return JSONResponse(
+                status_code=status.HTTP_202_ACCEPTED,
+                content={
+                    "message": "中医诊断任务已提交，请使用task_id查询结果",
+                    "data": {
+                        "task_id": task_id,
+                        "status": "pending"
+                    },
+                    "code": status.HTTP_202_ACCEPTED
+                }
+            )
+
+        # 同步模式：直接执行并返回结果 (保持原有行为)
         diagnosis = HerbDiagnosis()
         result = diagnosis.diagnosis(diagnosis_data.description)
         logger.info(f"result: {result}")
+
         # 确保返回的数据格式正确
         if not isinstance(result, list):
             logger.warning(f"诊断结果不是列表格式: {type(result)}")
@@ -138,3 +299,104 @@ async def create_herb_diagnosis(
                 "code": status.HTTP_200_OK
             }
         )
+
+
+@router.get("/vet/herb/task/{task_id}", response_model=dict, status_code=status.HTTP_200_OK)
+async def get_herb_diagnosis_task_status(
+    task_id: str
+) -> JSONResponse:
+    """
+    查询中医诊断任务状态和结果（仅用于异步模式）
+
+    返回:
+    - pending: 等待中
+    - processing: 处理中，包含进度信息
+    - completed: 已完成，包含诊断结果
+    - failed: 失败，包含错误信息
+    """
+    task_manager = get_task_manager()
+    status_info = task_manager.get_task_status(task_id)
+
+    if not status_info:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={
+                "message": "任务不存在或已过期",
+                "data": None,
+                "code": status.HTTP_404_NOT_FOUND
+            }
+        )
+
+    task_status = status_info["status"]
+
+    # 任务完成
+    if task_status == "completed":
+        result = task_manager.get_task_result(task_id)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "message": "中医诊断成功",
+                "data": result.get("diagnoses", []),
+                "code": status.HTTP_200_OK
+            }
+        )
+
+    # 任务失败
+    elif task_status == "failed":
+        result = task_manager.get_task_result(task_id)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "message": result.get("error", "中医诊断任务执行失败"),
+                "data": [],
+                "code": status.HTTP_200_OK
+            }
+        )
+
+    # 任务处理中
+    elif task_status == "processing":
+        progress = status_info.get("progress", {})
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "message": f"正在处理: {progress.get('stage', '中医诊断中')}",
+                "data": {
+                    "task_id": task_id,
+                    "status": "processing",
+                    "progress": progress
+                },
+                "code": status.HTTP_200_OK
+            }
+        )
+
+    # 任务等待中
+    else:  # pending
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "message": "任务排队中",
+                "data": {
+                    "task_id": task_id,
+                    "status": "pending"
+                },
+                "code": status.HTTP_200_OK
+            }
+        )
+
+
+@router.delete("/vet/herb/task/{task_id}", response_model=dict, status_code=status.HTTP_200_OK)
+async def cancel_herb_diagnosis_task(
+    task_id: str
+) -> JSONResponse:
+    """取消中医诊断任务（仅用于异步模式）"""
+    task_manager = get_task_manager()
+    success = task_manager.cancel_task(task_id)
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "message": "任务已取消" if success else "任务无法取消（可能已完成或不存在）",
+            "data": {"task_id": task_id, "cancelled": success},
+            "code": status.HTTP_200_OK
+        }
+    )

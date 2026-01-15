@@ -41,6 +41,12 @@ class Settings(BaseSettings):
     BASE_URL: Optional[str] = Field(default="https://api-inference.modelscope.cn/v1", description="Base URL for LLM API")
     API_KEY: Optional[str] = Field(default="", description="API key for LLM service")
 
+    # Task Queue Configuration
+    REDIS_URL: str = Field(default="redis://localhost:6379/0", description="Redis connection URL for task queue")
+    TASK_QUEUE_MAX_CONCURRENT: int = Field(default=5, description="Maximum concurrent tasks for the queue")
+    TASK_TIMEOUT: int = Field(default=600, description="Task timeout in seconds")
+    TASK_RESULT_EXPIRE: int = Field(default=3600, description="Task result cache time in seconds")
+
     # Legacy database settings (kept for compatibility but not used)
     DATABASE_ECHO: bool = Field(description="Legacy setting, not used with MongoDB")
 

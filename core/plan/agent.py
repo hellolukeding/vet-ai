@@ -50,9 +50,7 @@ class PetCareAgent:
 
         创建状态图并添加所有节点和边，定义节点间的执行顺序和条件路由。
 
-        注意: 虽然从图的角度看，nutrition和care都连接到pet_info，
-        但LangGraph会并行执行这两个节点，因为它们都只依赖于pet_info的输出。
-        验证节点需要等待两个计划都完成，这通过ValidatorNode内部的检查来实现。
+        注意：为了防止API并发调用导致429错误，nutrition和care节点改为串行执行。
         """
         # 创建状态图
         workflow = StateGraph(State)
@@ -76,12 +74,12 @@ class PetCareAgent:
         # START -> 提取宠物信息
         workflow.add_edge(START, "pet_info")
 
-        # 宠物信息 -> 并行生成营养计划和护理计划
+        # 宠物信息 -> 顺序生成营养计划和护理计划（避免API并发限流）
+        # 注意：改为串行执行是为了防止同时调用LLM API导致429并发限制错误
         workflow.add_edge("pet_info", "nutrition")
-        workflow.add_edge("pet_info", "care")
+        workflow.add_edge("nutrition", "care")
 
-        # 两个计划都连接到等待节点
-        workflow.add_edge("nutrition", "wait")
+        # 护理计划连接到等待节点
         workflow.add_edge("care", "wait")
 
         # 等待节点 -> 验证节点

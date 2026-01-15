@@ -17,6 +17,8 @@ from backend.settings import settings
 from config.logger import logger
 from core.plan.state import NutritionPlan, State
 from utils.json.extract_json_from_markdown import extract_json_from_markdown
+from utils.llm.rate_limiter import get_global_rate_limiter
+from utils.llm.retry_helper import retry_on_rate_limit, RetryConfig
 
 
 class NutritionPlanSchema(BaseModel):
@@ -77,6 +79,12 @@ async def NutritionNode(state: State) -> Dict:
         api_key=api_key,
         temperature=temperature,
     )
+
+    # 获取全局速率限制器
+    limiter = await get_global_rate_limiter(max_concurrent=1)
+
+    # 配置重试参数
+    retry_config = RetryConfig(max_retries=3, initial_delay=2.0)
 
     # 构建宠物信息描述
     weight_str = f"{pet.weight}kg" if pet.weight else "未提供"
@@ -139,35 +147,60 @@ JSON Schema:
         HumanMessage(content=pet_description)
     ])
 
-    # 调用LLM
+    # 调用LLM（使用速率限制和重试机制）
     reasoning_notes = ""
-    try:
-        logger.debug("尝试使用结构化输出生成营养计划")
-        structured_llm = llm.with_structured_output(
-            NutritionPlanSchema, method="json_schema")
-        messages = prompt.format_messages()
-        response = await structured_llm.ainvoke(messages)
-        reasoning_notes = "成功生成营养计划"
-        logger.info("结构化输出成功")
-    except Exception as e:
-        logger.warning(f"结构化输出失败: {e}，尝试普通调用")
-        reasoning_notes = f"结构化输出失败: {e}，尝试普通调用"
+
+    # 使用速率限制器确保不会超过API并发限制
+    async with limiter:
         try:
-            messages = prompt.format_messages()
-            raw_response = await llm.ainvoke(messages)
-            content = extract_json_from_markdown(raw_response.content)
-            response_dict = json.loads(content)
-            response = NutritionPlanSchema(**response_dict)
-            reasoning_notes += "，普通调用成功"
-            logger.info("普通调用成功")
-        except Exception as e2:
-            logger.error(f"营养计划生成失败: {e2}")
-            reasoning_notes += f"，普通调用也失败: {e2}"
-            return {
-                "nutrition_plan": NutritionPlan(),
-                "reasoning": {"nutrition_agent_notes": reasoning_notes},
-                "flags": {"nutrition_plan_ready": "false"}
-            }
+            logger.debug("尝试使用结构化输出生成营养计划（带重试机制）")
+
+            # 定义结构化输出调用函数
+            async def call_structured_llm():
+                structured_llm = llm.with_structured_output(
+                    NutritionPlanSchema, method="json_schema")
+                messages = prompt.format_messages()
+                return await structured_llm.ainvoke(messages)
+
+            # 使用重试机制调用LLM
+            response = await retry_on_rate_limit(
+                call_structured_llm,
+                config=retry_config
+            )
+
+            reasoning_notes = "成功生成营养计划"
+            logger.info("结构化输出成功")
+
+        except Exception as e:
+            logger.warning(f"结构化输出失败: {e}，尝试普通调用")
+            reasoning_notes = f"结构化输出失败: {e}，尝试普通调用"
+
+            try:
+                # 定义普通调用函数
+                async def call_regular_llm():
+                    messages = prompt.format_messages()
+                    raw_response = await llm.ainvoke(messages)
+                    content = extract_json_from_markdown(raw_response.content)
+                    response_dict = json.loads(content)
+                    return NutritionPlanSchema(**response_dict)
+
+                # 使用重试机制调用普通LLM
+                response = await retry_on_rate_limit(
+                    call_regular_llm,
+                    config=retry_config
+                )
+
+                reasoning_notes += "，普通调用成功"
+                logger.info("普通调用成功")
+
+            except Exception as e2:
+                logger.error(f"营养计划生成失败: {e2}")
+                reasoning_notes += f"，普通调用也失败: {e2}"
+                return {
+                    "nutrition_plan": NutritionPlan(),
+                    "reasoning": {"nutrition_agent_notes": reasoning_notes},
+                    "flags": {"nutrition_plan_ready": "false"}
+                }
 
     # 转换为NutritionPlan对象
     plan_dict = response.model_dump() if hasattr(

@@ -72,8 +72,8 @@ async def CareNode(state: State) -> Dict:
 
     # 构建宠物信息描述
     weight_str = f"{pet.weight}kg" if pet.weight else "未提供"
-    neutered_str = "是" if pet.neutered else (
-        "否" if pet.neutered is not None else "未提供")
+    neutered_str = "是" if pet.neutered == "true" else (
+        "否" if pet.neutered == "false" else "未提供")
     health_str = ", ".join(
         pet.health_conditions) if pet.health_conditions else "无特殊健康问题"
 
@@ -150,7 +150,7 @@ JSON Schema:
             return {
                 "care_plan": CarePlan(),
                 "reasoning": {"care_agent_notes": reasoning_notes},
-                "flags": {"care_plan_ready": False}
+                "flags": {"care_plan_ready": "false"}
             }
 
     # 转换为CarePlan对象
@@ -171,5 +171,5 @@ JSON Schema:
     return {
         "care_plan": care_plan,
         "reasoning": {"care_agent_notes": reasoning_notes},
-        "flags": {"care_plan_ready": True}  # 重要：标记护理计划已完成
+        "flags": {"care_plan_ready": "true"}  # 重要：标记护理计划已完成
     }

@@ -25,9 +25,9 @@ class PetInfoSchema(BaseModel):
     species: Optional[str] = Field(default=None, description="物种类型")
     breed: Optional[str] = Field(default=None, description="品种")
     age: Optional[str] = Field(default=None, description="年龄")
-    weight: Optional[float] = Field(default=None, description="体重（kg）")
+    weight: Optional[str] = Field(default=None, description="体重（kg），返回字符串格式")
     sex: Optional[str] = Field(default=None, description="性别")
-    neutered: Optional[bool] = Field(default=None, description="是否绝育")
+    neutered: Optional[str] = Field(default=None, description="是否绝育，返回'true'或'false'字符串")
     health_conditions: list[str] = Field(
         default_factory=list, description="健康状况")
     allergies: list[str] = Field(default_factory=list, description="过敏源")
@@ -63,7 +63,7 @@ async def PetInfoNode(state: State) -> Dict:
 
     if not user_query:
         logger.warning("用户查询为空，无法提取宠物信息")
-        return {"flags": {"need_pet_info_completion": True}}
+        return {"flags": {"need_pet_info_completion": "true"}}
 
     # 初始化LLM
     llm = ChatOpenAI(
@@ -86,9 +86,9 @@ JSON Schema:
     "species": str or null,  # 如 "dog", "cat", "rabbit"
     "breed": str or null,    # 如 "金毛", "波斯猫"
     "age": str or null,      # 如 "3 years", "6 months"
-    "weight": float or null, # 单位kg
+    "weight": str or null,   # 单位kg，返回字符串格式如 "30.5"
     "sex": str or null,      # "male" or "female"
-    "neutered": bool or null,
+    "neutered": str or null, # 返回字符串 "true" 或 "false"
     "health_conditions": list[str],  # 如 ["糖尿病", "关节炎"]
     "allergies": list[str],          # 如 ["鸡肉", "小麦"]
     "feeding_history": str or null,
@@ -127,7 +127,7 @@ JSON Schema:
             logger.info("普通调用成功")
         except Exception as e2:
             logger.error(f"宠物信息提取失败: {e2}")
-            return {"flags": {"need_pet_info_completion": True}}
+            return {"flags": {"need_pet_info_completion": "true"}}
 
     # 转换为PetInfo对象
     pet_info_dict = response.model_dump() if hasattr(
@@ -150,5 +150,5 @@ JSON Schema:
 
     return {
         "pet": pet_info,
-        "flags": {"need_pet_info_completion": need_completion}
+        "flags": {"need_pet_info_completion": "true" if need_completion else "false"}
     }

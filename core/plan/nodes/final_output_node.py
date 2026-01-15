@@ -24,8 +24,8 @@ async def FinalOutputNode(state: State) -> Dict:
         Dict: 包含最终输出标志的字典
     """
     # 检查所有必要的计划是否都已生成
-    nutrition_ready = state.flags.nutrition_plan_ready
-    care_ready = state.flags.care_plan_ready
+    nutrition_ready = state.flags.nutrition_plan_ready == "true"
+    care_ready = state.flags.care_plan_ready == "true"
 
     # 生成摘要信息（可选，用于日志或调试）
     summary_lines = []
@@ -80,6 +80,6 @@ async def FinalOutputNode(state: State) -> Dict:
 
     return {
         "flags": {
-            "final_output_ready": final_ready
+            "final_output_ready": "true" if final_ready else "false"
         }
     }

@@ -63,12 +63,12 @@ async def create_pet_care_plan(
             pet_info["breed"] = request.pet_breed
         if request.pet_age:
             pet_info["age"] = request.pet_age
-        if request.pet_weight:
-            pet_info["weight"] = request.pet_weight
+        if request.pet_weight is not None:
+            pet_info["weight"] = str(request.pet_weight)  # 转换为字符串
         if request.pet_sex:
             pet_info["sex"] = request.pet_sex
         if request.pet_neutered is not None:
-            pet_info["neutered"] = request.pet_neutered
+            pet_info["neutered"] = "true" if request.pet_neutered else "false"  # 转换为字符串
 
         logger.debug(f"初始宠物信息: {pet_info}")
 
@@ -122,7 +122,9 @@ async def create_pet_care_plan(
         }
 
         # 检查计划是否全部完成
-        if not result.flags.nutrition_plan_ready or not result.flags.care_plan_ready:
+        nutrition_ready = result.flags.nutrition_plan_ready == "true"
+        care_ready = result.flags.care_plan_ready == "true"
+        if not nutrition_ready or not care_ready:
             logger.warning("部分计划未完成")
             return JSONResponse(
                 status_code=status.HTTP_200_OK,

@@ -19,9 +19,9 @@ class PetInfo(BaseModel):
     species: Optional[str] = None  # 物种类型，如: dog/cat/rabbit等
     breed: Optional[str] = None  # 品种，如: 金毛、波斯猫等
     age: Optional[str] = None  # 年龄，格式如: "3 years", "6 months"
-    weight: Optional[float] = None  # 体重（单位：kg）
+    weight: Optional[str] = None  # 体重（单位：kg），字符串格式如 "30.5"
     sex: Optional[str] = None  # 性别：male/female
-    neutered: Optional[bool] = None  # 是否绝育
+    neutered: Optional[str] = None  # 是否绝育，字符串格式 "true" 或 "false"
 
     health_conditions: List[str] = []  # 健康状况列表，如：糖尿病、关节炎等
     allergies: List[str] = []  # 过敏源列表，如：鸡肉、小麦等
@@ -36,8 +36,8 @@ class NutritionPlan(BaseModel):
     包含宠物的每日营养需求、推荐食物、禁忌食物、补充剂和喂养时间表。
     由营养代理(nutrition agent)生成和维护。
     """
-    daily_calories: Optional[float] = None  # 每日卡路里需求（单位：kcal）
-    macro_ratio: Dict[str, float] = {}  # 宏量营养素比例，键为: protein/fat/carbs，值为百分比
+    daily_calories: Optional[str] = None  # 每日卡路里需求（单位：kcal），字符串格式
+    macro_ratio: Dict[str, str] = {}  # 宏量营养素比例，键为: protein/fat/carbs，值为字符串格式的百分比
     recommended_foods: List[str] = []  # 推荐食物列表
     avoid_foods: List[str] = []  # 应避免的食物列表（基于过敏或健康状况）
     supplements: List[str] = []  # 推荐的营养补充剂列表
@@ -76,10 +76,10 @@ class WorkflowFlags(BaseModel):
 
     控制LangGraph工作流的执行流程，标记各个阶段的完成状态。
     """
-    need_pet_info_completion: bool = False  # 是否需要补全宠物信息
-    nutrition_plan_ready: bool = False  # 营养计划是否已准备就绪
-    care_plan_ready: bool = False  # 护理计划是否已准备就绪
-    final_output_ready: bool = False  # 最终输出是否已准备就绪
+    need_pet_info_completion: str = "false"  # 是否需要补全宠物信息，"true" 或 "false"
+    nutrition_plan_ready: str = "false"  # 营养计划是否已准备就绪，"true" 或 "false"
+    care_plan_ready: str = "false"  # 护理计划是否已准备就绪，"true" 或 "false"
+    final_output_ready: str = "false"  # 最终输出是否已准备就绪，"true" 或 "false"
 
 
 # Reducer functions for handling concurrent updates in parallel nodes

@@ -21,10 +21,10 @@ from utils.json.extract_json_from_markdown import extract_json_from_markdown
 
 class NutritionPlanSchema(BaseModel):
     """营养计划的结构化输出模式"""
-    daily_calories: Optional[float] = Field(
-        default=None, description="每日卡路里需求")
-    macro_ratio: dict[str, float] = Field(
-        default_factory=dict, description="宏量营养素比例")
+    daily_calories: Optional[str] = Field(
+        default=None, description="每日卡路里需求，返回字符串格式")
+    macro_ratio: dict[str, str] = Field(
+        default_factory=dict, description="宏量营养素比例，值为字符串格式")
     recommended_foods: list[str] = Field(
         default_factory=list, description="推荐食物")
     avoid_foods: list[str] = Field(default_factory=list, description="避免食物")
@@ -80,8 +80,8 @@ async def NutritionNode(state: State) -> Dict:
 
     # 构建宠物信息描述
     weight_str = f"{pet.weight}kg" if pet.weight else "未提供"
-    neutered_str = "是" if pet.neutered else (
-        "否" if pet.neutered is not None else "未提供")
+    neutered_str = "是" if pet.neutered == "true" else (
+        "否" if pet.neutered == "false" else "未提供")
     health_str = ", ".join(
         pet.health_conditions) if pet.health_conditions else "无特殊健康问题"
     allergies_str = ", ".join(pet.allergies) if pet.allergies else "无已知过敏"
@@ -110,11 +110,11 @@ async def NutritionNode(state: State) -> Dict:
 
 JSON Schema:
 {{
-    "daily_calories": float,           # 每日卡路里需求（kcal）
+    "daily_calories": str,             # 每日卡路里需求，返回字符串格式
     "macro_ratio": {{                  # 宏量营养素百分比
-        "protein": float,              # 蛋白质百分比
-        "fat": float,                  # 脂肪百分比
-        "carbs": float                 # 碳水化合物百分比
+        "protein": str,                # 蛋白质百分比，字符串格式
+        "fat": str,                    # 脂肪百分比，字符串格式
+        "carbs": str                   # 碳水化合物百分比，字符串格式
     }},
     "recommended_foods": [str],        # 推荐食物列表（3-8项）
     "avoid_foods": [str],              # 应避免的食物列表（基于过敏和健康状况）
@@ -166,7 +166,7 @@ JSON Schema:
             return {
                 "nutrition_plan": NutritionPlan(),
                 "reasoning": {"nutrition_agent_notes": reasoning_notes},
-                "flags": {"nutrition_plan_ready": False}
+                "flags": {"nutrition_plan_ready": "false"}
             }
 
     # 转换为NutritionPlan对象
@@ -188,5 +188,5 @@ JSON Schema:
     return {
         "nutrition_plan": nutrition_plan,
         "reasoning": {"nutrition_agent_notes": reasoning_notes},
-        "flags": {"nutrition_plan_ready": True}  # 重要：标记营养计划已完成
+        "flags": {"nutrition_plan_ready": "true"}  # 重要：标记营养计划已完成
     }

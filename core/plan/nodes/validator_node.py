@@ -43,9 +43,11 @@ async def ValidatorNode(state: State) -> Dict:
     care_plan = state.care_plan
 
     # 检查计划是否都已生成
-    if not state.flags.nutrition_plan_ready or not state.flags.care_plan_ready:
+    nutrition_ready = state.flags.nutrition_plan_ready == "true"
+    care_ready = state.flags.care_plan_ready == "true"
+    if not nutrition_ready or not care_ready:
         logger.warning(
-            f"计划未完成，跳过验证 - 营养计划: {state.flags.nutrition_plan_ready}, 护理计划: {state.flags.care_plan_ready}")
+            f"计划未完成，跳过验证 - 营养计划: {nutrition_ready}, 护理计划: {care_ready}")
         return {
             "reasoning": {
                 "risk_analysis": "营养或护理计划未完成，跳过验证",

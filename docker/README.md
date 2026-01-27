@@ -1,309 +1,221 @@
-# VET-AI 后端 Docker 部署指南
+# Vet-AI Docker 轻量化部署指南
 
-本文档描述如何使用 Docker Compose 部署 VET-AI 后端服务。
+## 🚀 快速开始
 
-## 🏗️ 架构概览
+### 1. 环境准备
 
-部署包含以下服务：
-
-- **vet-ai-backend**: FastAPI 应用服务器
-- **mongo**: MongoDB 数据库
-- **nginx**: 反向代理和负载均衡器 (可选)
-
-## 📋 前置要求
-
-1. **Docker** (版本 20.10+)
-2. **Docker Compose** (版本 1.29+)
-3. **至少 2GB 可用内存**
-4. **至少 5GB 可用磁盘空间**
-
-## 🚀 快速部署
-
-### 1. 准备源码
-
-```bash
-# 将源码拉取到服务器
-git clone <your-repo-url> vet-ai
-cd vet-ai
-```
+确保已安装：
+- Docker (>= 20.10)
+- Docker Compose (>= 2.0)
 
 ### 2. 配置环境变量
 
 ```bash
-# 开发环境
-cp docker/.env.example docker/.env
-
-# 生产环境 (可选)
-cp docker/.env.prod.example docker/.env
-
-# 编辑配置文件
-vim docker/.env
+cd docker
+cp .env.example .env
+# 编辑 .env 文件，填写API密钥等配置
+vi .env
 ```
 
-**重要配置项**:
-
-```bash
-# AI模型API密钥 (必须修改)
-API_KEY=your-actual-api-key
-
-# 应用密钥 (生产环境必须修改)
-SECRET_KEY=your-super-secret-key-for-production
-
-# MongoDB 密码 (建议修改)
-MONGO_INITDB_ROOT_PASSWORD=your-secure-mongo-password
-```
-
-### 3. 一键部署
-
-```bash
-# 使用部署脚本
-./docker/deploy.sh
-```
-
-或手动部署：
+### 3. 构建并启动
 
 ```bash
 # 构建镜像
-docker-compose -f docker/docker-compose.yml build
+docker-compose build
 
 # 启动服务
-docker-compose -f docker/docker-compose.yml up -d
+docker-compose up -d
+
+# 查看日志
+docker-compose logs -f vet-ai
 ```
 
-## 📊 服务访问
-
-部署成功后，可以通过以下地址访问：
-
-- **API 文档**: http://localhost:8080/docs
-- **API 服务**: http://localhost:8080
-- **通过 Nginx**: http://localhost:80
-- **健康检查**: http://localhost:8080/health
-
-## 🔧 环境变量配置
-
-本部署使用 `.env` 文件进行环境变量管理，所有配置都通过 `env_file` 方式映射到容器中。
-
-### 配置文件说明
-
-- **`.env.example`**: 开发环境配置模板
-- **`.env.prod.example`**: 生产环境配置模板
-- **`.env`**: 实际使用的配置文件（需要自行创建）
-
-### 环境变量分类
-
-| 类别     | 变量名                       | 说明               |
-| -------- | ---------------------------- | ------------------ |
-| AI 模型  | `API_KEY`                    | AI 模型 API 密钥   |
-| 应用配置 | `SECRET_KEY`                 | JWT 签名密钥       |
-| 数据库   | `MONGO_INITDB_ROOT_PASSWORD` | MongoDB 管理员密码 |
-| CORS     | `ALLOWED_HOSTS`              | 允许的域名列表     |
-
-### 生产环境部署
+### 4. 验证服务
 
 ```bash
-# 使用生产环境配置
-cp docker/.env.prod.example docker/.env
-vim docker/.env  # 修改敏感信息
+# 健康检查
+curl http://localhost:8080/health
 
-# 使用生产环境compose文件
-docker-compose -f docker/docker-compose.prod.yml up -d
+# 访问API文档
+open http://localhost:8080/api/docs
 ```
 
-## 🔧 管理命令
+## 📊 镜像信息
 
-### 查看服务状态
+### 轻量化优化
+
+- **基础镜像**: `python:3.12-slim` (~150MB)
+- **最终镜像**: ~300-400MB
+- **构建时间**: ~3-5分钟
+- **启动时间**: ~5-10秒
+
+### 优化策略
+
+1. **多阶段构建**: 分离构建和运行环境
+2. **最小依赖**: 只安装运行时必需的包
+3. **清理缓存**: 删除构建工具和临时文件
+4. **使用uv**: 比pip更快的包管理器，依赖更小
+5. **非root用户**: 提高安全性
+
+## 🛠️ 常用命令
+
+### 服务管理
 
 ```bash
-docker-compose -f docker/docker-compose.yml ps
+# 启动服务
+docker-compose up -d
+
+# 停止服务
+docker-compose down
+
+# 重启服务
+docker-compose restart
+
+# 查看状态
+docker-compose ps
+
+# 查看日志
+docker-compose logs -f vet-ai
+
+# 进入容器
+docker-compose exec vet-ai bash
 ```
 
-### 查看日志
+### 构建相关
 
 ```bash
-# 查看所有服务日志
-docker-compose -f docker/docker-compose.yml logs -f
+# 重新构建镜像
+docker-compose build
 
-# 查看特定服务日志
-docker-compose -f docker/docker-compose.yml logs -f vet-ai-backend
+# 强制重新构建（不使用缓存）
+docker-compose build --no-cache
+
+# 构建并启动
+docker-compose up -d --build
 ```
 
-### 重启服务
+### 清理
 
 ```bash
-# 重启所有服务
-docker-compose -f docker/docker-compose.yml restart
+# 停止并删除容器
+docker-compose down
 
-# 重启特定服务
-docker-compose -f docker/docker-compose.yml restart vet-ai-backend
+# 删除容器和卷
+docker-compose down -v
+
+# 清理未使用的镜像
+docker image prune -a
+
+# 查看镜像大小
+docker images vet-ai
 ```
 
-### 停止服务
+## 📝 配置说明
 
-```bash
-docker-compose -f docker/docker-compose.yml down
-```
+### 环境变量
 
-### 完全清理
+主要配置项：
 
-```bash
-# 停止并删除容器、网络和卷
-docker-compose -f docker/docker-compose.yml down -v
-docker system prune -f
-```
-
-## 📁 目录结构
-
-```
-docker/
-├── Dockerfile              # 后端应用镜像定义
-├── docker-compose.yml      # 服务编排配置
-├── .dockerignore           # Docker 忽略文件
-├── .env.example            # 环境变量模板
-├── deploy.sh               # 一键部署脚本
-├── nginx/
-│   └── nginx.conf          # Nginx 配置
-└── mongo-init/
-    └── init-mongo.sh       # MongoDB 初始化脚本
-```
-
-## 🔐 安全配置
-
-### 生产环境建议
-
-1. **修改默认密码**
-
-   ```bash
-   # 生成强密码
-   openssl rand -base64 32
-   ```
-
-2. **启用 HTTPS**
-
-   - 将 SSL 证书放入 `docker/nginx/ssl/`
-   - 取消注释 nginx.conf 中的 HTTPS 配置
-
-3. **限制网络访问**
-
-   ```yaml
-   # 在 docker-compose.yml 中修改端口映射
-   ports:
-     - "127.0.0.1:8080:8080" # 只允许本地访问
-   ```
-
-4. **设置防火墙规则**
-   ```bash
-   # 只允许必要端口
-   ufw allow 80/tcp
-   ufw allow 443/tcp
-   ufw deny 8080/tcp
-   ```
-
-## 🐛 故障排除
-
-### 常见问题
-
-1. **端口被占用**
-
-   ```bash
-   # 检查端口使用
-   netstat -tulpn | grep :8080
-
-   # 修改 docker-compose.yml 中的端口映射
-   ports:
-     - "8081:8080"  # 改为其他端口
-   ```
-
-2. **内存不足**
-
-   ```bash
-   # 检查内存使用
-   free -h
-
-   # 添加交换空间
-   sudo fallocate -l 2G /swapfile
-   sudo chmod 600 /swapfile
-   sudo mkswap /swapfile
-   sudo swapon /swapfile
-   ```
-
-3. **API 连接失败**
-
-   ```bash
-   # 检查容器状态
-   docker-compose -f docker/docker-compose.yml ps
-
-   # 检查容器日志
-   docker-compose -f docker/docker-compose.yml logs vet-ai-backend
-
-   # 测试网络连接
-   docker exec -it vet-ai-backend curl localhost:8080/health
-   ```
-
-4. **数据库连接失败**
-
-   ```bash
-   # 检查 MongoDB 容器
-   docker-compose -f docker/docker-compose.yml logs mongo
-
-   # 进入 MongoDB 容器
-   docker exec -it vet-ai-mongo mongo
-   ```
-
-### 日志位置
-
-- **应用日志**: `./logs/`
-- **运行记录**: `./runs/`
-- **Docker 日志**: `docker-compose logs`
-
-## 🔄 更新部署
-
-1. **拉取新代码**
-
-   ```bash
-   git pull origin main
-   ```
-
-2. **重建镜像**
-
-   ```bash
-   docker-compose -f docker/docker-compose.yml build --no-cache
-   ```
-
-3. **重启服务**
-   ```bash
-   docker-compose -f docker/docker-compose.yml up -d
-   ```
-
-## 📈 性能优化
+| 变量名 | 说明 | 默认值 |
+|--------|------|--------|
+| `MODEL_NAME` | LLM模型名称 | `glm-4-plus` |
+| `BASE_URL` | LLM API地址 | - |
+| `API_KEY` | LLM API密钥 | - |
+| `DEBUG` | 调试模式 | `false` |
+| `LOG_LEVEL` | 日志级别 | `INFO` |
 
 ### 资源限制
 
-```yaml
-# 在 docker-compose.yml 中添加
-deploy:
-  resources:
-    limits:
-      cpus: "2.0"
-      memory: 2G
-    reservations:
-      memory: 1G
-```
+默认配置：
+- **CPU**: 2核（限制），0.5核（预留）
+- **内存**: 2GB（限制），512MB（预留）
 
-### 水平扩展
+可根据需要调整 `docker-compose.yml` 中的 `deploy.resources` 配置。
+
+## 🔍 故障排查
+
+### 服务无法启动
 
 ```bash
-# 启动多个后端实例
-docker-compose -f docker/docker-compose.yml up -d --scale vet-ai-backend=3
+# 查看日志
+docker-compose logs vet-ai
+
+# 检查配置
+docker-compose config
+
+# 验证环境变量
+docker-compose exec vet-ai env | grep API_KEY
 ```
 
-## 📞 支持
+### 健康检查失败
 
-如遇问题，请：
+```bash
+# 手动健康检查
+docker-compose exec vet-ai curl http://localhost:8080/health
 
-1. 检查日志文件
-2. 查看本文档的故障排除部分
-3. 提交 GitHub Issue
+# 查看详细日志
+docker-compose logs --tail=100 vet-ai
+```
 
----
+### 内存不足
 
-**注意**: 本部署配置适用于开发和小型生产环境。大规模生产部署建议使用 Kubernetes 或其他容器编排平台。
+```bash
+# 查看资源使用
+docker stats vet-ai
+
+# 调整内存限制（修改docker-compose.yml）
+# deploy.resources.limits.memory: 4G
+```
+
+## 📦 生产环境建议
+
+### 1. 使用具体版本标签
+
+```dockerfile
+# 替换
+FROM python:3.12-slim
+
+# 为
+FROM python:3.12.2-slim
+```
+
+### 2. 启用日志轮转
+
+日志会自动轮转，默认配置：
+- 单个文件最大: 10MB
+- 保留文件数: 3
+
+### 3. 配置重启策略
+
+当前配置：`unless-stopped`
+- 自动重启（除非手动停止）
+- 服务器重启后自动启动
+
+### 4. 监控和告警
+
+建议配置：
+- 健康检查监控
+- 日志聚合（如ELK）
+- 指标采集（如Prometheus）
+
+## 🔐 安全建议
+
+1. ✅ 使用非root用户运行
+2. ✅ 不要在镜像中硬编码密钥
+3. ✅ 使用`.env`文件管理敏感信息
+4. ✅ 限制容器资源
+5. ✅ 定期更新基础镜像
+6. ⚠️ 生产环境关闭DEBUG模式
+
+## 📚 参考资料
+
+- [Dockerfile最佳实践](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)
+- [Docker Compose文档](https://docs.docker.com/compose/)
+- [Python Docker化指南](https://docs.python.org/3/howto/docker.html)
+
+## 💡 提示
+
+- 首次构建可能需要下载依赖，耐心等待
+- 如果构建失败，检查网络连接和API密钥
+- 生产环境建议使用具体版本号而非`latest`
+- 定期清理未使用的镜像和容器

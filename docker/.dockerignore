@@ -1,65 +1,81 @@
-# Git相关文件
-.git
-.gitignore
-
-# Python相关
-__pycache__
-*.pyc
-*.pyo
-*.pyd
-.Python
+# Python缓存
+__pycache__/
+*.py[cod]
+*$py.class
 *.so
-.pytest_cache
-.coverage
-htmlcov/
+.Python
 
 # 虚拟环境
-venv/
-env/
 .venv/
-.env/
+venv/
+ENV/
+env/
 
-# IDE相关
+# uv锁文件和缓存
+uv.lock
+.uv/
+uv.venv/
+
+# IDE配置
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.DS_Store
+
+# 测试和覆盖率
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
 
 # 日志文件
 *.log
 logs/
-runs/
+*.log.*
 
 # 临时文件
-tmp/
-temp/
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
 
-# 操作系统相关
-.DS_Store
-Thumbs.db
+# 数据库
+*.db
+*.sqlite
+*.sqlite3
 
-# 开发相关
-node_modules/
-.npm/
-
-# Docker相关
-docker-compose.override.yml
-.dockerignore
-
-# 环境变量文件
-.env
-.env.local
-.env.production
-
-# 测试文件
-test/
-tests/
-*test*.py
+# MongoDB
+mongo-data/
 
 # 文档
 README.md
 docs/
+*.md
 
-# 前端资源 (如果不需要)
-frontend/
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# 环境变量
+.env
+.env.*
+!.env.example
+
+# 部署脚本
+deploy.sh
+*.sh
+
+# 其他
+.node_modules/
+package-lock.json
+yarn.lock
+runs/

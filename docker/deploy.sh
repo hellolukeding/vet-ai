@@ -1,75 +1,161 @@
 #!/bin/bash
+# ============================================================
+# Vet-AI Docker 快速部署脚本
+# ============================================================
 
-# VET-AI 后端部署脚本
+set -e  # 遇到错误立即退出
 
-set -e
+# 颜色定义
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
 
-echo "=== VET-AI 后端部署开始 ==="
+# 打印信息
+print_info() {
+    echo -e "${GREEN}[INFO]${NC} $1"
+}
 
-# 检查Docker和Docker Compose是否安装
-if ! command -v docker &> /dev/null; then
-    echo "错误: Docker 未安装，请先安装 Docker"
-    exit 1
-fi
+print_warning() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
 
-if ! command -v docker-compose &> /dev/null; then
-    echo "错误: Docker Compose 未安装，请先安装 Docker Compose"
-    exit 1
-fi
+print_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
 
-# 进入项目目录
-cd "$(dirname "$0")/.."
+# 检查Docker是否安装
+check_docker() {
+    print_info "检查Docker环境..."
+    if ! command -v docker &> /dev/null; then
+        print_error "Docker未安装，请先安装Docker"
+        exit 1
+    fi
+    print_info "Docker版本: $(docker --version)"
+}
 
-# 检查是否存在环境变量文件
-if [ ! -f "docker/.env" ]; then
-    echo "正在创建环境变量文件..."
-    cp docker/.env.example docker/.env
-    echo "✅ 已创建环境变量文件: docker/.env"
+# 检查Docker Compose是否安装
+check_docker_compose() {
+    print_info "检查Docker Compose..."
+    if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
+        print_error "Docker Compose未安装，请先安装Docker Compose"
+        exit 1
+    fi
+    print_info "Docker Compose已就绪"
+}
+
+# 检查.env文件
+check_env_file() {
+    print_info "检查环境变量配置..."
+    if [ ! -f ".env" ]; then
+        print_warning ".env文件不存在，从.env.example创建..."
+        if [ -f ".env.example" ]; then
+            cp .env.example .env
+            print_warning "请编辑.env文件，填写API密钥等配置"
+            print_info "编辑命令: vi .env"
+            read -p "是否现在编辑? (y/n) " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                ${EDITOR:-vi} .env
+            else
+                print_warning "跳过编辑，请稍后手动配置.env文件"
+            fi
+        else
+            print_error ".env.example文件不存在"
+            exit 1
+        fi
+    else
+        print_info ".env文件已存在"
+    fi
+}
+
+# 构建镜像
+build_image() {
+    print_info "开始构建Docker镜像..."
+    print_warning "这可能需要3-5分钟，请耐心等待..."
+    docker-compose build
+    print_info "镜像构建完成"
+}
+
+# 启动服务
+start_service() {
+    print_info "启动服务..."
+    docker-compose up -d
+    print_info "服务已启动"
+}
+
+# 等待服务就绪
+wait_for_service() {
+    print_info "等待服务就绪..."
+    local max_attempts=30
+    local attempt=0
+
+    while [ $attempt -lt $max_attempts ]; do
+        if curl -sf http://localhost:8080/health > /dev/null 2>&1; then
+            print_info "服务已就绪！"
+            return 0
+        fi
+        attempt=$((attempt + 1))
+        echo -n "."
+        sleep 2
+    done
+
+    echo
+    print_error "服务启动超时，请查看日志: docker-compose logs vet-ai"
+    return 1
+}
+
+# 显示服务信息
+show_service_info() {
     echo ""
-    echo "⚠️  请编辑 docker/.env 文件，设置正确的配置值："
-    echo "   - API_KEY: AI模型API密钥"
-    echo "   - SECRET_KEY: JWT签名密钥"
-    echo "   - MONGO_INITDB_ROOT_PASSWORD: MongoDB root密码"
+    print_info "================================================"
+    print_info "🎉 Vet-AI服务部署成功！"
+    print_info "================================================"
     echo ""
-    read -p "按回车键继续..."
-fi
+    echo "📖 API文档: http://localhost:8080/api/docs"
+    echo "🔍 ReDoc文档: http://localhost:8080/api/redoc"
+    echo "💚 健康检查: http://localhost:8080/health"
+    echo ""
+    echo "📊 查看日志: docker-compose logs -f vet-ai"
+    echo "🛑 停止服务: docker-compose down"
+    echo "🔄 重启服务: docker-compose restart"
+    echo ""
+    print_info "================================================"
+}
 
-# 创建必要的目录
-echo "创建必要的目录..."
-mkdir -p logs runs docker/nginx/ssl
+# 主函数
+main() {
+    echo ""
+    print_info "Vet-AI Docker 轻量化部署脚本"
+    print_info "================================================"
+    echo ""
 
-# 构建和启动服务
-echo "构建Docker镜像..."
-docker-compose -f docker/docker-compose.yml build
+    # 检查环境
+    check_docker
+    check_docker_compose
+    check_env_file
 
-echo "启动服务..."
-docker-compose -f docker/docker-compose.yml up -d
+    echo ""
+    read -p "是否开始构建并启动服务? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        print_warning "部署已取消"
+        exit 0
+    fi
 
-# 等待服务启动
-echo "等待服务启动..."
-sleep 10
+    echo ""
+    # 构建和启动
+    build_image
+    start_service
 
-# 检查服务状态
-echo "检查服务状态..."
-docker-compose -f docker/docker-compose.yml ps
+    # 等待服务就绪
+    if wait_for_service; then
+        show_service_info
+    else
+        print_error "部署失败，请检查日志"
+        exit 1
+    fi
+}
 
-# 检查健康状态
-echo "检查API健康状态..."
-if curl -f http://localhost:8080/health &> /dev/null; then
-    echo "✅ API服务运行正常"
-else
-    echo "❌ API服务可能未正常启动，请检查日志"
-fi
-
-echo "=== 部署完成 ==="
-echo ""
-echo "服务访问地址:"
-echo "  - API服务: http://localhost:8080"
-echo "  - 通过Nginx: http://localhost:80"
-echo "  - MongoDB: localhost:27017"
-echo ""
-echo "管理命令:"
-echo "  查看日志: docker-compose -f docker/docker-compose.yml logs -f"
-echo "  停止服务: docker-compose -f docker/docker-compose.yml down"
-echo "  重启服务: docker-compose -f docker/docker-compose.yml restart"
-echo "  查看状态: docker-compose -f docker/docker-compose.yml ps"
+# 运行主函数
+main

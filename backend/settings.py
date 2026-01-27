@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     BASE_URL: Optional[str] = Field(default="https://api-inference.modelscope.cn/v1", description="Base URL for LLM API")
     API_KEY: Optional[str] = Field(default="", description="API key for LLM service")
 
+    # API Documentation Configuration
+    ENABLE_DOCS: bool = Field(default=True, description="Enable API documentation (Swagger UI, ReDoc)")
+
     # Task Queue Configuration
     REDIS_URL: str = Field(default="redis://localhost:6379/0", description="Redis connection URL for task queue")
     TASK_QUEUE_MAX_CONCURRENT: int = Field(default=5, description="Maximum concurrent tasks for the queue")

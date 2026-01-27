@@ -30,6 +30,8 @@ services:
       - CORS_ALLOW_CREDENTIALS=true
       # 调试模式（生产环境设为false）
       - DEBUG=false
+      # API文档访问控制（生产环境也可设为true以查看文档）
+      - ENABLE_DOCS=true
     volumes:
       # 日志持久化
       - ./logs:/app/logs

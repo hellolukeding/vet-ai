@@ -219,9 +219,10 @@ curl "http://localhost:8080/api/v1/pet-care/plan/task/{task_id}"
             "name": "MIT License",
             "url": "https://opensource.org/licenses/MIT",
         },
-        docs_url="/api/docs" if settings.DEBUG else None,
-        redoc_url="/api/redoc" if settings.DEBUG else None,
-        openapi_url="/api/openapi.json" if settings.DEBUG else None,
+        # API文档配置：可通过ENABLE_DOCS环境变量独立控制
+        docs_url="/api/docs" if settings.ENABLE_DOCS else None,
+        redoc_url="/api/redoc" if settings.ENABLE_DOCS else None,
+        openapi_url="/api/openapi.json" if settings.ENABLE_DOCS else None,
         lifespan=lifespan,  # 添加生命周期管理
         # 自定义Swagger UI配置
         swagger_ui_parameters={

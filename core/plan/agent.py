@@ -35,12 +35,18 @@ class PetCareAgent:
         graph: 编译后的LangGraph工作流图
     """
 
-    def __init__(self):
+    def __init__(self, enable_validation: bool = False):
         """
         初始化宠物护理计划代理
 
         自动构建并编译工作流图。
+
+        Args:
+            enable_validation: 是否启用验证节点（默认False以提升性能）
+                              True: 运行完整验证，耗时约1.5分钟
+                              False: 跳过验证，提升响应速度
         """
+        self.enable_validation = enable_validation
         self.graph = None
         self._build_workflow()
 
@@ -50,7 +56,9 @@ class PetCareAgent:
 
         创建状态图并添加所有节点和边，定义节点间的执行顺序和条件路由。
 
-        注意：为了防止API并发调用导致429错误，nutrition和care节点改为串行执行。
+        性能优化：
+        - nutrition和care节点并行执行
+        - validator节点可选（通过enable_validation控制）
         """
         # 创建状态图
         workflow = StateGraph(State)
@@ -67,26 +75,36 @@ class PetCareAgent:
         workflow.add_node("nutrition", NutritionNode)
         workflow.add_node("care", CareNode)
         workflow.add_node("wait", wait_for_plans)
-        workflow.add_node("validator", ValidatorNode)
+
+        # 根据配置决定是否添加验证节点
+        if self.enable_validation:
+            workflow.add_node("validator", ValidatorNode)
+            logger.info("验证节点已启用（完整模式，耗时约1.5分钟）")
+        else:
+            logger.info("验证节点已禁用（快速模式，节省约1.5分钟）")
+
         workflow.add_node("final_output", FinalOutputNode)
 
         # 定义工作流路径
         # START -> 提取宠物信息
         workflow.add_edge(START, "pet_info")
 
-        # 宠物信息 -> 顺序生成营养计划和护理计划（避免API并发限流）
-        # 注意：改为串行执行是为了防止同时调用LLM API导致429并发限制错误
+        # 宠物信息 -> 并行生成营养计划和护理计划（性能优化）
+        # 注意：每个节点内部都有速率限制器（max_concurrent=1），确保不会超过API并发限制
+        # 并行执行可以节省约1.5分钟时间
         workflow.add_edge("pet_info", "nutrition")
-        workflow.add_edge("nutrition", "care")
+        workflow.add_edge("pet_info", "care")
 
-        # 护理计划连接到等待节点
+        # 两个计划都完成后进入等待节点
+        workflow.add_edge("nutrition", "wait")
         workflow.add_edge("care", "wait")
 
-        # 等待节点 -> 验证节点
-        workflow.add_edge("wait", "validator")
-
-        # 验证节点 -> 最终输出
-        workflow.add_edge("validator", "final_output")
+        # 等待节点 -> 验证节点（可选）或直接到最终输出
+        if self.enable_validation:
+            workflow.add_edge("wait", "validator")
+            workflow.add_edge("validator", "final_output")
+        else:
+            workflow.add_edge("wait", "final_output")
 
         # 最终输出 -> 结束
         workflow.add_edge("final_output", END)

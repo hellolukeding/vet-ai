@@ -17,19 +17,82 @@ class DiagnosisRequest(BaseModel):
 
 
 # @app.post("/vet/diagnose")
-@router.post("/vet/diagnose", response_model=dict, status_code=status.HTTP_200_OK)
+@router.post(
+    "/vet/diagnose",
+    response_model=dict,
+    status_code=status.HTTP_200_OK,
+    summary="LangGraph智能诊断（高级版）",
+    description="""
+基于LangGraph工作流的先进智能诊断系统，提供多步推理和增强准确性。
+
+### 🧠 功能特性
+
+- **多步推理**：通过状态机实现复杂诊断流程
+- **工作流管理**：支持诊断过程的可视化和管理
+- **增强准确性**：通过多轮对话和验证提高诊断准确率
+- **状态追踪**：实时追踪诊断过程的每个步骤
+
+### 🎯 适用场景
+
+- 复杂疑难病例
+- 需要多系统分析的综合诊断
+- 需要详细推理过程的诊断
+
+### 📋 返回内容
+
+- **description**：症状描述
+- **diagnosis**：诊断结果列表（包含疾病名称、症状、治疗方案）
+- **medications**：推荐药物列表
+
+### 🔄 模式说明
+
+- **同步模式** (`async_mode=false`)：直接返回诊断结果
+- **异步模式** (`async_mode=true`)：返回task_id，需轮询查询结果
+
+### ⚡ 性能
+
+- 同步模式：通常 30-60 秒（复杂病例可能更长）
+- 异步模式：适合复杂诊断任务
+    """.strip(),
+    responses={
+        200: {
+            "description": "智能诊断成功",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "智能诊断成功",
+                        "data": {
+                            "description": "金毛犬Lucky呕吐、腹泻",
+                            "diagnosis": [
+                                {
+                                    "name": "急性胃肠炎",
+                                    "symptoms": ["呕吐", "腹泻", "腹痛"],
+                                    "description": "胃和肠道的急性炎症..."
+                                }
+                            ],
+                            "medications": [
+                                {
+                                    "name": "止吐药",
+                                    "dosage": "根据体重",
+                                    "usage": "口服，每日2次"
+                                }
+                            ]
+                        },
+                        "code": 200
+                    }
+                }
+            }
+        },
+        400: {
+            "description": "请求参数错误",
+        }
+    },
+    tags=["graph"],
+)
 async def diagnose(
     request: DiagnosisRequest,
-    async_mode: bool = Query(False, description="是否使用异步模式")
+    async_mode: bool = Query(False, description="是否使用异步模式"),
 ) -> JSONResponse:
-    """
-    创建LangGraph智能诊断并返回诊断结果。
-
-    参数:
-    - async_mode: 是否使用异步模式 (默认false)
-      - false: 同步模式，直接返回诊断结果 (保持原有行为)
-      - true: 异步模式，返回task_id，需要轮询 /vet/diagnose/task/{task_id} 查询结果
-    """
     logger.info(f"开始处理LangGraph智能诊断请求: {request.description}, async_mode={async_mode}")
 
     try:
@@ -105,19 +168,26 @@ async def diagnose(
         )
 
 
-@router.get("/vet/diagnose/task/{task_id}", response_model=dict, status_code=status.HTTP_200_OK)
+@router.get(
+    "/vet/diagnose/task/{task_id}",
+    response_model=dict,
+    status_code=status.HTTP_200_OK,
+    summary="查询LangGraph智能诊断任务状态",
+    description="""
+查询LangGraph智能诊断任务的执行状态和结果。
+
+### 🔄 任务状态
+
+- **pending**：任务排队中
+- **processing**：任务处理中（包含工作流进度）
+- **completed**：任务完成，包含诊断结果
+- **failed**：任务失败
+    """.strip(),
+    tags=["graph"],
+)
 async def get_graph_diagnosis_task_status(
     task_id: str
 ) -> JSONResponse:
-    """
-    查询LangGraph智能诊断任务状态和结果（仅用于异步模式）
-
-    返回:
-    - pending: 等待中
-    - processing: 处理中，包含进度信息
-    - completed: 已完成，包含诊断结果
-    - failed: 失败，包含错误信息
-    """
     task_manager = get_task_manager()
     status_info = task_manager.get_task_status(task_id)
 
@@ -188,11 +258,17 @@ async def get_graph_diagnosis_task_status(
         )
 
 
-@router.delete("/vet/diagnose/task/{task_id}", response_model=dict, status_code=status.HTTP_200_OK)
+@router.delete(
+    "/vet/diagnose/task/{task_id}",
+    response_model=dict,
+    status_code=status.HTTP_200_OK,
+    summary="取消LangGraph智能诊断任务",
+    description="取消正在执行或排队中的LangGraph智能诊断任务",
+    tags=["graph"],
+)
 async def cancel_graph_diagnosis_task(
     task_id: str
 ) -> JSONResponse:
-    """取消LangGraph智能诊断任务（仅用于异步模式）"""
     task_manager = get_task_manager()
     success = task_manager.cancel_task(task_id)
 

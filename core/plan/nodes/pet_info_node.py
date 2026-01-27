@@ -48,7 +48,11 @@ async def PetInfoNode(state: State) -> Dict:
     Returns:
         Dict: 包含更新后的宠物信息和标志的字典
     """
+    import time
+    start_time = time.time()
+
     logger.info("【PetInfoNode】开始提取宠物信息")
+    logger.debug(f"用户查询: {state.user_query[:100] if state.user_query else '空'}...")
 
     # 获取配置
     model_name = settings.MODEL_NAME or "deepseek-ai/DeepSeek-V3"
@@ -56,10 +60,31 @@ async def PetInfoNode(state: State) -> Dict:
     api_key = settings.API_KEY or ""
     temperature = 0.3
 
-    logger.debug(f"LLM配置: model={model_name}, base_url={base_url}")
+    logger.debug(f"LLM配置: model={model_name}, base_url={base_url}, temperature={temperature}")
 
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     user_query = state.user_query or ""
+
+    # 检查是否有初始宠物信息
+    initial_pet_info = {}
+    if state.pet:
+        if state.pet.name:
+            initial_pet_info["name"] = state.pet.name
+        if state.pet.species:
+            initial_pet_info["species"] = state.pet.species
+        if state.pet.breed:
+            initial_pet_info["breed"] = state.pet.breed
+        if state.pet.age:
+            initial_pet_info["age"] = state.pet.age
+        if state.pet.weight:
+            initial_pet_info["weight"] = state.pet.weight
+        if state.pet.sex:
+            initial_pet_info["sex"] = state.pet.sex
+        if state.pet.neutered:
+            initial_pet_info["neutered"] = state.pet.neutered
+
+    if initial_pet_info:
+        logger.debug(f"检测到初始宠物信息: {initial_pet_info}")
 
     if not user_query:
         logger.warning("用户查询为空，无法提取宠物信息")
@@ -74,29 +99,36 @@ async def PetInfoNode(state: State) -> Dict:
     )
 
     # 构建提示
+    # 如果有初始宠物信息，添加到提示中
+    initial_info_str = ""
+    if initial_pet_info:
+        initial_info_str = f"\n\n已知的宠物信息（请保留这些字段，不要覆盖为null）：\n{json.dumps(initial_pet_info, ensure_ascii=False, indent=2)}"
+
     system_instructions = f"""
 当前时间：{current_time}
 你是一位专业的宠物信息提取助手，需要从用户的查询中提取宠物的基本信息。
 
-任务：从下面的用户查询中提取宠物信息，返回严格的JSON格式。
+任务：从下面的用户查询中提取宠物信息，返回严格的JSON格式。{initial_info_str}
 
 JSON Schema:
 {{
     "name": str or null,
-    "species": str or null,  # 如 "dog", "cat", "rabbit"
+    "species": str or null,  # 如 "狗", "猫", "兔子"
     "breed": str or null,    # 如 "金毛", "波斯猫"
-    "age": str or null,      # 如 "3 years", "6 months"
+    "age": str or null,      # 如 "3岁", "6个月"
     "weight": str or null,   # 单位kg，返回字符串格式如 "30.5"
-    "sex": str or null,      # "male" or "female"
+    "sex": str or null,      # "公" 或 "母"，或 "male" 或 "female"
     "neutered": str or null, # 返回字符串 "true" 或 "false"
-    "health_conditions": list[str],  # 如 ["糖尿病", "关节炎"]
+    "health_conditions": list[str],  # 如 ["食欲不振", "关节炎"]
     "allergies": list[str],          # 如 ["鸡肉", "小麦"]
     "feeding_history": str or null,
-    "activity_level": str or null    # "low", "medium", or "high"
+    "activity_level": str or null    # "低", "中", "高"
 }}
 
 要求：
-- 只提取明确提到的信息，未提到的字段设为 null 或空列表
+- 从用户查询中提取新信息
+- 【重要】如果"已知的宠物信息"中已经提供了某个字段的值，必须保留该值，不要设为null
+- 只提取和补充明确提到的信息，未提到的字段保持已提供的值或设为 null
 - species 和 breed 尽量用中文
 - 不要编造信息
 - 严格返回JSON，不要额外文本
@@ -109,33 +141,36 @@ JSON Schema:
     ])
 
     # 调用LLM
+    # 注意：智谱AI API 不支持结构化输出，直接使用普通调用
     try:
-        logger.debug("尝试使用结构化输出提取宠物信息")
-        structured_llm = llm.with_structured_output(
-            PetInfoSchema, method="json_schema")
+        logger.debug("调用LLM提取宠物信息（使用普通调用，智谱AI不支持结构化输出）")
         messages = prompt.format_messages()
-        response = await structured_llm.ainvoke(messages)
-        logger.info("结构化输出成功")
+        raw_response = await llm.ainvoke(messages)
+        content = extract_json_from_markdown(raw_response.content)
+        response_dict = json.loads(content)
+        response = PetInfoSchema(**response_dict)
+        logger.info("宠物信息提取成功")
     except Exception as e:
-        logger.warning(f"结构化输出失败: {e}，尝试普通调用")
-        try:
-            messages = prompt.format_messages()
-            raw_response = await llm.ainvoke(messages)
-            content = extract_json_from_markdown(raw_response.content)
-            response_dict = json.loads(content)
-            response = PetInfoSchema(**response_dict)
-            logger.info("普通调用成功")
-        except Exception as e2:
-            logger.error(f"宠物信息提取失败: {e2}")
-            return {"flags": {"need_pet_info_completion": "true"}}
+        logger.error(f"宠物信息提取失败: {e}")
+        return {"flags": {"need_pet_info_completion": "true"}}
 
     # 转换为PetInfo对象
     pet_info_dict = response.model_dump() if hasattr(
         response, "model_dump") else response
+
+    # 【关键】合并初始信息：如果LLM返回null但初始信息中有值，使用初始值
+    if initial_pet_info:
+        for key, value in initial_pet_info.items():
+            # 只有当LLM返回null或空值时，才使用初始值
+            if key in pet_info_dict and not pet_info_dict[key]:
+                if value:  # 初始值不为空
+                    pet_info_dict[key] = value
+                    logger.debug(f"保留初始信息: {key}={value}")
+
     pet_info = PetInfo(**pet_info_dict)
 
     logger.debug(
-        f"提取的宠物信息: species={pet_info.species}, breed={pet_info.breed}, age={pet_info.age}")
+        f"提取的宠物信息: species={pet_info.species}, breed={pet_info.breed}, age={pet_info.age}, sex={pet_info.sex}")
 
     # 检查必要信息是否完整
     need_completion = not all([
@@ -147,6 +182,9 @@ JSON Schema:
         logger.warning("宠物信息不完整，需要补全")
     else:
         logger.info("宠物信息提取完成")
+
+    elapsed_time = time.time() - start_time
+    logger.info(f"【PetInfoNode】完成，耗时: {elapsed_time:.2f}秒")
 
     return {
         "pet": pet_info,

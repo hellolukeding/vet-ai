@@ -74,15 +74,140 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     """创建FastAPI应用实例"""
     # 定义API标签元数据
-    tags_metadata = []
+    tags_metadata = [
+        {
+            "name": "pet-care",
+            "description": """
+**宠物护理计划生成服务**
+
+基于LangGraph工作流的智能宠物护理计划生成系统，提供：
+- 🍽️ **营养计划**：每日卡路里需求、营养比例、推荐食物、禁忌食物、喂养时间表
+- 💊 **补充剂建议**：根据宠物健康状况推荐营养补充剂
+- 🏥 **护理计划**：美容护理、医疗护理、运动建议、疫苗接种计划
+- 🏠 **环境管理**：生活环境优化建议
+
+**工作流程**：提取宠物信息 → 并行生成营养和护理计划 → 输出结构化结果
+
+**性能**：同步模式约2分钟，异步模式支持任务队列
+            """.strip(),
+        },
+        {
+            "name": "diagnosis",
+            "description": """
+**宠物疾病诊断服务**
+
+智能诊断系统，支持：
+- 🩺 **症状分析**：根据宠物症状描述生成可能疾病列表
+- 💊 **用药建议**：提供针对性的治疗药物推荐
+- 📊 **诊断结果**：包含疾病描述、症状说明、治疗方案
+
+**两种诊断模式**：
+1. **基础诊断** (`/diagnosis`)：快速诊断，适合常见疾病
+2. **中医诊断** (`/vet/herb`)：中医辨证论治，草本治疗方案
+
+**异步支持**：提供任务队列机制，支持长时间诊断任务
+            """.strip(),
+        },
+        {
+            "name": "graph",
+            "description": """
+**LangGraph智能诊断服务**
+
+基于LangGraph的先进诊断系统：
+- 🧠 **多步推理**：通过状态机实现复杂诊断流程
+- 🔄 **工作流管理**：支持诊断过程的可视化和管理
+- 📈 **增强准确性**：通过多轮对话和验证提高诊断准确率
+
+**适用场景**：
+- 复杂疑难病例
+- 需要多系统分析的综合诊断
+- 需要详细推理过程的诊断
+
+**特性**：状态追踪、流程可视化、异步任务支持
+            """.strip(),
+        },
+        {
+            "name": "health",
+            "description": """
+**健康检查服务**
+
+系统状态监控端点：
+- ✅ 服务可用性检查
+- 📊 系统状态监控
+- 🔧 服务版本信息
+
+**端点**：`GET /health` - 返回服务健康状态
+            """.strip(),
+        },
+    ]
+
     app = FastAPI(
-        title="vet-ai restful api",
+        title="Vet-AI 宠物医疗智能诊断与护理系统",
         description="""
-## vet-ai RESTful API
+## 🐾 Vet-AI RESTful API
 
+欢迎使用Vet-AI宠物医疗智能诊断与护理系统API。
 
+### 系统概述
+
+Vet-AI是一个基于人工智能的宠物医疗辅助系统，提供疾病诊断、中医辨证、营养计划和护理建议等综合服务。
+
+### 核心功能
+
+1. **智能诊断** 🩺
+   - 症状分析 → 疾病识别 → 治疗建议
+   - 支持西医诊断和中医辨证
+   - 基于LangGraph的多步推理诊断
+
+2. **护理计划** 📋
+   - 营养计划生成（卡路里、营养比例、推荐食物）
+   - 护理建议（美容、医疗、运动、环境）
+   - 个性化定制，根据宠物品种、年龄、健康状况调整
+
+3. **任务管理** ⚙️
+   - 同步/异步双模式
+   - 任务队列管理
+   - 进度追踪和状态查询
+
+### 技术栈
+
+- **框架**：FastAPI + LangGraph
+- **LLM**：智谱AI GLM-4.7
+- **架构**：异步任务队列 + 工作流编排
+
+### 使用方式
+
+**同步模式**（适合快速响应）：
+```bash
+curl -X POST "http://localhost:8080/api/v1/pet-care/plan" \
+  -H "Content-Type: application/json" \
+  -d '{"user_query":"我的3岁金毛犬Lucky最近食欲不好"}'
+```
+
+**异步模式**（适合长时间任务）：
+```bash
+# 1. 提交任务
+curl -X POST "http://localhost:8080/api/v1/pet-care/plan?async_mode=true" \
+  -H "Content-Type: application/json" \
+  -d '{"user_query":"..."}'
+
+# 2. 查询结果
+curl "http://localhost:8080/api/v1/pet-care/plan/task/{task_id}"
+```
+
+### 文档导航
+
+- 📖 [Swagger UI](/api/docs) - 交互式API文档
+- 📕 [ReDoc](/api/redoc) - 美观的API文档
+- 📄 [OpenAPI JSON](/api/openapi.json) - OpenAPI规范
+
+### 联系方式
+
+- **问题反馈**：请通过GitHub Issues提交
+- **技术支持**：api-support@example.com
+- **许可证**：MIT License
         """.strip(),
-        version="1.0.0",
+        version="2.0.0",
         openapi_tags=tags_metadata,
         terms_of_service="https://example.com/terms/",
         contact={

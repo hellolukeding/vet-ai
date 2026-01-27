@@ -43,25 +43,35 @@ async def CareNode(state: State) -> Dict:
     Returns:
         Dict: 包含护理计划和推理笔记的字典
     """
+    import time
+    start_time = time.time()
+
     logger.info("【CareNode】开始生成护理计划")
+    logger.debug(f"State状态: nutrition_ready={state.flags.nutrition_plan_ready}, "
+                f"care_ready={state.flags.care_plan_ready}")
 
     # 获取配置
     model_name = settings.MODEL_NAME or "deepseek-ai/DeepSeek-V3"
     base_url = settings.BASE_URL or "https://api-inference.modelscope.cn/v1"
     api_key = settings.API_KEY or ""
-    temperature = 0.4
+    temperature = 0.2
 
-    logger.debug(f"LLM配置: model={model_name}")
+    logger.debug(f"LLM配置: model={model_name}, temperature={temperature}")
 
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     pet = state.pet
+
+    logger.debug(
+        f"宠物信息: name={pet.name}, species={pet.species}, breed={pet.breed}, "
+        f"age={pet.age}, weight={pet.weight}, sex={pet.sex}")
 
     # 检查是否有足够的宠物信息
     if not pet.species:
         logger.warning("缺少宠物物种信息，无法生成护理计划")
         return {
             "care_plan": CarePlan(),
-            "reasoning": {"care_agent_notes": "缺少宠物物种信息，无法生成护理计划"}
+            "reasoning": {"care_agent_notes": "缺少宠物物种信息，无法生成护理计划"},
+            "flags": {"care_plan_ready": "false"}
         }
 
     # 初始化LLM
@@ -137,54 +147,33 @@ JSON Schema:
     # 使用速率限制器确保不会超过API并发限制
     async with limiter:
         try:
-            logger.debug("尝试使用结构化输出生成护理计划（带重试机制）")
+            logger.debug("调用LLM生成护理计划（智谱AI不支持结构化输出，使用普通调用）")
 
-            # 定义结构化输出调用函数
-            async def call_structured_llm():
-                structured_llm = llm.with_structured_output(
-                    CarePlanSchema, method="json_schema")
+            # 定义普通调用函数
+            async def call_llm():
                 messages = prompt.format_messages()
-                return await structured_llm.ainvoke(messages)
+                raw_response = await llm.ainvoke(messages)
+                content = extract_json_from_markdown(raw_response.content)
+                response_dict = json.loads(content)
+                return CarePlanSchema(**response_dict)
 
             # 使用重试机制调用LLM
             response = await retry_on_rate_limit(
-                call_structured_llm,
+                call_llm,
                 config=retry_config
             )
 
             reasoning_notes = "成功生成护理计划"
-            logger.info("结构化输出成功")
+            logger.info("护理计划生成成功")
 
         except Exception as e:
-            logger.warning(f"结构化输出失败: {e}，尝试普通调用")
-            reasoning_notes = f"结构化输出失败: {e}，尝试普通调用"
-
-            try:
-                # 定义普通调用函数
-                async def call_regular_llm():
-                    messages = prompt.format_messages()
-                    raw_response = await llm.ainvoke(messages)
-                    content = extract_json_from_markdown(raw_response.content)
-                    response_dict = json.loads(content)
-                    return CarePlanSchema(**response_dict)
-
-                # 使用重试机制调用普通LLM
-                response = await retry_on_rate_limit(
-                    call_regular_llm,
-                    config=retry_config
-                )
-
-                reasoning_notes += "，普通调用成功"
-                logger.info("普通调用成功")
-
-            except Exception as e2:
-                logger.error(f"护理计划生成失败: {e2}")
-                reasoning_notes += f"，普通调用也失败: {e2}"
-                return {
-                    "care_plan": CarePlan(),
-                    "reasoning": {"care_agent_notes": reasoning_notes},
-                    "flags": {"care_plan_ready": "false"}
-                }
+            logger.error(f"护理计划生成失败: {e}")
+            reasoning_notes = f"护理计划生成失败: {e}"
+            return {
+                "care_plan": CarePlan(),
+                "reasoning": {"care_agent_notes": reasoning_notes},
+                "flags": {"care_plan_ready": "false"}
+            }
 
     # 转换为CarePlan对象
     plan_dict = response.model_dump() if hasattr(
@@ -200,6 +189,9 @@ JSON Schema:
 
     logger.info("护理计划生成完成")
     logger.debug(f"护理计划详情: {reasoning_notes}")
+
+    elapsed_time = time.time() - start_time
+    logger.info(f"【CareNode】完成，耗时: {elapsed_time:.2f}秒")
 
     return {
         "care_plan": care_plan,

@@ -24,7 +24,7 @@ services:
       - HOST=0.0.0.0
       - PORT=8080
       # CORS配置
-      - ALLOWED_HOSTS=*
+      - ALLOWED_HOSTS=["*"]
       - CORS_ALLOW_CREDENTIALS=true
       # 调试模式（生产环境设为false）
       - DEBUG=false

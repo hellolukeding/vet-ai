@@ -36,7 +36,7 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o UserKnownHostsFile=/dev/null \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "mkdir -p ~/vet-ai"
+            "sudo mkdir -p /opt/vet-ai && sudo chown $USER:$USER /opt/vet-ai"
 
       - name: 📦 复制文件到服务器
         run: |
@@ -46,7 +46,7 @@ jobs:
             -o UserKnownHostsFile=/dev/null \
             docker/ backend/ config/ core/ utils/ \
             pyproject.toml uv.lock requirements.txt \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/vet-ai/
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/vet-ai/
 
       - name: 🚀 部署应用
         run: |
@@ -58,7 +58,7 @@ jobs:
           set -e
 
           echo "=== 进入部署目录 ==="
-          cd ~/vet-ai/docker
+          cd /opt/vet-ai/docker
 
           echo "=== 停止旧服务 ==="
           docker-compose -f docker-compose.cn.yml down || docker-compose down
@@ -114,7 +114,7 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o UserKnownHostsFile=/dev/null \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "docker-compose -f ~/vet-ai/docker/docker-compose.cn.yml ps" >> $GITHUB_STEP_SUMMARY 2>&1 || true
+            "docker-compose -f /opt/vet-ai/docker/docker-compose.cn.yml ps" >> $GITHUB_STEP_SUMMARY 2>&1 || true
           echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: ❌ 部署失败通知
@@ -125,6 +125,6 @@ jobs:
           echo "请检查服务器日志：" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
           echo "ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" >> $GITHUB_STEP_SUMMARY
-          echo "cd ~/vet-ai/docker" >> $GITHUB_STEP_SUMMARY
+          echo "cd /opt/vet-ai/docker" >> $GITHUB_STEP_SUMMARY
           echo "docker-compose -f docker-compose.cn.yml logs --tail=100 vet-ai" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY

@@ -64,17 +64,7 @@ jobs:
             sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
           fi
 
-          sudo bash -c 'cat > /etc/docker/daemon.json << "DOCKEREOF"
-{
-  "registry-mirrors": [
-    "https://docker.m.daocloud.io",
-    "https://docker.1panel.live",
-    "https://docker.anyhub.us.kg",
-    "https://dockerhub.icu"
-  ],
-  "max-concurrent-downloads": 10
-}
-DOCKEREOF'
+          echo '{"registry-mirrors":["https://docker.m.daocloud.io","https://docker.1panel.live","https://docker.anyhub.us.kg","https://dockerhub.icu"],"max-concurrent-downloads":10}' | sudo tee /etc/docker/daemon.json > /dev/null
 
           sudo systemctl daemon-reload
           sudo systemctl restart docker

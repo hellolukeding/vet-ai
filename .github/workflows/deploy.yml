@@ -36,7 +36,7 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o UserKnownHostsFile=/dev/null \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "sudo mkdir -p /opt/vet-ai && sudo chown $USER:$USER /opt/vet-ai"
+            "sudo mkdir -p /opt/vet-ai && sudo chown $(whoami):$(whoami) /opt/vet-ai"
 
       - name: 📦 复制文件到服务器
         run: |

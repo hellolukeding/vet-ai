@@ -35,14 +35,14 @@ class PetCareAgent:
         graph: 编译后的LangGraph工作流图
     """
 
-    def __init__(self, enable_validation: bool = False):
+    def __init__(self, enable_validation: bool = True):
         """
         初始化宠物护理计划代理
 
         自动构建并编译工作流图。
 
         Args:
-            enable_validation: 是否启用验证节点（默认False以提升性能）
+            enable_validation: 是否启用验证节点（默认True以确保完整性和安全性）
                               True: 运行完整验证，耗时约1.5分钟
                               False: 跳过验证，提升响应速度
         """
@@ -79,9 +79,9 @@ class PetCareAgent:
         # 根据配置决定是否添加验证节点
         if self.enable_validation:
             workflow.add_node("validator", ValidatorNode)
-            logger.info("验证节点已启用（完整模式，耗时约1.5分钟）")
+            logger.info("验证节点已启用（默认模式，确保完整性和安全性）")
         else:
-            logger.info("验证节点已禁用（快速模式，节省约1.5分钟）")
+            logger.info("验证节点已禁用（快速模式，跳过验证步骤）")
 
         workflow.add_node("final_output", FinalOutputNode)
 

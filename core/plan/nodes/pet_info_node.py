@@ -167,6 +167,22 @@ JSON Schema:
                     pet_info_dict[key] = value
                     logger.debug(f"保留初始信息: {key}={value}")
 
+    # 【关键】提供默认值，避免空数组和null值
+    # activity_level: 默认"中等"
+    if not pet_info_dict.get("activity_level"):
+        pet_info_dict["activity_level"] = "中等"
+        logger.debug("设置默认活动水平: 中等")
+
+    # health_conditions: 空数组时提供默认值
+    if not pet_info_dict.get("health_conditions"):
+        pet_info_dict["health_conditions"] = ["无特殊健康问题"]
+        logger.debug("设置默认健康状况: 无特殊健康问题")
+
+    # allergies: 空数组时提供默认值
+    if not pet_info_dict.get("allergies"):
+        pet_info_dict["allergies"] = ["无已知过敏"]
+        logger.debug("设置默认过敏源: 无已知过敏")
+
     pet_info = PetInfo(**pet_info_dict)
 
     logger.debug(

@@ -178,6 +178,33 @@ JSON Schema:
     # 转换为CarePlan对象
     plan_dict = response.model_dump() if hasattr(
         response, "model_dump") else response
+
+    # 【关键】提供默认值，避免空数组
+    # grooming: 空数组时提供默认值
+    if not plan_dict.get("grooming"):
+        plan_dict["grooming"] = ["每周梳毛2-3次", "每月洗澡1-2次", "定期修剪指甲", "每天刷牙或使用洁牙零食"]
+        logger.debug("设置默认美容护理")
+
+    # medical: 空数组时提供默认值
+    if not plan_dict.get("medical"):
+        plan_dict["medical"] = ["每6-12个月体检一次", "定期体内外驱虫", "注意牙齿健康", "观察精神食欲变化"]
+        logger.debug("设置默认医疗护理")
+
+    # exercise: 空数组时提供默认值
+    if not plan_dict.get("exercise"):
+        plan_dict["exercise"] = ["每天散步30-60分钟", "适量游戏互动", "根据体力调整运动强度"]
+        logger.debug("设置默认运动建议")
+
+    # vaccination: 空数组时提供默认值
+    if not plan_dict.get("vaccination"):
+        plan_dict["vaccination"] = ["按疫苗接种计划完成核心疫苗", "每年进行抗体检测和加强疫苗"]
+        logger.debug("设置默认疫苗接种")
+
+    # environment: 空数组时提供默认值
+    if not plan_dict.get("environment"):
+        plan_dict["environment"] = ["保持生活环境清洁干燥", "提供舒适的休息空间", "注意室内温度控制", "收好危险物品"]
+        logger.debug("设置默认环境管理")
+
     care_plan = CarePlan(**plan_dict)
 
     # 更新推理笔记

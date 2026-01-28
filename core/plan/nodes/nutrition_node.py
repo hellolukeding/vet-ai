@@ -191,6 +191,38 @@ JSON Schema:
     # 转换为NutritionPlan对象
     plan_dict = response.model_dump() if hasattr(
         response, "model_dump") else response
+
+    # 【关键】提供默认值，避免空数组
+    # recommended_foods: 空数组时提供默认值
+    if not plan_dict.get("recommended_foods"):
+        plan_dict["recommended_foods"] = ["优质成犬粮", "煮熟的鸡胸肉", "糙米", "胡萝卜"]
+        logger.debug("设置默认推荐食物")
+
+    # avoid_foods: 空数组时提供默认值
+    if not plan_dict.get("avoid_foods"):
+        plan_dict["avoid_foods"] = ["巧克力", "洋葱", "葡萄", "木糖醇"]
+        logger.debug("设置默认避免食物")
+
+    # supplements: 空数组时提供默认值
+    if not plan_dict.get("supplements"):
+        plan_dict["supplements"] = ["根据兽医建议添加"]
+        logger.debug("设置默认补充剂")
+
+    # feeding_schedule: 空数组时提供默认值
+    if not plan_dict.get("feeding_schedule"):
+        plan_dict["feeding_schedule"] = ["早上7点 - 早餐", "晚上6点 - 晚餐"]
+        logger.debug("设置默认喂养时间表")
+
+    # macro_ratio: 空字典时提供默认值
+    if not plan_dict.get("macro_ratio"):
+        plan_dict["macro_ratio"] = {"protein": "25%", "fat": "15%", "carbs": "60%"}
+        logger.debug("设置默认营养比例")
+
+    # daily_calories: null时提供默认值
+    if not plan_dict.get("daily_calories"):
+        plan_dict["daily_calories"] = "待计算"
+        logger.debug("设置默认卡路里")
+
     nutrition_plan = NutritionPlan(**plan_dict)
 
     # 更新推理笔记

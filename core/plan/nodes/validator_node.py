@@ -50,7 +50,7 @@ async def ValidatorNode(state: State) -> Dict:
             f"计划未完成，跳过验证 - 营养计划: {nutrition_ready}, 护理计划: {care_ready}")
         return {
             "reasoning": {
-                "risk_analysis": "营养或护理计划未完成，跳过验证",
+                "risk_analysis": "营养或护理计划未完成，无法进行完整的风险评估。建议咨询专业兽医进行个性化评估。",
                 "contradictions": []
             }
         }
@@ -142,7 +142,7 @@ async def ValidatorNode(state: State) -> Dict:
 
     except Exception as e:
         logger.error(f"验证调用失败: {e}")
-        risk_analysis = f"验证过程出错: {e}"
+        risk_analysis = f"验证过程出错，建议咨询专业兽医进行人工审核：{e}"
 
     return {
         "reasoning": {

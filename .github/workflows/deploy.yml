@@ -1,7 +1,7 @@
 name: Deploy to Production Server
 
 # ============================================================
-# Vet-AI 自动化部署工作流
+# Vet-AI 自动化部署工作流（使用 SSH 密钥认证）
 # 触发条件: 推送到 langgraph/main/master 分支或手动触发
 # ============================================================
 
@@ -24,64 +24,36 @@ jobs:
       - name: 📥 Checkout代码
         uses: actions/checkout@v4
 
-      - name: 🔐 安装 SSH 工具
+      - name: 🔐 配置 SSH 密钥
         run: |
-          sudo apt-get update
-          sudo apt-get install -y sshpass
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: 📦 准备服务器目录并验证
+      - name: 📦 测试 SSH 连接
         run: |
-          echo "=== 步骤1: 创建服务器目录 ==="
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh \
-            -o StrictHostKeyChecking=no \
-            -o UserKnownHostsFile=/dev/null \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "bash -ls" << 'ENDSSH'
-          set -e
-          echo "当前用户: $(whoami)"
-          echo "当前目录: $(pwd)"
-          echo "检查 /opt/vet-ai 是否存在..."
-          if [ -d /opt/vet-ai ]; then
-            echo "目录已存在"
-            ls -la /opt/ | grep vet-ai || true
-          else
-            echo "目录不存在，创建中..."
-            sudo mkdir -p /opt/vet-ai
-            sudo chown $(whoami):$(whoami) /opt/vet-ai
-            echo "目录创建完成"
-          fi
-          echo "验证目录权限..."
-          ls -la /opt/ | grep vet-ai
-          echo "测试写入权限..."
-          touch /opt/vet-ai/test.txt && rm /opt/vet-ai/test.txt && echo "写入权限正常"
-          ENDSSH
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
+            "echo 'SSH连接成功' && whoami && pwd && ls -la /opt/vet-ai/"
 
-      - name: 📦 复制文件到服务器
+      - name: 🚀 部署应用（使用 rsync + SSH）
         run: |
-          echo "=== 步骤2: 复制文件 ==="
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -r \
-            -o StrictHostKeyChecking=no \
-            -o UserKnownHostsFile=/dev/null \
+          echo "正在同步文件..."
+          rsync -avz --delete \
+            -e "ssh -o StrictHostKeyChecking=no" \
             docker/ backend/ config/ core/ utils/ \
             pyproject.toml uv.lock requirements.txt \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/vet-ai/
 
-      - name: 🚀 部署应用
-        run: |
-          echo "=== 步骤3: 部署应用 ==="
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh \
-            -o StrictHostKeyChecking=no \
-            -o UserKnownHostsFile=/dev/null \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "bash -ls" << 'ENDSSH'
+          echo "正在部署应用..."
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
           set -e
 
-          echo "=== 进入部署目录 ==="
           cd /opt/vet-ai/docker
 
-          echo "=== 检查文件是否存在 ==="
-          ls -la
-
           echo "=== 停止旧服务 ==="
-          docker-compose -f docker-compose.cn.yml down || docker-compose down || true
+          docker-compose -f docker-compose.cn.yml down || true
 
           echo "=== 清理旧镜像 ==="
           docker image prune -f || true
@@ -111,10 +83,7 @@ jobs:
 
       - name: 🧪 测试部署
         run: |
-          echo "正在测试部署..."
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh \
-            -o StrictHostKeyChecking=no \
-            -o UserKnownHostsFile=/dev/null \
+          ssh -o StrictHostKeyChecking=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
             "curl -f http://localhost:8080/health || exit 1"
 
@@ -127,24 +96,10 @@ jobs:
           echo "**提交SHA**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "**提交消息**: ${{ github.event.head_commit.message }}" >> $GITHUB_STEP_SUMMARY
           echo "**服务器**: ${{ secrets.SERVER_HOST }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📋 服务状态" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh \
-            -o StrictHostKeyChecking=no \
-            -o UserKnownHostsFile=/dev/null \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "docker-compose -f /opt/vet-ai/docker/docker-compose.cn.yml ps" >> $GITHUB_STEP_SUMMARY 2>&1 || true
-          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: ❌ 部署失败通知
         if: failure()
         run: |
           echo "## ❌ 部署失败！" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "请检查服务器日志：" >> $GITHUB_STEP_SUMMARY
-          echo '```bash' >> $GITHUB_STEP_SUMMARY
-          echo "ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" >> $GITHUB_STEP_SUMMARY
-          echo "cd /opt/vet-ai/docker" >> $GITHUB_STEP_SUMMARY
-          echo "docker-compose -f docker-compose.cn.yml logs --tail=100 vet-ai" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "请检查服务器日志" >> $GITHUB_STEP_SUMMARY

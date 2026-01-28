@@ -29,18 +29,35 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y sshpass
 
-      - name: 📦 准备服务器目录
+      - name: 📦 准备服务器目录并验证
         run: |
-          echo "正在创建服务器目录..."
+          echo "=== 步骤1: 创建服务器目录 ==="
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh \
             -o StrictHostKeyChecking=no \
             -o UserKnownHostsFile=/dev/null \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            'sudo mkdir -p /opt/vet-ai && sudo chown $(whoami):$(whoami) /opt/vet-ai'
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "bash -ls" << 'ENDSSH'
+          set -e
+          echo "当前用户: $(whoami)"
+          echo "当前目录: $(pwd)"
+          echo "检查 /opt/vet-ai 是否存在..."
+          if [ -d /opt/vet-ai ]; then
+            echo "目录已存在"
+            ls -la /opt/ | grep vet-ai || true
+          else
+            echo "目录不存在，创建中..."
+            sudo mkdir -p /opt/vet-ai
+            sudo chown $(whoami):$(whoami) /opt/vet-ai
+            echo "目录创建完成"
+          fi
+          echo "验证目录权限..."
+          ls -la /opt/ | grep vet-ai
+          echo "测试写入权限..."
+          touch /opt/vet-ai/test.txt && rm /opt/vet-ai/test.txt && echo "写入权限正常"
+          ENDSSH
 
       - name: 📦 复制文件到服务器
         run: |
-          echo "正在复制文件到服务器..."
+          echo "=== 步骤2: 复制文件 ==="
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -r \
             -o StrictHostKeyChecking=no \
             -o UserKnownHostsFile=/dev/null \
@@ -50,18 +67,21 @@ jobs:
 
       - name: 🚀 部署应用
         run: |
-          echo "正在部署应用到服务器..."
+          echo "=== 步骤3: 部署应用 ==="
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh \
             -o StrictHostKeyChecking=no \
             -o UserKnownHostsFile=/dev/null \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "bash -ls" << 'ENDSSH'
           set -e
 
           echo "=== 进入部署目录 ==="
           cd /opt/vet-ai/docker
 
+          echo "=== 检查文件是否存在 ==="
+          ls -la
+
           echo "=== 停止旧服务 ==="
-          docker-compose -f docker-compose.cn.yml down || docker-compose down
+          docker-compose -f docker-compose.cn.yml down || docker-compose down || true
 
           echo "=== 清理旧镜像 ==="
           docker image prune -f || true

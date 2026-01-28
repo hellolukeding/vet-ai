@@ -20,15 +20,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # 配置 pip 国内源
 ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
-    PIP_DEFAULT_TIMEOUT=300
+    PIP_DEFAULT_TIMEOUT=300 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
 # 复制 requirements.txt
 COPY requirements.txt ./
 
-# 创建虚拟环境并安装依赖
-RUN python -m venv .venv \
-    && . .venv/bin/activate \
-    && pip install --no-cache-dir -r requirements.txt
+# 安装依赖到临时目录（用于复制）
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # ================== 运行时阶段 ==================
 FROM python:3.12-slim AS runtime
@@ -42,14 +42,15 @@ LABEL version="2.0.0"
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
+    PATH=/app/.local/bin:$PATH \
     MALLOC_ARENA_MAX=2 \
     PYTHONHASHSEED=random \
     PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /app
 
-# 复制虚拟环境
-COPY --from=builder /build/.venv /app/.venv
+# 复制已安装的依赖
+COPY --from=builder /install /usr/local
 
 # 复制应用代码
 COPY backend/ ./backend/
@@ -69,4 +70,4 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')" || exit 1
 
-CMD [".venv/bin/uvicorn", "backend.api:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]
+CMD ["uvicorn", "backend.api:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]

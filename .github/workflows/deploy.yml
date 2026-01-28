@@ -57,6 +57,13 @@ jobs:
           echo "=== 当前目录内容 ==="
           ls -la
 
+          echo "=== 配置 Docker 镜像加速器 ==="
+          sudo mkdir -p /etc/docker
+          echo '{"registry-mirrors":["https://docker.m.daocloud.io","https://docker.1panel.live"]}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl daemon-reload
+          sudo systemctl restart docker
+          echo "=== Docker 镜像加速器配置完成 ==="
+
           echo "=== 进入 docker 目录 ==="
           cd docker
 

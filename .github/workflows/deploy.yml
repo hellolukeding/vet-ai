@@ -59,9 +59,40 @@ jobs:
 
           echo "=== 配置 Docker 镜像加速器 ==="
           sudo mkdir -p /etc/docker
-          echo '{"registry-mirrors":["https://docker.m.daocloud.io","https://docker.1panel.live"]}' | sudo tee /etc/docker/daemon.json
+
+          # 备份原有配置
+          if [ -f /etc/docker/daemon.json ]; then
+            sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
+          fi
+
+          # 写入新配置
+          sudo tee /etc/docker/daemon.json > /dev/null << 'EOF'
+{
+  "registry-mirrors": [
+    "https://docker.m.daocloud.io",
+    "https://docker.1panel.live",
+    "https://docker.anyhub.us.kg",
+    "https://dockerhub.icu"
+  ],
+  "max-concurrent-downloads": 10,
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
+}
+EOF
+
+          # 重启 Docker
           sudo systemctl daemon-reload
           sudo systemctl restart docker
+
+          # 等待 Docker 启动
+          sleep 5
+
+          # 验证配置
+          echo "=== 验证 Docker 配置 ==="
+          docker info | grep -A 10 "Registry Mirrors" || echo "警告：镜像加速器未生效"
           echo "=== Docker 镜像加速器配置完成 ==="
 
           echo "=== 进入 docker 目录 ==="
@@ -72,6 +103,9 @@ jobs:
 
           echo "=== 清理旧镜像 ==="
           docker image prune -f || true
+
+          echo "=== 预拉取基础镜像 ==="
+          docker pull python:3.12-slim || echo "镜像拉取失败，将尝试在构建时拉取"
 
           echo "=== 构建新镜像 ==="
           docker-compose -f docker-compose.cn.yml build --no-cache

@@ -1,5 +1,5 @@
 # ============================================================
-# 轻量化多阶段构建 Dockerfile（中国网络优化版）
+# 轻量化多阶段构建 Dockerfile（中国网络优化 + 稳定构建版）
 # ============================================================
 
 # ================== 构建阶段 ==================
@@ -18,20 +18,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# 安装 uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/uv
-
-# 复制依赖文件
-COPY pyproject.toml uv.lock ./
-
-# 配置 uv / pip 国内源
-ENV UV_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
-    PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
-    UV_HTTP_TIMEOUT=300 \
+# 配置 pip 国内源
+ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
     PIP_DEFAULT_TIMEOUT=300
 
-# 将 uv.lock 导出为 requirements.txt，再用 pip 安装
-RUN uv export --frozen --no-dev --format requirements-txt > requirements.txt \
+# 复制 requirements.txt
+COPY requirements.txt ./
+
+# 创建虚拟环境并安装依赖
+RUN python -m venv .venv \
+    && . .venv/bin/activate \
     && pip install --no-cache-dir -r requirements.txt
 
 # ================== 运行时阶段 ==================
@@ -52,7 +48,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# 复制已安装好的虚拟环境
+# 复制虚拟环境
 COPY --from=builder /build/.venv /app/.venv
 
 # 复制应用代码

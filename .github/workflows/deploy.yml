@@ -1,8 +1,8 @@
-name: Build and Deploy to Production
+name: Deploy to Production Server
 
 # ============================================================
 # Vet-AI 自动化部署工作流
-# 触发条件: 推送到main分支或手动触发
+# 触发条件: 推送到 langgraph/main/master 分支或手动触发
 # ============================================================
 
 on:
@@ -11,73 +11,12 @@ on:
       - main
       - master
       - langgraph
-  pull_request:
-    branches:
-      - main
-      - master
-      - langgraph
   workflow_dispatch:  # 支持手动触发
-    inputs:
-      deploy_environment:
-        description: '部署环境'
-        required: true
-        default: 'production'
-        type: choice
-        options:
-          - production
-          - staging
-
-env:
-  DOCKER_IMAGE: vet-ai
-  DOCKER_TAG: ${{ github.sha }}
 
 jobs:
-  # ================== 构建并推送镜像 ==================
-  build-and-push:
-    name: Build and Push Docker Image
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: 📥 Checkout代码
-        uses: actions/checkout@v4
-
-      - name: 🔧 设置Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: 🐳 登录Docker Hub (可选)
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 🏷️ 生成镜像标签
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=ref,event=branch
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: 🏗️ 构建并推送镜像
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./docker/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          platforms: linux/amd64
-
-  # ================== 部署到生产服务器 ==================
+  # ================== 部署到服务器 ==================
   deploy:
-    name: Deploy to Production Server
-    needs: build-and-push
+    name: Deploy to Server
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/langgraph'
 
@@ -99,7 +38,7 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o UserKnownHostsFile=/dev/null \
             docker/ backend/ config/ core/ utils/ \
-            pyproject.toml uv.lock \
+            pyproject.toml uv.lock requirements.txt \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/vet-ai/
 
       - name: 🚀 部署应用
@@ -114,30 +53,30 @@ jobs:
           cd /opt/vet-ai/docker
 
           echo "=== 停止旧服务 ==="
-          docker-compose down
+          docker-compose -f docker-compose.cn.yml down || docker-compose down
 
-          echo "=== 清理旧镜像（可选） ==="
+          echo "=== 清理旧镜像 ==="
           docker image prune -f || true
 
           echo "=== 构建新镜像 ==="
-          docker-compose build --no-cache
+          docker-compose -f docker-compose.cn.yml build --no-cache
 
           echo "=== 启动新服务 ==="
-          docker-compose up -d
+          docker-compose -f docker-compose.cn.yml up -d
 
           echo "=== 等待服务就绪 ==="
           sleep 15
 
           echo "=== 检查服务状态 ==="
-          docker-compose ps
-          docker-compose logs --tail=50 vet-ai
+          docker-compose -f docker-compose.cn.yml ps
+          docker-compose -f docker-compose.cn.yml logs --tail=50 vet-ai
 
           echo "=== 健康检查 ==="
           if curl -sf http://localhost:8080/health > /dev/null; then
             echo "✅ 服务部署成功！"
           else
             echo "❌ 服务部署失败！"
-            docker-compose logs vet-ai
+            docker-compose -f docker-compose.cn.yml logs vet-ai
             exit 1
           fi
           ENDSSH
@@ -157,12 +96,13 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**部署时间**: $(date)" >> $GITHUB_STEP_SUMMARY
           echo "**提交SHA**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**提交消息**: ${{ github.event.head_commit.message }}" >> $GITHUB_STEP_SUMMARY
           echo "**服务器**: ${{ secrets.SERVER_HOST }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📋 服务状态" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "docker-compose --file /opt/vet-ai/docker/docker-compose.yml ps" >> $GITHUB_STEP_SUMMARY 2>&1 || true
+            "docker-compose -f /opt/vet-ai/docker/docker-compose.cn.yml ps" >> $GITHUB_STEP_SUMMARY 2>&1 || true
           echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: ❌ 部署失败通知
@@ -174,18 +114,5 @@ jobs:
           echo '```bash' >> $GITHUB_STEP_SUMMARY
           echo "ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" >> $GITHUB_STEP_SUMMARY
           echo "cd /opt/vet-ai/docker" >> $GITHUB_STEP_SUMMARY
-          echo "docker-compose logs --tail=100 vet-ai" >> $GITHUB_STEP_SUMMARY
+          echo "docker-compose -f docker-compose.cn.yml logs --tail=100 vet-ai" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-
-  # ================== 通知（可选）==================
-  notify:
-    name: Send Notification
-    needs: deploy
-    runs-on: ubuntu-latest
-    if: always()
-
-    steps:
-      - name: 📧 发送部署通知
-        run: |
-          echo "部署状态: ${{ job.status }}"
-          # 这里可以添加钉钉、企业微信、邮件等通知方式

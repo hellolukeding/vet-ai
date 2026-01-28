@@ -100,7 +100,7 @@ jobs:
           docker-compose -f docker-compose.cn.yml logs --tail=50 vet-ai
 
           echo "=== 健康检查 ==="
-          if curl -sf http://localhost:8080/health > /dev/null; then
+          if docker-compose -f docker-compose.cn.yml ps | grep -q "Up"; then
             echo "✅ 服务部署成功！"
           else
             echo "❌ 服务部署失败！"

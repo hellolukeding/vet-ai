@@ -1,4 +1,5 @@
 {
   "cSpell.words": ["agentscope", "dotenv", "msghub"],
-  "commentTranslate.hover.enabled": false
+  "commentTranslate.hover.enabled": false,
+  "suitecloud.developerAssistant.disableWelcomeNotification": true
 }

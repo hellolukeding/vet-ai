@@ -180,29 +180,57 @@ JSON Schema:
         response, "model_dump") else response
 
     # 【关键】提供默认值，避免空数组
-    # grooming: 空数组时提供默认值
-    if not plan_dict.get("grooming"):
-        plan_dict["grooming"] = ["每周梳毛2-3次", "每月洗澡1-2次", "定期修剪指甲", "每天刷牙或使用洁牙零食"]
+    # grooming: 空数组或null时提供默认值
+    gr = plan_dict.get("grooming")
+    if not gr or len(gr) == 0:
+        plan_dict["grooming"] = [
+            "每周梳毛2-3次，换毛季节需每天梳理",
+            "每月洗澡1-2次，使用宠物专用香波",
+            "定期修剪指甲，每周检查耳部清洁",
+            "每天刷牙或每周至少3次，配合洁牙零食"
+        ]
         logger.debug("设置默认美容护理")
 
-    # medical: 空数组时提供默认值
-    if not plan_dict.get("medical"):
-        plan_dict["medical"] = ["每6-12个月体检一次", "定期体内外驱虫", "注意牙齿健康", "观察精神食欲变化"]
+    # medical: 空数组或null时提供默认值
+    md = plan_dict.get("medical")
+    if not md or len(md) == 0:
+        plan_dict["medical"] = [
+            "每6-12个月进行一次全面体检",
+            "每月进行体内外驱虫",
+            "注意观察精神状态和食欲变化",
+            "每年进行口腔检查，预防牙结石"
+        ]
         logger.debug("设置默认医疗护理")
 
-    # exercise: 空数组时提供默认值
-    if not plan_dict.get("exercise"):
-        plan_dict["exercise"] = ["每天散步30-60分钟", "适量游戏互动", "根据体力调整运动强度"]
+    # exercise: 空数组或null时提供默认值
+    ex = plan_dict.get("exercise")
+    if not ex or len(ex) == 0:
+        plan_dict["exercise"] = [
+            "每天散步30-60分钟，可分两次进行",
+            "适量游戏互动，如抛接球等",
+            "根据年龄和体力调整运动强度"
+        ]
         logger.debug("设置默认运动建议")
 
-    # vaccination: 空数组时提供默认值
-    if not plan_dict.get("vaccination"):
-        plan_dict["vaccination"] = ["按疫苗接种计划完成核心疫苗", "每年进行抗体检测和加强疫苗"]
+    # vaccination: 空数组或null时提供默认值
+    vac = plan_dict.get("vaccination")
+    if not vac or len(vac) == 0:
+        plan_dict["vaccination"] = [
+            "按疫苗接种计划完成核心疫苗（犬瘟热、细小病毒等）",
+            "每年进行抗体检测和加强疫苗接种",
+            "根据生活环境决定是否接种非核心疫苗"
+        ]
         logger.debug("设置默认疫苗接种")
 
-    # environment: 空数组时提供默认值
-    if not plan_dict.get("environment"):
-        plan_dict["environment"] = ["保持生活环境清洁干燥", "提供舒适的休息空间", "注意室内温度控制", "收好危险物品"]
+    # environment: 空数组或null时提供默认值
+    env = plan_dict.get("environment")
+    if not env or len(env) == 0:
+        plan_dict["environment"] = [
+            "保持生活环境清洁干燥，定期清洁食盆和水盆",
+            "提供舒适干燥的休息空间，避免直接睡在硬地面",
+            "注意室内温度控制，夏季防暑冬季保暖",
+            "收好小型物品和有毒物品（如巧克力、清洁剂等）"
+        ]
         logger.debug("设置默认环境管理")
 
     care_plan = CarePlan(**plan_dict)

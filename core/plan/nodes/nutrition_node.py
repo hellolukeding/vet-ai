@@ -193,34 +193,40 @@ JSON Schema:
         response, "model_dump") else response
 
     # 【关键】提供默认值，避免空数组
-    # recommended_foods: 空数组时提供默认值
-    if not plan_dict.get("recommended_foods"):
-        plan_dict["recommended_foods"] = ["优质成犬粮", "煮熟的鸡胸肉", "糙米", "胡萝卜"]
+    # recommended_foods: 空数组或null时提供默认值
+    rf = plan_dict.get("recommended_foods")
+    if not rf or len(rf) == 0:
+        plan_dict["recommended_foods"] = ["优质成犬粮", "煮熟的鸡胸肉", "糙米", "胡萝卜", "三文鱼"]
         logger.debug("设置默认推荐食物")
 
-    # avoid_foods: 空数组时提供默认值
-    if not plan_dict.get("avoid_foods"):
-        plan_dict["avoid_foods"] = ["巧克力", "洋葱", "葡萄", "木糖醇"]
+    # avoid_foods: 空数组或null时提供默认值
+    af = plan_dict.get("avoid_foods")
+    if not af or len(af) == 0:
+        plan_dict["avoid_foods"] = ["巧克力", "洋葱", "大蒜", "葡萄", "木糖醇", "煮熟的骨头"]
         logger.debug("设置默认避免食物")
 
-    # supplements: 空数组时提供默认值
-    if not plan_dict.get("supplements"):
-        plan_dict["supplements"] = ["根据兽医建议添加"]
+    # supplements: 空数组或null时提供默认值
+    sup = plan_dict.get("supplements")
+    if not sup or len(sup) == 0:
+        plan_dict["supplements"] = ["深海鱼油（Omega-3）", "根据兽医建议添加其他补充剂"]
         logger.debug("设置默认补充剂")
 
-    # feeding_schedule: 空数组时提供默认值
-    if not plan_dict.get("feeding_schedule"):
-        plan_dict["feeding_schedule"] = ["早上7点 - 早餐", "晚上6点 - 晚餐"]
+    # feeding_schedule: 空数组或null时提供默认值
+    fs = plan_dict.get("feeding_schedule")
+    if not fs or len(fs) == 0:
+        plan_dict["feeding_schedule"] = ["早上7点 - 早餐（约每日热量的50%）", "晚上6点 - 晚餐（约每日热量的50%）"]
         logger.debug("设置默认喂养时间表")
 
-    # macro_ratio: 空字典时提供默认值
-    if not plan_dict.get("macro_ratio"):
+    # macro_ratio: 空字典或null时提供默认值
+    mr = plan_dict.get("macro_ratio")
+    if not mr or len(mr) == 0:
         plan_dict["macro_ratio"] = {"protein": "25%", "fat": "15%", "carbs": "60%"}
         logger.debug("设置默认营养比例")
 
-    # daily_calories: null时提供默认值
-    if not plan_dict.get("daily_calories"):
-        plan_dict["daily_calories"] = "待计算"
+    # daily_calories: null或空时提供默认值
+    dc = plan_dict.get("daily_calories")
+    if not dc:
+        plan_dict["daily_calories"] = "根据宠物体重和活动水平计算（通常成年犬每公斤体重约需要30-50kcal）"
         logger.debug("设置默认卡路里")
 
     nutrition_plan = NutritionPlan(**plan_dict)

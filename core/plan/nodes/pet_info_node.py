@@ -119,20 +119,25 @@ JSON Schema:
     "weight": str or null,   # 单位kg，返回字符串格式如 "30.5"
     "sex": str or null,      # "公" 或 "母"，或 "male" 或 "female"
     "neutered": str or null, # 返回字符串 "true" 或 "false"
-    "health_conditions": list[str],  # 如 ["食欲不振", "关节炎"]
-    "allergies": list[str],          # 如 ["鸡肉", "小麦"]
+    "health_conditions": list[str],  # 【重要】提取所有健康问题，如"食欲不振"、"呕吐"、"腹泻"、"精神萎靡"等，如果没有健康问题则返回[]
+    "allergies": list[str],          # 提取所有过敏源，如"鸡肉"、"小麦"等，如果没有过敏则返回[]
     "feeding_history": str or null,
-    "activity_level": str or null    # "低", "中", "高"
+    "activity_level": str or null    # 根据描述判断："低"（很少运动）、"中"（正常散步）、"高"（活跃好动）
 }}
 
-要求：
-- 从用户查询中提取新信息
-- 【重要】如果"已知的宠物信息"中已经提供了某个字段的值，必须保留该值，不要设为null
+重要提示：
+- 【特别关注】仔细阅读用户描述，提取所有提到的健康问题和症状
+- 例如："食欲不太好"应提取为health_conditions: ["食欲不振"或"食欲下降"]
+- 例如："最近呕吐"应提取为health_conditions: ["呕吐"]
+- 如果用户没有明确提到健康问题，health_conditions必须返回空数组[]而不是null
+- 如果用户没有明确提到过敏，allergies必须返回空数组[]而不是null
+- activity_level根据用户描述判断，如果未提及可根据品种特点推测（如金毛通常是"中"或"高"）
+- 【重要】如果"已知的宠物信息"中已经提供了某个字段的值，必须保留该值，不要覆盖
 - 只提取和补充明确提到的信息，未提到的字段保持已提供的值或设为 null
-- species 和 breed 尽量用中文
-- 不要编造信息
+- species 和 breed 尅量用中文
+- 不要编造未提及的信息
 - 严格返回JSON，不要额外文本
-- 不要使用Markdown代码块格式
+- 不要使用Markdown代码块格式（```json ... ```）
 """
 
     prompt = ChatPromptTemplate.from_messages([
@@ -169,17 +174,19 @@ JSON Schema:
 
     # 【关键】提供默认值，避免空数组和null值
     # activity_level: 默认"中等"
-    if not pet_info_dict.get("activity_level"):
+    if not pet_info_dict.get("activity_level") or pet_info_dict.get("activity_level") == "null":
         pet_info_dict["activity_level"] = "中等"
         logger.debug("设置默认活动水平: 中等")
 
-    # health_conditions: 空数组时提供默认值
-    if not pet_info_dict.get("health_conditions"):
+    # health_conditions: 空数组或null时提供默认值
+    hc = pet_info_dict.get("health_conditions")
+    if not hc or len(hc) == 0:
         pet_info_dict["health_conditions"] = ["无特殊健康问题"]
         logger.debug("设置默认健康状况: 无特殊健康问题")
 
-    # allergies: 空数组时提供默认值
-    if not pet_info_dict.get("allergies"):
+    # allergies: 空数组或null时提供默认值
+    al = pet_info_dict.get("allergies")
+    if not al or len(al) == 0:
         pet_info_dict["allergies"] = ["无已知过敏"]
         logger.debug("设置默认过敏源: 无已知过敏")
 

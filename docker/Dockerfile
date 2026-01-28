@@ -3,7 +3,8 @@
 # ============================================================
 
 # ================== 构建阶段 ==================
-FROM python:3.12-slim AS builder
+# 使用阿里云 Docker 镜像加速
+FROM registry.cn-hangzhou.aliyuncs.com/library/python:3.12-slim AS builder
 
 WORKDIR /build
 
@@ -31,7 +32,8 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # ================== 运行时阶段 ==================
-FROM python:3.12-slim AS runtime
+# 使用阿里云 Docker 镜像加速
+FROM registry.cn-hangzhou.aliyuncs.com/library/python:3.12-slim AS runtime
 
 # 使用国内 Debian 镜像源
 RUN sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debian.sources

@@ -34,7 +34,7 @@ jobs:
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh \
             -o StrictHostKeyChecking=no \
             -o UserKnownHostsFile=/dev/null \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "bash -s" << 'ENDSSH'
           set -e
 
           echo "=== 进入部署目录 ==="
@@ -60,13 +60,11 @@ jobs:
           echo "=== 配置 Docker 镜像加速器 ==="
           sudo mkdir -p /etc/docker
 
-          # 备份原有配置
           if [ -f /etc/docker/daemon.json ]; then
             sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
           fi
 
-          # 写入新配置
-          sudo tee /etc/docker/daemon.json > /dev/null << 'EOF'
+          sudo bash -c 'cat > /etc/docker/daemon.json << "DOCKEREOF"
 {
   "registry-mirrors": [
     "https://docker.m.daocloud.io",
@@ -74,23 +72,14 @@ jobs:
     "https://docker.anyhub.us.kg",
     "https://dockerhub.icu"
   ],
-  "max-concurrent-downloads": 10,
-  "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "10m",
-    "max-file": "3"
-  }
+  "max-concurrent-downloads": 10
 }
-EOF
+DOCKEREOF'
 
-          # 重启 Docker
           sudo systemctl daemon-reload
           sudo systemctl restart docker
-
-          # 等待 Docker 启动
           sleep 5
 
-          # 验证配置
           echo "=== 验证 Docker 配置 ==="
           docker info | grep -A 10 "Registry Mirrors" || echo "警告：镜像加速器未生效"
           echo "=== Docker 镜像加速器配置完成 ==="

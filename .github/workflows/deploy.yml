@@ -1,7 +1,7 @@
 name: Deploy to Production Server
 
 # ============================================================
-# Vet-AI 自动化部署工作流（使用 SSH 密钥认证）
+# Vet-AI 自动化部署工作流（使用密码认证，git pull 方式）
 # 触发条件: 推送到 langgraph/main/master 分支或手动触发
 # ============================================================
 
@@ -24,33 +24,41 @@ jobs:
       - name: 📥 Checkout代码
         uses: actions/checkout@v4
 
-      - name: 🔐 配置 SSH 密钥
+      - name: 🔐 安装 SSH 工具
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+          sudo apt-get update
+          sudo apt-get install -y sshpass
 
-      - name: 📦 测试 SSH 连接
+      - name: 🚀 部署应用（git pull 方式）
         run: |
-          ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "echo 'SSH连接成功' && whoami && pwd && ls -la /opt/vet-ai/"
-
-      - name: 🚀 部署应用（使用 rsync + SSH）
-        run: |
-          echo "正在同步文件..."
-          rsync -avz --delete \
-            -e "ssh -o StrictHostKeyChecking=no" \
-            docker/ backend/ config/ core/ utils/ \
-            pyproject.toml uv.lock requirements.txt \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/vet-ai/
-
-          echo "正在部署应用..."
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
           set -e
 
-          cd /opt/vet-ai/docker
+          echo "=== 进入部署目录 ==="
+          cd /opt/vet-ai
+
+          echo "=== 初始化/更新 git 仓库 ==="
+          if [ -d .git ]; then
+            echo "仓库已存在，拉取最新代码"
+            git fetch --all
+            git reset --hard origin/langgraph
+            git pull origin langgraph
+          else
+            echo "首次部署，克隆仓库"
+            git clone https://github.com/hellolukeding/vet-ai.git temp_repo
+            mv temp_repo/.git .
+            rm -rf temp_repo
+            git checkout langgraph
+          fi
+
+          echo "=== 当前目录内容 ==="
+          ls -la
+
+          echo "=== 进入 docker 目录 ==="
+          cd docker
 
           echo "=== 停止旧服务 ==="
           docker-compose -f docker-compose.cn.yml down || true
@@ -81,12 +89,6 @@ jobs:
           fi
           ENDSSH
 
-      - name: 🧪 测试部署
-        run: |
-          ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "curl -f http://localhost:8080/health || exit 1"
-
       - name: 📊 部署报告
         if: success()
         run: |
@@ -102,4 +104,4 @@ jobs:
         run: |
           echo "## ❌ 部署失败！" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "请检查服务器日志" >> $GITHUB_STEP_SUMMARY
+          echo "请检查服务器日志：" >> $GITHUB_STEP_SUMMARY

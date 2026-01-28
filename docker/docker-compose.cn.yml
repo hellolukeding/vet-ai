@@ -1,0 +1,68 @@
+# ============================================================
+# Vet-AI Docker Compose 配置（国内服务器专用）
+# ============================================================
+
+services:
+  # ================== 主应用服务 ==================
+  vet-ai:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.cn
+    container_name: vet-ai-backend
+    ports:
+      - "18082:8080"
+    environment:
+      # Python环境
+      - PYTHONUNBUFFERED=1
+      - ENVIRONMENT=production
+      # 日志级别
+      - LOG_LEVEL=INFO
+      # API配置
+      - MODEL_NAME=${MODEL_NAME:-glm-4-plus}
+      - BASE_URL=${BASE_URL}
+      - API_KEY=${API_KEY}
+      - HOST=0.0.0.0
+      - PORT=8080
+      # CORS配置
+      - ALLOWED_HOSTS=*
+      - CORS_ALLOW_CREDENTIALS=true
+      # 调试模式（生产环境设为false）
+      - DEBUG=false
+      # API文档访问控制（生产环境也可设为true以查看文档）
+      - ENABLE_DOCS=true
+    volumes:
+      # 日志持久化
+      - ./logs:/app/logs
+    restart: unless-stopped
+    # 资源限制（轻量化部署）
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+    # 健康检查
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    # 日志配置
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  default:
+    name: vet-ai-network

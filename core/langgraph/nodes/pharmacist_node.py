@@ -14,6 +14,7 @@ from config.logger import logger
 from core.langgraph.state import MedicationItem, VetAgentState
 from core.langgraph.tools import fetch_webpage_tool, web_search_tool
 from utils.json.extract_json_from_markdown import extract_json_from_markdown
+import asyncio
 
 
 class PharmacistSchema(BaseModel):
@@ -26,15 +27,13 @@ class PharmacistSchema(BaseModel):
 
 async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]]:
     # 在这里实现药剂师节点的逻辑
-    # config via settings with sane defaults
+    # 获取配置
     model_name = settings.MODEL_NAME or "deepseek-ai/DeepSeek-V3"
     base_url = settings.BASE_URL or "https://api-inference.modelscope.cn/v1"
     api_key = settings.API_KEY or ""
     temperature = 0.2
-    tools = [
-        fetch_webpage_tool,
-        web_search_tool
-    ]
+    # 使用百度搜索（中文医学内容质量更好）
+    use_baidu = True
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # retrieve diagnosis list from state (could be list of pydantic models or dicts)
@@ -64,7 +63,11 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
             query = f"宠物 {name} 常用治疗药物及剂量"
             # tools in core.langgraph.tools are synchronous and return JSON strings
             try:
-                results_raw = web_search_tool(query)
+                results_raw = web_search_tool.invoke({
+                    "query": query,
+                    "num_results": 3,
+                    "use_baidu": use_baidu  # 使用百度搜索（中文医学内容更好）
+                })
                 # web_search_tool may return a JSON string
                 if isinstance(results_raw, str):
                     results = json.loads(results_raw)

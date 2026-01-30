@@ -59,22 +59,71 @@ async def DiagnosisNode(state: VetAgentState) -> Dict[str, List[DiagnosisItem]]:
     system_instructions = f"""
     当前时间：{current_time}
     你是一位资深兽医（中文输出），对小动物临床表现、鉴别诊断和常用处方非常熟悉。
-    任务：根据下面的症状描述，列出最少5个最可能的诊断。返回严格的JSON，不要包含额外的文本。JSON schema: {{"diagnosis": [{{"symptom": str, "reason": str, "probability": float}}]}}
 
-    要求：
+    ## 任务
+    根据症状描述和医学文献参考，列出最少5个最可能的诊断。返回严格的JSON，不要包含额外的文本。
+
+    ## 推理步骤（Chain of Thought）
+    1. **症状分析**：提取关键症状、体征、病史信息
+    2. **初步鉴别**：根据症状列出可能的疾病谱
+    3. **文献参考**：如果有提供的文献，参考其中的医学知识
+    4. **概率评估**：综合症状匹配度、发病率、文献证据，评估每个诊断的可能性
+    5. **依据总结**：为每个诊断提供简洁的医学依据
+
+    ## 输出格式
+    JSON schema: {{"diagnosis": [{{"symptom": str, "reason": str, "probability": float}}]}}
+
+    ## 诊断示例
+    症状："2岁哈士奇，体温30°C，心率40次/分，呕吐不进食"
+    推理过程：
+    - 严重低体温（30°C）+ 心动过缓（40次/分）→ 提示中枢神经系统抑制或内分泌危象
+    - 呕吐不进食 → 消化道症状或中毒表现
+    - 哈士奇品种 → 异物吞食风险高
+    - 年轻成年犬 → 肾上腺皮质功能减退好发年龄
+
+    期望输出：
+    {{
+      "diagnosis": [
+        {{"symptom": "阿片类药物或镇静剂中毒", "reason": "严重低体温（30°C）和心动过缓（40次/分）是中枢神经系统抑制的典型体征；呕吐常见于中毒早期；哈士奇有误食风险。", "probability": 0.35}},
+        {{"symptom": "肾上腺皮质功能减退危象", "reason": "常见于年轻成年犬；呕吐和厌食为典型前驱症状；高钾血症导致心动过缓，休克引起严重低体温。", "probability": 0.25}},
+        {{"symptom": "胃肠梗阻伴休克", "reason": "哈士奇易发生异物吞食；呕吐不进食为消化道典型症状；严重梗阻导致继发性休克，表现为低体温和心率异常。", "probability": 0.20}},
+        {{"symptom": "严重环境性低体温", "reason": "体温30°C为极低值，直接导致窦房结抑制引起心动过缓；呕吐可能继发于低温导致的胃肠动力减弱。", "probability": 0.12}},
+        {{"symptom": "III度房室传导阻滞", "reason": "心率仅40次/分提示严重的心动过缓；心输出量不足导致外周灌注不良及低体温；呕吐可能继发于组织低灌注。", "probability": 0.08}}
+      ]
+    }}
+
+    ## 要求
       - 必须输出至少5个诊断结果，按可能性从高到低排序
-      - 每个诊断的 `symptom` 字段写疾病或综合征的简短名称（中文）。
-      - `reason` 简洁说明为何该诊断成立，引用症状/体征/病史要点（2-3项）。
-      - `probability` 为 0 到 1 的小数，三位小数精度优先，总和不用严格为1，但请确保相对合理。
-      - 返回的诊断数量 >= 5，按可能性从高到低排序。
-      - 如果症状信息有限，也要尽可能提供5个可能的鉴别诊断
-      - 不要返回诊断以外的段落说明或解释文本，严格只输出 JSON。
-      - 不要使用任何Markdown代码块格式（如```json）包装结果。
+      - 每个诊断的 `symptom` 字段写疾病或综合征的简短名称（中文）
+      - `reason` 必须基于症状提供医学依据，引用具体症状/体征/病史要点（2-3项）
+      - `probability` 为 0 到 1 的小数，三位小数精度优先，总和不用严格为1，但请确保相对合理
+      - 如果有提供的文献参考，请结合文献内容进行诊断推理
+      - 不要返回诊断以外的段落说明或解释文本，严格只输出 JSON
+      - 不要使用任何Markdown代码块格式（如```json）包装结果
     """
+
+    # 构建包含文献参考的prompt
+    human_content = f"症状描述：{description}"
+
+    # 如果有文献参考，添加到prompt中
+    literature: List = getattr(state, "literature", []) or state.get("literature", [])
+    if literature:
+        human_content += "\n\n## 医学文献参考\n"
+        for idx, lit in enumerate(literature[:5], 1):  # 最多参考5条
+            title = getattr(lit, "title", "") or (lit.get("title") if isinstance(lit, dict) else "")
+            snippet = getattr(lit, "snippet", "") or (lit.get("snippet") if isinstance(lit, dict) else "")
+            content = getattr(lit, "content", "") or (lit.get("content") if isinstance(lit, dict) else "")
+
+            human_content += f"\n文献{idx}：{title}\n"
+            if snippet:
+                human_content += f"摘要：{snippet}\n"
+            if content and len(content) > 100:
+                human_content += f"内容摘要：{content[:300]}...\n"
+        logger.info(f"诊断节点使用 {len(literature)} 条文献参考")
 
     prompt = ChatPromptTemplate.from_messages([
         SystemMessage(content=system_instructions),
-        HumanMessage(content=f"症状描述：{description}")
+        HumanMessage(content=human_content)
     ])
 
     # 尝试使用结构化输出

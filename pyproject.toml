@@ -14,7 +14,7 @@ dependencies = [
     "pydantic",
     "numpy",
     "python-dotenv>=1.1.1",
-    "agentscope>=0.1.6",
+    "agentscope (<0.2.0)",
     "loguru>=0.6.0",
     "langchain-openai>=0.1.0",
     "langgraph>=0.2.0",
@@ -24,6 +24,7 @@ dependencies = [
     "pytest>=8.4.1",
     "pandas>=2.3.1",
     "redis>=7.0.1",
+    "lxml (>=6.0.2,<7.0.0)",
 ]
 
 [project.optional-dependencies]

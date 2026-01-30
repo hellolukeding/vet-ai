@@ -3,6 +3,35 @@
 # ============================================================
 
 services:
+  # ================== Redis 服务 ==================
+  redis:
+    image: redis:7-alpine
+    container_name: vet-ai-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.1"
+          memory: 64M
+    # 健康检查
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    # 日志配置
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
   # ================== 主应用服务 ==================
   vet-ai:
     build:

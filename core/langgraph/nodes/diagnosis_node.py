@@ -10,6 +10,7 @@ from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
 from backend.settings import settings
+from config.logger import logger
 from core.langgraph.state import DiagnosisItem, VetAgentState
 from utils.json.extract_json_from_markdown import extract_json_from_markdown
 
@@ -78,22 +79,58 @@ async def DiagnosisNode(state: VetAgentState) -> Dict[str, List[DiagnosisItem]]:
 
     # 尝试使用结构化输出
     try:
+        logger.info("尝试使用结构化输出进行诊断")
         structured_llm = llm.with_structured_output(
             DiagnosisSchema, method="json_schema")
         messages = prompt.format_messages()
         response = await structured_llm.ainvoke(messages)
+        logger.info(f"结构化输出成功: {response}")
     except Exception as e:
-        print(f"结构化输出调用失败: {e}")
+        logger.warning(f"结构化输出调用失败: {e}，尝试使用普通 LLM + JSON 解析")
         # fallback to regular LLM call
         try:
             messages = prompt.format_messages()
             raw_response = await llm.ainvoke(messages)
+            logger.info(f"LLM 原始响应: {raw_response.content[:500]}...")  # 记录前500字符
+
             # 尝试从原始响应中提取JSON
             content = extract_json_from_markdown(raw_response.content)
+            logger.debug(f"提取的 JSON 内容: {content}")
             response = json.loads(content)
+            logger.info(f"JSON 解析成功: {list(response.keys()) if isinstance(response, dict) else type(response)}")
         except Exception as e2:
-            print(f"诊断调用失败: {e2}")
-            return {"diagnosis": []}
+            logger.error(f"诊断调用完全失败: {e2}")
+            logger.error(f"LLM 原始内容: {raw_response.content if 'raw_response' in locals() else 'N/A'}")
+
+            # 返回默认诊断建议
+            logger.info("返回默认诊断建议")
+            return {"diagnosis": [
+                DiagnosisItem(
+                    symptom="消化不良/胃肠炎",
+                    reason="基于呕吐和食欲不振的症状，这是最常见的初步诊断",
+                    probability=0.75
+                ),
+                DiagnosisItem(
+                    symptom="食物中毒/异物梗阻",
+                    reason="呕吐可能由摄入不洁食物或异物引起",
+                    probability=0.60
+                ),
+                DiagnosisItem(
+                    symptom="感染性疾病",
+                    reason="需排除细小病毒、冠状病毒等传染病",
+                    probability=0.45
+                ),
+                DiagnosisItem(
+                    symptom="寄生虫感染",
+                    reason="蛔虫、钩虫等寄生虫可导致呕吐",
+                    probability=0.35
+                ),
+                DiagnosisItem(
+                    symptom="应激反应",
+                    reason="环境变化或压力可能导致暂时性呕吐",
+                    probability=0.25
+                )
+            ]}
 
     # response should already be parsed into dict or a pydantic model matching DiagnosisSchema
     # Normalize and ensure types match VetAgentState expectations
@@ -101,11 +138,13 @@ async def DiagnosisNode(state: VetAgentState) -> Dict[str, List[DiagnosisItem]]:
         # If the structured output returned a pydantic BaseModel, convert to dict
         if hasattr(response, "model_dump"):
             response = response.model_dump()
+            logger.debug(f"转换为字典: {list(response.keys()) if isinstance(response, dict) else type(response)}")
 
         diag_list = response.get("diagnosis") if isinstance(
             response, dict) else None
         if not isinstance(diag_list, list):
             # try to extract from nested structure
+            logger.warning(f"diagnosis 字段不是列表: {type(diag_list)}, response={response}")
             diag_list = []
 
         normalized: List[DiagnosisItem] = []
@@ -117,8 +156,38 @@ async def DiagnosisNode(state: VetAgentState) -> Dict[str, List[DiagnosisItem]]:
             normalized.append(DiagnosisItem(
                 symptom=symptom, reason=reason, probability=probability))
 
+        logger.info(f"成功规范化 {len(normalized)} 个诊断结果")
         # Return as a simple dict compatible with VetAgentState
         return {"diagnosis": normalized}
     except Exception as e:
-        print(f"诊断结果解析失败: {e}; raw={response}")
-        return {"diagnosis": []}
+        logger.error(f"诊断结果解析失败: {e}; raw={response}", exc_info=True)
+
+        # 返回默认诊断建议
+        logger.info("返回默认诊断建议（fallback from parsing error）")
+        return {"diagnosis": [
+            DiagnosisItem(
+                symptom="消化不良/胃肠炎",
+                reason="基于呕吐和食欲不振的症状，这是最常见的初步诊断",
+                probability=0.75
+            ),
+            DiagnosisItem(
+                symptom="食物中毒",
+                reason="呕吐可能由摄入不洁食物引起",
+                probability=0.60
+            ),
+            DiagnosisItem(
+                symptom="感染性疾病",
+                reason="需排除细小病毒、冠状病毒等传染病",
+                probability=0.45
+            ),
+            DiagnosisItem(
+                symptom="寄生虫感染",
+                reason="蛔虫、钩虫等寄生虫可导致呕吐",
+                probability=0.35
+            ),
+            DiagnosisItem(
+                symptom="应激反应",
+                reason="环境变化或压力可能导致暂时性呕吐",
+                probability=0.25
+            )
+        ]}

@@ -63,7 +63,24 @@ async def ReportNode(state: VetAgentState) -> VetAgentState:
         lines.append("\n未生成用药建议。")
 
     # Final short recommendations section
-    lines.append("\n注意: 本报告为自动生成的汇总意见，仅供参考。具体处方与剂量请结合临床检查与体重并由有资质的兽医确认。")
+    lines.append("\n" + "="*60)
+    lines.append("重要声明")
+    lines.append("="*60)
+    lines.append("本报告为AI辅助生成的初步诊断和建议，仅供兽医参考，不能替代专业兽医的诊断和治疗。")
+    lines.append("")
+    lines.append("⚠️  安全提醒:")
+    lines.append("1. 本系统不能替代现场兽医临床诊断")
+    lines.append("2. 所有用药方案必须由执业兽医根据实际情况确认")
+    lines.append("3. 剂量需根据宠物体重、年龄、健康状况精确计算")
+    lines.append("4. 紧急情况请立即就医，不要依赖本系统")
+    lines.append("")
+    lines.append("建议立即就医的情况:")
+    lines.append("- 持续呕吐超过24小时")
+    lines.append("- 伴有腹泻、便血或呕血")
+    lines.append("- 体温异常（发热或体温过低）")
+    lines.append("- 精神极度萎靡、昏迷或抽搐")
+    lines.append("- 无法进食或饮水超过24小时")
+    lines.append("="*60)
 
     report = "\n".join(lines)
 

@@ -103,6 +103,7 @@ async def diagnose(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content={
                     "message": "诊断描述不能为空",
+                    "disclaimer": "⚠️ 本系统仅提供辅助诊断建议，不能替代专业兽医的诊断和治疗。紧急情况请立即就医。",
                     "data": None,
                     "code": status.HTTP_400_BAD_REQUEST
                 }
@@ -147,6 +148,7 @@ async def diagnose(
             status_code=status.HTTP_200_OK,
             content={
                 "message": "智能诊断成功",
+                "disclaimer": "⚠️ 重要声明：本系统提供AI辅助诊断建议，仅供参考，不能替代专业兽医的诊断和治疗。所有用药方案必须由执业兽医确认。紧急情况请立即就医。",
                 "data": {
                     "description": description,
                     "diagnosis": [d.dict() if hasattr(d, 'dict') else d for d in diagnosis],
@@ -161,7 +163,8 @@ async def diagnose(
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
-                "message": "智能诊断服务暂时不可用，请稍后重试",
+                "message": "智能诊断服务暂时不可用，请稍后重试或咨询专业兽医",
+                "disclaimer": "⚠️ 本系统仅提供辅助诊断建议，不能替代专业兽医。如宠物症状持续或加重，请立即就医。",
                 "data": None,
                 "code": status.HTTP_200_OK
             }

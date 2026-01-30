@@ -102,35 +102,9 @@ async def DiagnosisNode(state: VetAgentState) -> Dict[str, List[DiagnosisItem]]:
             logger.error(f"诊断调用完全失败: {e2}")
             logger.error(f"LLM 原始内容: {raw_response.content if 'raw_response' in locals() else 'N/A'}")
 
-            # 返回默认诊断建议
-            logger.info("返回默认诊断建议")
-            return {"diagnosis": [
-                DiagnosisItem(
-                    symptom="消化不良/胃肠炎",
-                    reason="基于呕吐和食欲不振的症状，这是最常见的初步诊断",
-                    probability=0.75
-                ),
-                DiagnosisItem(
-                    symptom="食物中毒/异物梗阻",
-                    reason="呕吐可能由摄入不洁食物或异物引起",
-                    probability=0.60
-                ),
-                DiagnosisItem(
-                    symptom="感染性疾病",
-                    reason="需排除细小病毒、冠状病毒等传染病",
-                    probability=0.45
-                ),
-                DiagnosisItem(
-                    symptom="寄生虫感染",
-                    reason="蛔虫、钩虫等寄生虫可导致呕吐",
-                    probability=0.35
-                ),
-                DiagnosisItem(
-                    symptom="应激反应",
-                    reason="环境变化或压力可能导致暂时性呕吐",
-                    probability=0.25
-                )
-            ]}
+            # 返回错误而非默认建议（医学项目必须严谨）
+            logger.warning("诊断LLM调用失败，不提供默认诊断建议以确保安全性")
+            return {"diagnosis": []}
 
     # response should already be parsed into dict or a pydantic model matching DiagnosisSchema
     # Normalize and ensure types match VetAgentState expectations
@@ -162,32 +136,6 @@ async def DiagnosisNode(state: VetAgentState) -> Dict[str, List[DiagnosisItem]]:
     except Exception as e:
         logger.error(f"诊断结果解析失败: {e}; raw={response}", exc_info=True)
 
-        # 返回默认诊断建议
-        logger.info("返回默认诊断建议（fallback from parsing error）")
-        return {"diagnosis": [
-            DiagnosisItem(
-                symptom="消化不良/胃肠炎",
-                reason="基于呕吐和食欲不振的症状，这是最常见的初步诊断",
-                probability=0.75
-            ),
-            DiagnosisItem(
-                symptom="食物中毒",
-                reason="呕吐可能由摄入不洁食物引起",
-                probability=0.60
-            ),
-            DiagnosisItem(
-                symptom="感染性疾病",
-                reason="需排除细小病毒、冠状病毒等传染病",
-                probability=0.45
-            ),
-            DiagnosisItem(
-                symptom="寄生虫感染",
-                reason="蛔虫、钩虫等寄生虫可导致呕吐",
-                probability=0.35
-            ),
-            DiagnosisItem(
-                symptom="应激反应",
-                reason="环境变化或压力可能导致暂时性呕吐",
-                probability=0.25
-            )
-        ]}
+        # 返回空列表而非默认建议（医学项目必须严谨，不能提供不准确的医疗建议）
+        logger.warning("诊断结果解析失败，返回空列表以确保安全性")
+        return {"diagnosis": []}

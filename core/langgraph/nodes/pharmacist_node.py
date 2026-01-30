@@ -160,40 +160,9 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
             logger.error(f"药剂师节点调用完全失败: {e2}")
             logger.error(f"LLM 原始内容: {raw_response.content if 'raw_response' in locals() else 'N/A'}")
 
-            # 返回默认药物建议
-            logger.info("返回默认药物建议")
-            return {"medications": [
-                MedicationItem(
-                    symptom="消化不良/胃肠炎",
-                    drug_name="马罗皮剂（Maropitant）",
-                    dosage="1 mg/kg，皮下注射或口服，每24小时一次",
-                    frequency="每日一次"
-                ),
-                MedicationItem(
-                    symptom="消化不良/胃肠炎",
-                    drug_name="奥美拉唑（Omeprazole）",
-                    dosage="0.5-1 mg/kg，口服，每24小时一次",
-                    frequency="每日一次"
-                ),
-                MedicationItem(
-                    symptom="感染",
-                    drug_name="阿莫西林克拉维酸钾",
-                    dosage="12.5-25 mg/kg，口服，每12小时一次",
-                    frequency="每日两次"
-                ),
-                MedicationItem(
-                    symptom="寄生虫感染",
-                    drug_name="芬苯达唑（Fenbendazole）",
-                    dosage="50 mg/kg，口服，每日一次，连续3-5天",
-                    frequency="每日一次"
-                ),
-                MedicationItem(
-                    symptom="呕吐",
-                    drug_name="甲氧氯普胺（Metoclopramide）",
-                    dosage="0.2-0.5 mg/kg，口服或皮下注射，每8小时一次",
-                    frequency="每日三次"
-                )
-            ]}
+            # 返回空列表而非默认药物建议（医学项目必须严谨）
+            logger.warning("药物LLM调用失败，不提供默认药物建议以确保安全性")
+            return {"medications": []}
 
     # Normalize output
     try:
@@ -221,37 +190,6 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
     except Exception as e:
         logger.error(f"药剂师结果解析失败: {e}", exc_info=True)
 
-        # 返回默认药物建议
-        logger.info("返回默认药物建议（fallback from parsing error）")
-        return {"medications": [
-            MedicationItem(
-                symptom="消化不良/胃肠炎",
-                drug_name="马罗皮剂（Maropitant）",
-                dosage="1 mg/kg，皮下注射或口服，每24小时一次",
-                frequency="每日一次"
-            ),
-            MedicationItem(
-                symptom="消化不良/胃肠炎",
-                drug_name="奥美拉唑（Omeprazole）",
-                dosage="0.5-1 mg/kg，口服，每24小时一次",
-                frequency="每日一次"
-            ),
-            MedicationItem(
-                symptom="感染",
-                drug_name="阿莫西林克拉维酸钾",
-                dosage="12.5-25 mg/kg，口服，每12小时一次",
-                frequency="每日两次"
-            ),
-            MedicationItem(
-                symptom="寄生虫感染",
-                drug_name="芬苯达唑（Fenbendazole）",
-                dosage="50 mg/kg，口服，每日一次，连续3-5天",
-                frequency="每日一次"
-            ),
-            MedicationItem(
-                symptom="呕吐",
-                drug_name="甲氧氯普胺（Metoclopramide）",
-                dosage="0.2-0.5 mg/kg，口服或皮下注射，每8小时一次",
-                frequency="每日三次"
-            )
-        ]}
+        # 返回空列表而非默认药物建议（医学项目必须严谨，不能提供不准确的药物建议）
+        logger.warning("药物结果解析失败，返回空列表以确保安全性")
+        return {"medications": []}

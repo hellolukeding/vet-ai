@@ -49,34 +49,35 @@
 
 | Secret 名称 | 说明 | 示例值 | 必需 |
 |------------|------|--------|------|
-| `SSH_PRIVATE_KEY` | SSH私钥（用于连接服务器） | `-----BEGIN RSA PRIVATE KEY-----...` | ✅ |
 | `SERVER_HOST` | 服务器IP地址或域名 | `192.168.1.100` 或 `example.com` | ✅ |
 | `SERVER_USER` | 服务器用户名 | `root` 或 `ubuntu` | ✅ |
+| `SERVER_PASSWORD` | 服务器登录密码 | `your-password` | ✅ |
 | `PROJECT_PATH` | 项目在服务器上的路径 | `/opt/vet-ai` | ❌ (默认: /opt/vet-ai) |
 | `SERVER_PORT` | 服务端口 | `18082` | ❌ (默认: 18082) |
 
-### SSH 密钥生成（如果还没有）
-
-```bash
-# 在本地机器上生成SSH密钥对
-ssh-keygen -t rsa -b 4096 -C "github-actions" -f ~/.ssh/github_actions
-
-# 将公钥复制到服务器
-ssh-copy-id -i ~/.ssh/github_actions.pub user@your-server
-
-# 将私钥内容添加到 GitHub Secrets
-cat ~/.ssh/github_actions
-```
-
-复制输出的私钥内容（包括 `-----BEGIN` 和 `-----END` 行）到 GitHub Secret `SSH_PRIVATE_KEY`
+**注意**：当前使用密码认证方式。如果需要更安全的SSH密钥认证，请修改 `deploy.yml` 文件。
 
 ## 使用说明
 
 ### 首次启用
 
-1. **配置 Secrets**：按照上述说明配置所有必需的 Secrets
-2. **推送代码**：将代码推送到 `main` 或 `langgraph` 分支
-3. **查看 Actions**：在 GitHub 仓库页面点击 `Actions` 标签查看运行状态
+1. **配置 Secrets**：在 GitHub 仓库中配置以下 Secrets
+   - `SERVER_HOST`：服务器IP地址
+   - `SERVER_USER`：服务器用户名
+   - `SERVER_PASSWORD`：服务器登录密码
+   - `PROJECT_PATH`：项目路径（可选，默认为 `/opt/vet-ai`）
+
+2. **确保服务器准备就绪**：
+   ```bash
+   # 服务器上已存在项目目录
+   ls /opt/vet-ai
+
+   # 服务器上已安装 Docker 和 Docker Compose
+   docker --version
+   docker-compose --version
+   ```
+
+3. **推送代码**：将代码推送到 `main` 或 `langgraph` 分支，自动部署将开始
 
 ### 手动触发部署
 

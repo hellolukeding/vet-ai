@@ -18,35 +18,34 @@ jobs:
       - name: 配置 SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+          # 使用 sshpass 进行密码认证
+          sudo apt-get update && sudo apt-get install -y sshpass
 
       - name: 部署到服务器
         run: |
           # 设置变量
           SERVER_USER=${{ secrets.SERVER_USER }}
           SERVER_HOST=${{ secrets.SERVER_HOST }}
+          SERVER_PASSWORD=${{ secrets.SERVER_PASSWORD }}
           PROJECT_PATH=${{ secrets.PROJECT_PATH:-/opt/vet-ai }}
 
-          # 同步代码到服务器
+          # 同步代码到服务器（使用 sshpass）
           echo "📦 同步代码到服务器..."
-          rsync -avz --delete \
+          sshpass -p "$SERVER_PASSWORD" rsync -avz --delete \
             --exclude='.git' \
             --exclude='node_modules' \
             --exclude='__pycache__' \
             --exclude='*.pyc' \
             --exclude='.venv' \
             --exclude='logs' \
+            -e "ssh -o StrictHostKeyChecking=no" \
             ./ $SERVER_USER@$SERVER_HOST:$PROJECT_PATH/
 
           # 在服务器上重启服务
           echo "🔄 重启 Docker 服务..."
-          ssh $SERVER_USER@$SERVER_HOST << 'ENDSSH'
-            cd $PROJECT_PATH
-
-            # 拉取最新代码
-            git pull origin main
+          sshpass -p "$SERVER_PASSWORD" ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << 'ENDSSH'
+            cd /opt/vet-ai
 
             # 停止旧容器
             docker-compose -f docker/docker-compose.yml down

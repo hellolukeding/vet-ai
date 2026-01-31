@@ -312,7 +312,7 @@ def web_search_tool(query: str, num_results: int = 5, use_baidu: bool = False):
             "id": generate_id("timeout"),
             "title": "搜索请求超时",
             "link": url,
-            "snippet": f"搜索请求超时，请稍后重试"
+            "snippet": "搜索请求超时，请稍后重试"
         }
         return json.dumps([error_result], ensure_ascii=False, indent=2)
 

@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Sequence, Union
 
 from agentscope.models import ModelResponse
 from agentscope.parsers.parser_base import DictFilterMixin, ParserBase
-from agentscope.service import ServiceExecStatus, ServiceResponse
+from agentscope.service import ServiceExecStatus
 
 from config.logger import logger
 from utils.react_tool.toolkit import extract_json_block, format_json_diagnosis, repair_broken_json

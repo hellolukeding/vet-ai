@@ -1,7 +1,6 @@
 """
 诊断审查节点 - 对诊断结果进行质量审查和优化
 """
-import json
 from datetime import datetime
 from typing import Dict, List
 
@@ -13,7 +12,6 @@ from pydantic import BaseModel, Field
 from backend.settings import settings
 from config.logger import logger
 from core.langgraph.state import DiagnosisItem, VetAgentState
-from utils.json.extract_json_from_markdown import extract_json_from_markdown
 
 
 class DiagnosisReviewSchema(BaseModel):

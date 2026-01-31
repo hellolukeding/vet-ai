@@ -10,7 +10,6 @@ from typing import Optional
 from config.logger import logger
 from core.tasks.task_manager import TaskQueueManager, get_task_manager
 from core.tasks.task_executor import TaskExecutor
-from core.tasks.task_types import TaskStatus
 
 
 class TaskWorker:

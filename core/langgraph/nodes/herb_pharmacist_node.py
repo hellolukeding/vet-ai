@@ -125,7 +125,7 @@ async def HerbPharmacistNode(state: TCAgentState) -> Dict[str, List[HerbalPrescr
         structured_llm = llm.with_structured_output(HerbalPrescriptionSchema, method="json_schema")
         messages = prompt.format_messages()
         response = await structured_llm.ainvoke(messages)
-        logger.info(f"中药方剂结构化输出成功")
+        logger.info("中药方剂结构化输出成功")
     except Exception as e:
         logger.warning(f"结构化输出调用失败: {e}，尝试使用普通 LLM + JSON 解析")
         try:
@@ -136,7 +136,7 @@ async def HerbPharmacistNode(state: TCAgentState) -> Dict[str, List[HerbalPrescr
             content = extract_json_from_markdown(raw_response.content)
             logger.debug(f"提取的 JSON 内容: {content}")
             response = json.loads(content)
-            logger.info(f"JSON 解析成功")
+            logger.info("JSON 解析成功")
         except Exception as e2:
             logger.error(f"中药方剂推荐完全失败: {e2}")
             logger.warning("中药方剂推荐失败，返回空列表以确保安全性")

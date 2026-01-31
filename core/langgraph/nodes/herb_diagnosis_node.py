@@ -134,7 +134,7 @@ async def HerbDiagnosisNode(state: TCAgentState) -> Dict[str, List[TCMZhengmingI
             content = extract_json_from_markdown(raw_response.content)
             logger.debug(f"提取的 JSON 内容: {content}")
             response = json.loads(content)
-            logger.info(f"JSON 解析成功")
+            logger.info("JSON 解析成功")
         except Exception as e2:
             logger.error(f"中医辨证调用完全失败: {e2}")
             logger.warning("中医辨证失败，不提供默认证型以确保安全性")

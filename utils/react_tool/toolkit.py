@@ -2,8 +2,7 @@ import json
 import re
 from typing import Any
 
-from agentscope.service import (ServiceExecStatus, ServiceResponse,
-                                ServiceToolkit)
+from agentscope.service import ServiceExecStatus, ServiceResponse
 
 from config.logger import logger
 
@@ -11,10 +10,7 @@ from config.logger import logger
 def clean_json_string(json_str: str) -> str:
     """清洗JSON字符串，修复常见问题"""
     logger.debug(f"清洗前的JSON字符串: {json_str}")
-    
-    # 保存原始字符串用于比较
-    original_json_str = json_str
-    
+
     # 修复转义字符问题，特别是换行符
     json_str = json_str.replace('\\n', '\n').replace('\\t', '\t').replace('\\r', '\r')
     

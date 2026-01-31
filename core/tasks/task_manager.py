@@ -9,10 +9,9 @@ import json
 import uuid
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Dict, Optional
 
 from redis import Redis
-from redis.lock import Lock
 
 from config.logger import logger
 

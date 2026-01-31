@@ -7,7 +7,7 @@ from agentscope.parsers.parser_base import DictFilterMixin, ParserBase
 from agentscope.service import ServiceExecStatus, ServiceResponse
 
 from config.logger import logger
-from utils.react_tool.toolkit import extract_json_block, format_json_diagnosis
+from utils.react_tool.toolkit import extract_json_block, format_json_diagnosis, repair_broken_json
 
 def extract_code_blocks(text: str, tag: str = "json") -> list[str]:
     pattern = rf"```{tag}\s*([\s\S]*?)```"
@@ -44,10 +44,7 @@ def sanitize_json_quotes(json_str: str) -> str:
 def clean_json_string(json_str: str) -> str:
     """清洗JSON字符串，修复常见问题"""
     logger.debug(f"清洗前的JSON字符串: {json_str}")
-    
-    # 保存原始字符串用于比较
-    original_json_str = json_str
-    
+
     # 修复转义字符问题，特别是换行符
     json_str = json_str.replace('\\n', '\n').replace('\\t', '\t').replace('\\r', '\r')
     

@@ -1,5 +1,5 @@
 from langgraph.graph import MessagesState
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class DiagnosisItem(BaseModel):

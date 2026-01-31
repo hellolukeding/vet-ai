@@ -1,7 +1,6 @@
 """
 用药安全检查节点 - 对药物建议进行安全性和合理性检查
 """
-import json
 from datetime import datetime
 from typing import Dict, List
 
@@ -13,7 +12,6 @@ from pydantic import BaseModel, Field
 from backend.settings import settings
 from config.logger import logger
 from core.langgraph.state import MedicationItem, VetAgentState
-from utils.json.extract_json_from_markdown import extract_json_from_markdown
 
 
 class MedicationWithWarning(BaseModel):

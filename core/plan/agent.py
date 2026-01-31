@@ -176,7 +176,6 @@ class PetCareAgent:
             bytes: PNG格式的图像数据
         """
         try:
-            from IPython.display import Image
             graph_image = self.graph.get_graph().draw_mermaid_png()
 
             # 保存图像

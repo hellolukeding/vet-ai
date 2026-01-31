@@ -107,7 +107,7 @@ async def HerbNursingNode(state: TCAgentState) -> Dict[str, List[TCMNursingItem]
         structured_llm = llm.with_structured_output(NursingSchema, method="json_schema")
         messages = prompt.format_messages()
         response = await structured_llm.ainvoke(messages)
-        logger.info(f"中医护理结构化输出成功")
+        logger.info("中医护理结构化输出成功")
     except Exception as e:
         logger.warning(f"结构化输出调用失败: {e}，尝试使用普通 LLM + JSON 解析")
         try:
@@ -118,7 +118,7 @@ async def HerbNursingNode(state: TCAgentState) -> Dict[str, List[TCMNursingItem]
             content = extract_json_from_markdown(raw_response.content)
             logger.debug(f"提取的 JSON 内容: {content}")
             response = json.loads(content)
-            logger.info(f"JSON 解析成功")
+            logger.info("JSON 解析成功")
         except Exception as e2:
             logger.error(f"中医护理建议生成失败: {e2}")
             # 返回默认护理建议

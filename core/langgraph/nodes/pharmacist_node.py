@@ -1,6 +1,4 @@
 import json
-import os
-import re
 from datetime import datetime
 from typing import Dict, List
 
@@ -14,7 +12,6 @@ from config.logger import logger
 from core.langgraph.state import MedicationItem, VetAgentState
 from core.langgraph.tools import fetch_webpage_tool, web_search_tool
 from utils.json.extract_json_from_markdown import extract_json_from_markdown
-import asyncio
 
 
 class PharmacistSchema(BaseModel):
@@ -145,7 +142,7 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
     """
 
     # build human-readable context
-    context_lines = [f"诊断列表:"]
+    context_lines = ["诊断列表:"]
     for d in diagnosis:
         name = getattr(d, "symptom", None) or (
             d.get("symptom") if isinstance(d, dict) else str(d))

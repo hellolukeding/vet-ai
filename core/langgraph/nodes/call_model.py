@@ -1,5 +1,3 @@
-import os
-
 from langchain_core.messages import (AIMessage, HumanMessage, SystemMessage,
                                      ToolMessage)
 from langchain_openai import ChatOpenAI

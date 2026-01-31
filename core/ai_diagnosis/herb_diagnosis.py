@@ -2,8 +2,6 @@ import re
 from typing import Any, Dict, List
 
 import agentscope
-from agentscope.agents import DialogAgent
-from agentscope.message import Msg
 
 from backend.settings import settings
 from config.logger import logger

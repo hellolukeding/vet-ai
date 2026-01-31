@@ -46,7 +46,7 @@ async def FinalOutputNode(state: State) -> Dict:
         summary_lines.append("✗ 营养计划生成失败")
 
     if care_ready:
-        summary_lines.append(f"✓ 护理计划：")
+        summary_lines.append("✓ 护理计划：")
         summary_lines.append(f"  - 美容护理 {len(state.care_plan.grooming)} 项")
         summary_lines.append(f"  - 医疗护理 {len(state.care_plan.medical)} 项")
         summary_lines.append(f"  - 运动建议 {len(state.care_plan.exercise)} 项")
@@ -56,7 +56,7 @@ async def FinalOutputNode(state: State) -> Dict:
 
     # 添加风险分析摘要
     if state.reasoning.risk_analysis:
-        summary_lines.append(f"\n风险评估：")
+        summary_lines.append("\n风险评估：")
         # 只取第一行（通常是总结）
         first_line = state.reasoning.risk_analysis.split("\n")[0]
         summary_lines.append(f"  {first_line}")

@@ -4,7 +4,7 @@
 负责执行不同类型的AI任务，调用相应的Agent并处理结果。
 """
 
-from typing import Any, Callable, Dict
+from typing import Any, Dict
 
 from config.logger import logger
 from core.ai_diagnosis.diagnosis import Diagnosis

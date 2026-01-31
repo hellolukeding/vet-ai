@@ -7,7 +7,6 @@ from typing import List
 from core.langgraph.state_herb import (
     HerbalPrescriptionItem,
     TCAgentState,
-    TCMNursingItem,
     TCMZhengmingItem,
 )
 

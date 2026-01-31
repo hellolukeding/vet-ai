@@ -1,6 +1,5 @@
 from langgraph.graph import END, START, StateGraph
 
-from core.langgraph.nodes import call_model
 from core.langgraph.nodes.diagnosis_node import DiagnosisNode
 from core.langgraph.nodes.diagnosis_review_node import DiagnosisReviewNode
 from core.langgraph.nodes.literature_search_node import LiteratureSearchNode

@@ -8,7 +8,7 @@ services:
     image: redis:7-alpine
     container_name: vet-ai-redis
     ports:
-      - "6379:6379"
+      - "16379:6379"
     restart: unless-stopped
     # 资源限制
     deploy:
@@ -52,6 +52,8 @@ services:
       - API_KEY=${API_KEY}
       - HOST=0.0.0.0
       - PORT=8080
+      # Redis配置
+      - REDIS_URL=redis://redis:6379/0
       # CORS配置
       - ALLOWED_HOSTS=*
       - CORS_ALLOW_CREDENTIALS=true

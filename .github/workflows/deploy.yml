@@ -1,0 +1,90 @@
+name: Deploy - 自动部署
+
+on:
+  push:
+    branches: [ main, langgraph ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: 部署到服务器
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 配置 SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 部署到服务器
+        run: |
+          # 设置变量
+          SERVER_USER=${{ secrets.SERVER_USER }}
+          SERVER_HOST=${{ secrets.SERVER_HOST }}
+          PROJECT_PATH=${{ secrets.PROJECT_PATH:-/opt/vet-ai }}
+
+          # 同步代码到服务器
+          echo "📦 同步代码到服务器..."
+          rsync -avz --delete \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='__pycache__' \
+            --exclude='*.pyc' \
+            --exclude='.venv' \
+            --exclude='logs' \
+            ./ $SERVER_USER@$SERVER_HOST:$PROJECT_PATH/
+
+          # 在服务器上重启服务
+          echo "🔄 重启 Docker 服务..."
+          ssh $SERVER_USER@$SERVER_HOST << 'ENDSSH'
+            cd $PROJECT_PATH
+
+            # 拉取最新代码
+            git pull origin main
+
+            # 停止旧容器
+            docker-compose -f docker/docker-compose.yml down
+
+            # 重新构建并启动
+            docker-compose -f docker/docker-compose.yml up -d --build
+
+            # 清理未使用的镜像
+            docker image prune -f
+
+            echo "✅ 部署完成！"
+          ENDSSH
+
+      - name: 健康检查
+        run: |
+          sleep 30  # 等待服务启动
+          SERVER_HOST=${{ secrets.SERVER_HOST }}
+          SERVER_PORT=${{ secrets.SERVER_PORT:-18082 }}
+
+          echo "🔍 执行健康检查..."
+          for i in {1..10}; do
+            if curl -f http://$SERVER_HOST:$SERVER_PORT/health; then
+              echo "✅ 服务启动成功！"
+              exit 0
+            fi
+            echo "⏳ 等待服务启动... ($i/10)"
+            sleep 10
+          done
+
+          echo "❌ 服务启动失败！"
+          exit 1
+
+      - name: 通知部署结果
+        if: always()
+        run: |
+          if [ $? -eq 0 ]; then
+            echo "🎉 部署成功！"
+          else
+            echo "❌ 部署失败！"
+            exit 1
+          fi

@@ -192,7 +192,6 @@ async def create_herb_diagnosis(
         final_state = await herb_graph.ainvoke(state)
 
         # 返回最终结果
-        description_result = final_state.get("description") if isinstance(final_state, dict) else getattr(final_state, "description", "")
         zhengming = final_state.get("zhengming") if isinstance(final_state, dict) else getattr(final_state, "zhengming", [])
         prescriptions = final_state.get("prescriptions") if isinstance(final_state, dict) else getattr(final_state, "prescriptions", [])
         nursing = final_state.get("nursing") if isinstance(final_state, dict) else getattr(final_state, "nursing", [])
@@ -211,7 +210,7 @@ async def create_herb_diagnosis(
                 import json
                 zhengming = json.loads(zhengming)
                 logger.info(f"成功从 JSON 解析 zhengming: {len(zhengming)} 项")
-            except:
+            except (json.JSONDecodeError, TypeError):
                 logger.error("无法解析 zhengming 字符串，设置为空列表")
                 zhengming = []
 

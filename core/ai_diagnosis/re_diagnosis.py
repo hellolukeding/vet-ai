@@ -1,7 +1,6 @@
 import json
-import re
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import agentscope
 from agentscope.agents import ReActAgent

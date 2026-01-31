@@ -9,8 +9,6 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-# 导入FastAPI相关模块
-from fastapi.openapi.utils import get_openapi
 
 # 导入诊断路由
 from backend.routers import diagnosis_router, graph_router, pet_care_router

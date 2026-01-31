@@ -61,7 +61,6 @@ def parse_probability(p_value: str) -> float:
         pass
 
     # 尝试提取数字（支持百分比）
-    import re
     number_pattern = r'(\d+(?:\.\d+)?)'
     matches = re.findall(number_pattern, p_clean)
 

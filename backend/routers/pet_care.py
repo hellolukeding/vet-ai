@@ -4,7 +4,6 @@
 提供基于LangGraph的宠物护理计划生成接口，包括营养计划和护理计划。
 """
 
-from typing import Any, Dict
 
 from fastapi import APIRouter, Query, status
 from fastapi.responses import JSONResponse

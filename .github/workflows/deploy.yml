@@ -15,75 +15,102 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
+      - name: 安装依赖
+        run: |
+          echo "安装 sshpass..."
+          sudo apt-get update
+          sudo apt-get install -y sshpass rsync
+
       - name: 配置 SSH
         run: |
+          echo "配置 SSH known_hosts..."
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
-          # 使用 sshpass 进行密码认证
-          sudo apt-get update && sudo apt-get install -y sshpass
+          chmod 644 ~/.ssh/known_hosts
 
-      - name: 部署到服务器
+      - name: 验证连接
         run: |
-          # 设置变量
-          SERVER_USER=${{ secrets.SERVER_USER }}
-          SERVER_HOST=${{ secrets.SERVER_HOST }}
-          SERVER_PASSWORD=${{ secrets.SERVER_PASSWORD }}
-          PROJECT_PATH=${{ secrets.PROJECT_PATH:-/opt/vet-ai }}
+          echo "测试服务器连接..."
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
+            ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
+            "echo '连接成功！' && pwd && ls -la /opt/vet-ai"
 
-          # 同步代码到服务器（使用 sshpass）
-          echo "📦 同步代码到服务器..."
-          sshpass -p "$SERVER_PASSWORD" rsync -avz --delete \
+      - name: 同步代码到服务器
+        run: |
+          echo "同步代码到服务器..."
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" rsync -avz --delete \
             --exclude='.git' \
             --exclude='node_modules' \
             --exclude='__pycache__' \
             --exclude='*.pyc' \
             --exclude='.venv' \
             --exclude='logs' \
-            -e "ssh -o StrictHostKeyChecking=no" \
-            ./ $SERVER_USER@$SERVER_HOST:$PROJECT_PATH/
+            --exclude='.pytest_cache' \
+            --exclude='*.log' \
+            -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
+            ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/vet-ai/
 
-          # 在服务器上重启服务
-          echo "🔄 重启 Docker 服务..."
-          sshpass -p "$SERVER_PASSWORD" ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << 'ENDSSH'
+      - name: 重启 Docker 服务
+        run: |
+          echo "重启 Docker 服务..."
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
+            ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+            set -e
             cd /opt/vet-ai
-
-            # 停止旧容器
+            echo "当前目录: $(pwd)"
+            echo "停止旧容器..."
             docker-compose -f docker/docker-compose.yml down
-
-            # 重新构建并启动
+            echo "重新构建并启动..."
             docker-compose -f docker/docker-compose.yml up -d --build
-
-            # 清理未使用的镜像
+            echo "清理未使用的镜像..."
             docker image prune -f
-
-            echo "✅ 部署完成！"
+            echo "查看容器状态..."
+            docker-compose -f docker/docker-compose.yml ps
+            echo "部署完成！"
           ENDSSH
 
       - name: 健康检查
         run: |
-          sleep 30  # 等待服务启动
-          SERVER_HOST=${{ secrets.SERVER_HOST }}
-          SERVER_PORT=${{ secrets.SERVER_PORT:-18082 }}
+          echo "等待服务启动..."
+          sleep 30
 
-          echo "🔍 执行健康检查..."
+          SERVER_HOST="${{ secrets.SERVER_HOST }}"
+          SERVER_PORT="${{ secrets.SERVER_PORT:-18082 }}"
+          HEALTH_URL="http://${SERVER_HOST}:${SERVER_PORT}/health"
+
+          echo "执行健康检查: $HEALTH_URL"
+
           for i in {1..10}; do
-            if curl -f http://$SERVER_HOST:$SERVER_PORT/health; then
-              echo "✅ 服务启动成功！"
+            echo "尝试 $i/10..."
+            if curl -f --connect-timeout 10 --max-time 30 "$HEALTH_URL"; then
+              echo "健康检查通过！"
               exit 0
             fi
-            echo "⏳ 等待服务启动... ($i/10)"
+            echo "等待服务启动... ($i/10)"
             sleep 10
           done
 
-          echo "❌ 服务启动失败！"
+          echo "健康检查失败！服务未能在预期时间内启动。"
           exit 1
 
-      - name: 通知部署结果
+      - name: 部署结果
         if: always()
         run: |
-          if [ $? -eq 0 ]; then
-            echo "🎉 部署成功！"
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "========================================="
+            echo "       部署成功！"
+            echo "========================================="
+            echo "服务地址: http://${{ secrets.SERVER_HOST }}:18082"
+            echo "健康检查: http://${{ secrets.SERVER_HOST }}:18082/health"
+            echo "API文档: http://${{ secrets.SERVER_HOST }}:18082/docs"
+            echo "========================================="
           else
-            echo "❌ 部署失败！"
+            echo "========================================="
+            echo "       部署失败！"
+            echo "========================================="
+            echo "请检查上方日志查看详细错误信息"
+            echo "========================================="
             exit 1
           fi

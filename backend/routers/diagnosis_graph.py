@@ -87,18 +87,18 @@ class DiagnosisRequest(BaseModel):
                                 {
                                     "symptom": "肾上腺皮质功能减退危象",
                                     "reason": "常见于年轻成年犬，表现为低体温、心动过缓、呕吐不进食等肾上腺皮质功能不全症状。严重低体温（30°C）和心动过缓（40次/分）提示可能存在肾上腺危象。",
-                                    "probability": 0.3
+                                    "probability": 0.3,
                                 },
                                 {
                                     "symptom": "阿片类药物或镇静剂中毒",
                                     "reason": "可导致严重中枢神经系统抑制，表现为低体温、心动过缓、胃肠道症状。如有药物接触史可能性更高。",
-                                    "probability": 0.25
+                                    "probability": 0.25,
                                 },
                                 {
                                     "symptom": "胃肠梗阻伴休克",
                                     "reason": "呕吐不进食可能导致梗阻，严重梗阻可引起休克，表现为低体温和心动过缓。",
-                                    "probability": 0.2
-                                }
+                                    "probability": 0.2,
+                                },
                             ],
                             "medications": [
                                 {
@@ -106,35 +106,35 @@ class DiagnosisRequest(BaseModel):
                                     "drug_name": "氢化可的松琥珀酸钠",
                                     "dosage": "2-4 mg/kg IV (初始推注)",
                                     "frequency": "q6-8h",
-                                    "safety_warning": "✅ 糖皮质激素，剂量在安全范围内。建议监测血压和血糖"
+                                    "safety_warning": "✅ 糖皮质激素，剂量在安全范围内。建议监测血压和血糖",
                                 },
                                 {
                                     "symptom": "胃肠梗阻伴休克",
                                     "drug_name": "恩诺沙星",
                                     "dosage": "5 mg/kg IV",
                                     "frequency": "q24h",
-                                    "safety_warning": "⚠️ 对幼年动物（<8个月）有软骨毒性风险，建议慎用或选择替代抗生素"
+                                    "safety_warning": "⚠️ 对幼年动物（<8个月）有软骨毒性风险，建议慎用或选择替代抗生素",
                                 },
                                 {
                                     "symptom": "胃肠梗阻伴休克",
                                     "drug_name": "0.9% 氯化钠注射液",
                                     "dosage": "10-20 mL/kg IV",
                                     "frequency": "持续输注",
-                                    "safety_warning": "⚠️ 快速输液可能存在液体过载风险，建议监测呼吸频率和肺部听诊"
+                                    "safety_warning": "⚠️ 快速输液可能存在液体过载风险，建议监测呼吸频率和肺部听诊",
                                 },
                                 {
                                     "symptom": "严重环境性低体温",
                                     "drug_name": "阿托品",
                                     "dosage": "0.02-0.04 mg/kg IV",
                                     "frequency": "prn",
-                                    "safety_warning": "⚠️ 在低体温情况下效果可能降低，建议优先纠正体温后使用"
-                                }
-                            ]
+                                    "safety_warning": "⚠️ 在低体温情况下效果可能降低，建议优先纠正体温后使用",
+                                },
+                            ],
                         },
-                        "code": 200
+                        "code": 200,
                     }
                 }
-            }
+            },
         },
         400: {
             "description": "请求参数错误（症状描述为空）",
@@ -144,11 +144,11 @@ class DiagnosisRequest(BaseModel):
                         "message": "诊断描述不能为空",
                         "disclaimer": "⚠️ 本系统仅提供辅助诊断建议，不能替代专业兽医的诊断和治疗。紧急情况请立即就医。",
                         "data": None,
-                        "code": 400
+                        "code": 400,
                     }
                 }
-            }
-        }
+            },
+        },
     },
     tags=["西医诊断"],
 )
@@ -156,7 +156,9 @@ async def diagnose(
     request: DiagnosisRequest,
     async_mode: bool = Query(False, description="是否使用异步模式"),
 ) -> JSONResponse:
-    logger.info(f"开始处理LangGraph智能诊断请求: {request.description}, async_mode={async_mode}")
+    logger.info(
+        f"开始处理LangGraph智能诊断请求: {request.description}, async_mode={async_mode}"
+    )
 
     try:
         # 检查输入是否为空
@@ -168,29 +170,24 @@ async def diagnose(
                     "message": "诊断描述不能为空",
                     "disclaimer": "⚠️ 本系统仅提供辅助诊断建议，不能替代专业兽医的诊断和治疗。紧急情况请立即就医。",
                     "data": None,
-                    "code": status.HTTP_400_BAD_REQUEST
-                }
+                    "code": status.HTTP_400_BAD_REQUEST,
+                },
             )
 
         # 异步模式：提交任务并返回task_id
         if async_mode:
             task_manager = get_task_manager()
             task_id = task_manager.submit_task(
-                TaskType.GRAPH_DIAGNOSIS,
-                {"query": request.description},
-                priority=0
+                TaskType.GRAPH_DIAGNOSIS, {"query": request.description}, priority=0
             )
             logger.info(f"LangGraph智能诊断任务已提交: {task_id}")
             return JSONResponse(
                 status_code=status.HTTP_202_ACCEPTED,
                 content={
                     "message": "智能诊断任务已提交，请使用task_id查询结果",
-                    "data": {
-                        "task_id": task_id,
-                        "status": "pending"
-                    },
-                    "code": status.HTTP_202_ACCEPTED
-                }
+                    "data": {"task_id": task_id, "status": "pending"},
+                    "code": status.HTTP_202_ACCEPTED,
+                },
             )
 
         # 同步模式：直接执行并返回结果 (保持原有行为)
@@ -201,11 +198,25 @@ async def diagnose(
 
         # 返回最终结果
         # 处理graph.ainvoke可能返回字典而不是对象的情况
-        description = final_state.get("description") if isinstance(final_state, dict) else getattr(final_state, "description", "")
-        diagnosis = final_state.get("diagnosis") if isinstance(final_state, dict) else getattr(final_state, "diagnosis", [])
-        medications = final_state.get("medications") if isinstance(final_state, dict) else getattr(final_state, "medications", [])
+        description = (
+            final_state.get("description")
+            if isinstance(final_state, dict)
+            else getattr(final_state, "description", "")
+        )
+        diagnosis = (
+            final_state.get("diagnosis")
+            if isinstance(final_state, dict)
+            else getattr(final_state, "diagnosis", [])
+        )
+        medications = (
+            final_state.get("medications")
+            if isinstance(final_state, dict)
+            else getattr(final_state, "medications", [])
+        )
 
-        logger.info(f"LangGraph智能诊断完成，返回 {len(diagnosis)} 个诊断结果，{len(medications)} 个用药建议")
+        logger.info(
+            f"LangGraph智能诊断完成，返回 {len(diagnosis)} 个诊断结果，{len(medications)} 个用药建议"
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -214,11 +225,15 @@ async def diagnose(
                 "disclaimer": "⚠️ 重要声明：本系统提供AI辅助诊断建议，仅供参考，不能替代专业兽医的诊断和治疗。所有用药方案必须由执业兽医确认。紧急情况请立即就医。",
                 "data": {
                     "description": description,
-                    "diagnosis": [d.dict() if hasattr(d, 'dict') else d for d in diagnosis],
-                    "medications": [m.dict() if hasattr(m, 'dict') else m for m in medications],
+                    "diagnosis": [
+                        d.dict() if hasattr(d, "dict") else d for d in diagnosis
+                    ],
+                    "medications": [
+                        m.dict() if hasattr(m, "dict") else m for m in medications
+                    ],
                 },
-                "code": status.HTTP_200_OK
-            }
+                "code": status.HTTP_200_OK,
+            },
         )
     except Exception as e:
         error_msg = repr(e)
@@ -229,8 +244,8 @@ async def diagnose(
                 "message": "智能诊断服务暂时不可用，请稍后重试或咨询专业兽医",
                 "disclaimer": "⚠️ 本系统仅提供辅助诊断建议，不能替代专业兽医。如宠物症状持续或加重，请立即就医。",
                 "data": None,
-                "code": status.HTTP_200_OK
-            }
+                "code": status.HTTP_200_OK,
+            },
         )
 
 
@@ -251,9 +266,7 @@ async def diagnose(
     """.strip(),
     tags=["西医诊断"],
 )
-async def get_graph_diagnosis_task_status(
-    task_id: str
-) -> JSONResponse:
+async def get_graph_diagnosis_task_status(task_id: str) -> JSONResponse:
     task_manager = get_task_manager()
     status_info = task_manager.get_task_status(task_id)
 
@@ -263,8 +276,8 @@ async def get_graph_diagnosis_task_status(
             content={
                 "message": "任务不存在或已过期",
                 "data": None,
-                "code": status.HTTP_404_NOT_FOUND
-            }
+                "code": status.HTTP_404_NOT_FOUND,
+            },
         )
 
     task_status = status_info["status"]
@@ -277,8 +290,8 @@ async def get_graph_diagnosis_task_status(
             content={
                 "message": "智能诊断成功",
                 "data": result,
-                "code": status.HTTP_200_OK
-            }
+                "code": status.HTTP_200_OK,
+            },
         )
 
     # 任务失败
@@ -289,8 +302,8 @@ async def get_graph_diagnosis_task_status(
             content={
                 "message": result.get("error", "智能诊断任务执行失败"),
                 "data": None,
-                "code": status.HTTP_200_OK
-            }
+                "code": status.HTTP_200_OK,
+            },
         )
 
     # 任务处理中
@@ -303,10 +316,10 @@ async def get_graph_diagnosis_task_status(
                 "data": {
                     "task_id": task_id,
                     "status": "processing",
-                    "progress": progress
+                    "progress": progress,
                 },
-                "code": status.HTTP_200_OK
-            }
+                "code": status.HTTP_200_OK,
+            },
         )
 
     # 任务等待中
@@ -315,12 +328,9 @@ async def get_graph_diagnosis_task_status(
             status_code=status.HTTP_200_OK,
             content={
                 "message": "任务排队中",
-                "data": {
-                    "task_id": task_id,
-                    "status": "pending"
-                },
-                "code": status.HTTP_200_OK
-            }
+                "data": {"task_id": task_id, "status": "pending"},
+                "code": status.HTTP_200_OK,
+            },
         )
 
 
@@ -332,17 +342,17 @@ async def get_graph_diagnosis_task_status(
     description="取消正在执行或排队中的LangGraph智能诊断任务",
     tags=["西医诊断"],
 )
-async def cancel_graph_diagnosis_task(
-    task_id: str
-) -> JSONResponse:
+async def cancel_graph_diagnosis_task(task_id: str) -> JSONResponse:
     task_manager = get_task_manager()
     success = task_manager.cancel_task(task_id)
 
     return JSONResponse(
         status_code=status.HTTP_200_OK,
         content={
-            "message": "任务已取消" if success else "任务无法取消（可能已完成或不存在）",
+            "message": "任务已取消"
+            if success
+            else "任务无法取消（可能已完成或不存在）",
             "data": {"task_id": task_id, "cancelled": success},
-            "code": status.HTTP_200_OK
-        }
+            "code": status.HTTP_200_OK,
+        },
     )

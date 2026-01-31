@@ -55,33 +55,37 @@ class ReDiagnosis:
         # toolkit.add(extract_json_block, func_description="从文本中提取JSON代码块")
         # toolkit.add(format_json_diagnosis, func_description="格式化诊断JSON字符串，修复各种格式问题")
         # toolkit.add(return_result, func_description="返回最终结果")
-        toolkit.add(execute_python_code, func_description="执行Python代码",
-                    timeout=300, use_docker=False)
+        toolkit.add(
+            execute_python_code,
+            func_description="执行Python代码",
+            timeout=300,
+            use_docker=False,
+        )
 
         sys_prompt = (
             f"Current time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
             "You are a professional veterinary diagnosis assistant.\n"
             "Your task is to extract and structure disease diagnosis from the user's symptom description.\n\n"
             "Please respond with a **valid JSON array**, where each object includes:\n"
-            "- \"disease\": the name of the suspected disease (string)\n"
-            "- \"description\": Diagnostic basis\n"
-            "- \"p\": probability of correctness (float between 0 and 1)\n"
-            "- \"base\": basic home care suggestions\n"
-            "- \"continue\": ongoing treatment suggestions\n"
-            "- \"suggest\": serious condition suggestions (when to visit the hospital)\n\n"
-            "- \"base_medicine\": basic medication suggestions \n"
-            "- \"base_medicine_usage\": basic medication usage suggestions\n"
-            "- \"continue_medicine\": ongoing medication suggestions \n"
-            "- \"continue_medicine_usage\": ongoing medication usage suggestions \n"
-            "- \"suggest_medicine\": serious condition medication suggestions \n"
-            "- \"suggest_medicine_usage\": serious condition medication usage suggestions \n\n"
+            '- "disease": the name of the suspected disease (string)\n'
+            '- "description": Diagnostic basis\n'
+            '- "p": probability of correctness (float between 0 and 1)\n'
+            '- "base": basic home care suggestions\n'
+            '- "continue": ongoing treatment suggestions\n'
+            '- "suggest": serious condition suggestions (when to visit the hospital)\n\n'
+            '- "base_medicine": basic medication suggestions \n'
+            '- "base_medicine_usage": basic medication usage suggestions\n'
+            '- "continue_medicine": ongoing medication suggestions \n'
+            '- "continue_medicine_usage": ongoing medication usage suggestions \n'
+            '- "suggest_medicine": serious condition medication suggestions \n'
+            '- "suggest_medicine_usage": serious condition medication usage suggestions \n\n'
             "Requirements:\n"
             "1. You MUST return at least 5 diagnosis entries, sorted by probability from high to low\n"
             "2. Each diagnosis must include all 13 required fields\n"
             "3. If symptom information is limited, provide at least 5 possible differential diagnoses\n"
             "4. The probability (p) must be a float between 0 and 1\n\n"
             "Strict formatting rules:\n"
-            "1. Every key and value must be enclosed in ASCII double quotes (\"\")\n"
+            '1. Every key and value must be enclosed in ASCII double quotes ("")\n'
             "2. No single quotes or Chinese quotes allowed anywhere\n"
             "3. No newlines inside key or value strings\n"
             "4. Do not wrap the JSON in explanations, comments or markdown\n"
@@ -124,14 +128,16 @@ class ReDiagnosis:
             return []
 
         try:
-
-           # 发送任务
+            # 发送任务
             task = Msg("User", f"症状描述：{desc}", "user")
             result = self.agent(task)
 
             # 获取原始模型输出
-            raw_output = result.content if isinstance(result.content, str) else getattr(
-                result.content, 'text', str(result.content))
+            raw_output = (
+                result.content
+                if isinstance(result.content, str)
+                else getattr(result.content, "text", str(result.content))
+            )
             logger.debug("模型原始输出:\n%s", raw_output)
             logger.debug("模型输出类型: %s", type(raw_output))
 
@@ -161,8 +167,7 @@ class ReDiagnosis:
                     logger.info("通过 extract_clean_json 提取成功")
                     return json_result
             except Exception as e:
-                logger.error("extract_clean_json 解析失败: %s",
-                             str(e), exc_info=True)
+                logger.error("extract_clean_json 解析失败: %s", str(e), exc_info=True)
 
             logger.error("最终未能成功解析 JSON 格式")
             return []

@@ -21,15 +21,19 @@ from utils.json.extract_json_from_markdown import extract_json_from_markdown
 
 class PetInfoSchema(BaseModel):
     """宠物信息提取的结构化输出模式"""
+
     name: Optional[str] = Field(default=None, description="宠物名称")
     species: Optional[str] = Field(default=None, description="物种类型")
     breed: Optional[str] = Field(default=None, description="品种")
     age: Optional[str] = Field(default=None, description="年龄")
-    weight: Optional[str] = Field(default=None, description="体重（kg），返回字符串格式")
+    weight: Optional[str] = Field(
+        default=None, description="体重（kg），返回字符串格式"
+    )
     sex: Optional[str] = Field(default=None, description="性别")
-    neutered: Optional[str] = Field(default=None, description="是否绝育，返回'true'或'false'字符串")
-    health_conditions: list[str] = Field(
-        default_factory=list, description="健康状况")
+    neutered: Optional[str] = Field(
+        default=None, description="是否绝育，返回'true'或'false'字符串"
+    )
+    health_conditions: list[str] = Field(default_factory=list, description="健康状况")
     allergies: list[str] = Field(default_factory=list, description="过敏源")
     feeding_history: Optional[str] = Field(default=None, description="喂养历史")
     activity_level: Optional[str] = Field(default=None, description="活动水平")
@@ -49,6 +53,7 @@ async def PetInfoNode(state: State) -> Dict:
         Dict: 包含更新后的宠物信息和标志的字典
     """
     import time
+
     start_time = time.time()
 
     logger.info("【PetInfoNode】开始提取宠物信息")
@@ -60,7 +65,9 @@ async def PetInfoNode(state: State) -> Dict:
     api_key = settings.API_KEY or ""
     temperature = 0.3
 
-    logger.debug(f"LLM配置: model={model_name}, base_url={base_url}, temperature={temperature}")
+    logger.debug(
+        f"LLM配置: model={model_name}, base_url={base_url}, temperature={temperature}"
+    )
 
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     user_query = state.user_query or ""
@@ -140,10 +147,12 @@ JSON Schema:
 - 不要使用Markdown代码块格式（```json ... ```）
 """
 
-    prompt = ChatPromptTemplate.from_messages([
-        SystemMessage(content=system_instructions),
-        HumanMessage(content=f"用户查询：{user_query}")
-    ])
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            SystemMessage(content=system_instructions),
+            HumanMessage(content=f"用户查询：{user_query}"),
+        ]
+    )
 
     # 调用LLM
     # 注意：智谱AI API 不支持结构化输出，直接使用普通调用
@@ -160,8 +169,9 @@ JSON Schema:
         return {"flags": {"need_pet_info_completion": "true"}}
 
     # 转换为PetInfo对象
-    pet_info_dict = response.model_dump() if hasattr(
-        response, "model_dump") else response
+    pet_info_dict = (
+        response.model_dump() if hasattr(response, "model_dump") else response
+    )
 
     # 【关键】合并初始信息：如果LLM返回null但初始信息中有值，使用初始值
     if initial_pet_info:
@@ -174,7 +184,10 @@ JSON Schema:
 
     # 【关键】提供默认值，避免空数组和null值
     # activity_level: 默认"中等"
-    if not pet_info_dict.get("activity_level") or pet_info_dict.get("activity_level") == "null":
+    if (
+        not pet_info_dict.get("activity_level")
+        or pet_info_dict.get("activity_level") == "null"
+    ):
         pet_info_dict["activity_level"] = "中等"
         logger.debug("设置默认活动水平: 中等")
 
@@ -193,13 +206,16 @@ JSON Schema:
     pet_info = PetInfo(**pet_info_dict)
 
     logger.debug(
-        f"提取的宠物信息: species={pet_info.species}, breed={pet_info.breed}, age={pet_info.age}, sex={pet_info.sex}")
+        f"提取的宠物信息: species={pet_info.species}, breed={pet_info.breed}, age={pet_info.age}, sex={pet_info.sex}"
+    )
 
     # 检查必要信息是否完整
-    need_completion = not all([
-        pet_info.species,
-        pet_info.age or pet_info.weight,  # 至少有年龄或体重之一
-    ])
+    need_completion = not all(
+        [
+            pet_info.species,
+            pet_info.age or pet_info.weight,  # 至少有年龄或体重之一
+        ]
+    )
 
     if need_completion:
         logger.warning("宠物信息不完整，需要补全")
@@ -211,5 +227,5 @@ JSON Schema:
 
     return {
         "pet": pet_info,
-        "flags": {"need_pet_info_completion": "true" if need_completion else "false"}
+        "flags": {"need_pet_info_completion": "true" if need_completion else "false"},
     }

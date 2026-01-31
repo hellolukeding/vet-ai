@@ -1,6 +1,7 @@
 """
 中医辨证论治节点 - 根据症状进行中医辨证
 """
+
 import json
 from datetime import datetime
 from typing import Dict, List
@@ -18,6 +19,7 @@ from utils.json.extract_json_from_markdown import extract_json_from_markdown
 
 class TCMZhengmingSchema(BaseModel):
     """中医证型诊断schema"""
+
     zhengming_list: List[TCMZhengmingItem] = Field(..., description="中医证型列表")
 
 
@@ -105,22 +107,30 @@ async def HerbDiagnosisNode(state: TCAgentState) -> Dict[str, List[TCMZhengmingI
     if literature:
         human_content += "\n\n## 中医文献参考\n"
         for idx, lit in enumerate(literature[:5], 1):
-            title = getattr(lit, "title", "") or (lit.get("title") if isinstance(lit, dict) else "")
-            content = getattr(lit, "content", "") or (lit.get("content") if isinstance(lit, dict) else "")
+            title = getattr(lit, "title", "") or (
+                lit.get("title") if isinstance(lit, dict) else ""
+            )
+            content = getattr(lit, "content", "") or (
+                lit.get("content") if isinstance(lit, dict) else ""
+            )
             human_content += f"\n文献{idx}：{title}\n"
             if content:
                 human_content += f"内容：{content[:300]}...\n"
         logger.info(f"中医辨证节点使用 {len(literature)} 条文献参考")
 
-    prompt = ChatPromptTemplate.from_messages([
-        SystemMessage(content=system_instructions),
-        HumanMessage(content=human_content)
-    ])
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            SystemMessage(content=system_instructions),
+            HumanMessage(content=human_content),
+        ]
+    )
 
     # 尝试使用结构化输出
     try:
         logger.info("尝试使用结构化输出进行中医辨证")
-        structured_llm = llm.with_structured_output(TCMZhengmingSchema, method="json_schema")
+        structured_llm = llm.with_structured_output(
+            TCMZhengmingSchema, method="json_schema"
+        )
         messages = prompt.format_messages()
         response = await structured_llm.ainvoke(messages)
         logger.info(f"中医辨证结构化输出成功: {response}")
@@ -144,9 +154,13 @@ async def HerbDiagnosisNode(state: TCAgentState) -> Dict[str, List[TCMZhengmingI
     try:
         if hasattr(response, "model_dump"):
             response = response.model_dump()
-            logger.debug(f"转换为字典: {list(response.keys()) if isinstance(response, dict) else type(response)}")
+            logger.debug(
+                f"转换为字典: {list(response.keys()) if isinstance(response, dict) else type(response)}"
+            )
 
-        zhengming_list = response.get("zhengming_list") if isinstance(response, dict) else None
+        zhengming_list = (
+            response.get("zhengming_list") if isinstance(response, dict) else None
+        )
         if not isinstance(zhengming_list, list):
             logger.warning(f"zhengming_list 字段不是列表: {type(zhengming_list)}")
             zhengming_list = []
@@ -157,12 +171,14 @@ async def HerbDiagnosisNode(state: TCAgentState) -> Dict[str, List[TCMZhengmingI
             description = item.get("description", "")
             probability = float(item.get("probability", 0))
             therapy = item.get("therapy", "")
-            normalized.append(TCMZhengmingItem(
-                zhengming=zhengming,
-                description=description,
-                probability=probability,
-                therapy=therapy
-            ))
+            normalized.append(
+                TCMZhengmingItem(
+                    zhengming=zhengming,
+                    description=description,
+                    probability=probability,
+                    therapy=therapy,
+                )
+            )
 
         logger.info(f"成功规范化 {len(normalized)} 个中医证型")
         return {"zhengming": normalized}

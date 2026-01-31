@@ -9,17 +9,18 @@ from typing import Callable, TypeVar
 
 from config.logger import logger
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class RetryConfig:
     """重试配置"""
+
     def __init__(
         self,
         max_retries: int = 3,
         initial_delay: float = 1.0,
         max_delay: float = 32.0,
-        exponential_base: float = 2.0
+        exponential_base: float = 2.0,
     ):
         self.max_retries = max_retries
         self.initial_delay = initial_delay
@@ -28,10 +29,7 @@ class RetryConfig:
 
 
 async def retry_on_rate_limit(
-    func: Callable[..., T],
-    config: RetryConfig = None,
-    *args,
-    **kwargs
+    func: Callable[..., T], config: RetryConfig = None, *args, **kwargs
 ) -> T:
     """
     在遇到429或5xx错误时自动重试
@@ -72,8 +70,7 @@ async def retry_on_rate_limit(
             error_str = str(e)
             is_rate_limit = "429" in error_str or "1302" in error_str
             is_server_error = any(
-                f"5{code}" in error_str
-                for code in ["00", "01", "02", "03", "04"]
+                f"5{code}" in error_str for code in ["00", "01", "02", "03", "04"]
             )
 
             if not (is_rate_limit or is_server_error):
@@ -83,20 +80,17 @@ async def retry_on_rate_limit(
 
             if attempt >= config.max_retries:
                 # 重试次数用尽
-                logger.error(
-                    f"重试次数用尽（{config.max_retries}次），最后错误: {e}"
-                )
+                logger.error(f"重试次数用尽（{config.max_retries}次），最后错误: {e}")
                 raise
 
             # 计算退避时间（指数退避）
             delay = min(
-                config.initial_delay * (config.exponential_base ** attempt),
-                config.max_delay
+                config.initial_delay * (config.exponential_base**attempt),
+                config.max_delay,
             )
 
             logger.warning(
-                f"API调用失败（第{attempt + 1}次尝试）: {e}，"
-                f"{delay:.1f}秒后重试..."
+                f"API调用失败（第{attempt + 1}次尝试）: {e}，{delay:.1f}秒后重试..."
             )
 
             await asyncio.sleep(delay)

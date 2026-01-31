@@ -18,6 +18,7 @@ class MedicationItem(BaseModel):
 
 class LiteratureItem(BaseModel):
     """文献搜索结果项"""
+
     title: str
     snippet: str
     url: str
@@ -31,9 +32,4 @@ class VetAgentState(MessagesState):
     medications: list[MedicationItem] = []  # 宠物的用药列表，包括症状、药品名称和剂量
 
 
-__all__ = [
-    "DiagnosisItem",
-    "MedicationItem",
-    "LiteratureItem",
-    "VetAgentState"
-]
+__all__ = ["DiagnosisItem", "MedicationItem", "LiteratureItem", "VetAgentState"]

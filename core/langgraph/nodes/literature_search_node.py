@@ -1,6 +1,7 @@
 """
 文献搜索节点 - 在诊断前搜索相关医学文献
 """
+
 import json
 from typing import Dict, List
 
@@ -42,13 +43,19 @@ async def LiteratureSearchNode(state: VetAgentState) -> Dict[str, List[Literatur
     try:
         for query in search_queries[:2]:  # 最多执行2个查询以控制时间
             try:
-                results_raw = web_search_tool.invoke({
-                    "query": query,
-                    "num_results": 3,  # 每个查询获取3个结果
-                    "use_baidu": use_baidu
-                })
+                results_raw = web_search_tool.invoke(
+                    {
+                        "query": query,
+                        "num_results": 3,  # 每个查询获取3个结果
+                        "use_baidu": use_baidu,
+                    }
+                )
 
-                results = json.loads(results_raw) if isinstance(results_raw, str) else results_raw
+                results = (
+                    json.loads(results_raw)
+                    if isinstance(results_raw, str)
+                    else results_raw
+                )
 
                 if not results:
                     continue
@@ -69,7 +76,11 @@ async def LiteratureSearchNode(state: VetAgentState) -> Dict[str, List[Literatur
                         rid = r.get("id", "")
                         if rid:
                             content_raw = fetch_webpage_tool.invoke(rid)
-                            content = content_raw if isinstance(content_raw, str) else str(content_raw)
+                            content = (
+                                content_raw
+                                if isinstance(content_raw, str)
+                                else str(content_raw)
+                            )
 
                             # 限制内容长度避免token浪费
                             if len(content) > 2000:
@@ -79,10 +90,7 @@ async def LiteratureSearchNode(state: VetAgentState) -> Dict[str, List[Literatur
                         logger.debug(f"获取网页内容失败: {url}, {e}")
 
                     literature_item = LiteratureItem(
-                        title=title,
-                        snippet=snippet,
-                        url=url,
-                        content=content
+                        title=title, snippet=snippet, url=url, content=content
                     )
                     all_literature.append(literature_item)
 

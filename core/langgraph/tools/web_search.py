@@ -41,6 +41,7 @@ CACHE_TTL = 300  # 5分钟
 def get_user_agent() -> str:
     """获取用户代理（轮换）"""
     import random
+
     return random.choice(USER_AGENTS)
 
 
@@ -56,16 +57,19 @@ def is_cache_valid(timestamp: float) -> bool:
 
 # ==================== 内容提取优化 ====================
 
+
 def clean_text(text: str) -> str:
     """清理文本：移除多余空白和特殊字符"""
     # 移除多余空白
-    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r"\s+", " ", text)
     # 移除特殊字符
-    text = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f-\x9f]', '', text)
+    text = re.sub(r"[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f-\x9f]", "", text)
     return text.strip()
 
 
-def extract_search_results(html: str, query: str, num_results: int = 5, engine: str = "bing") -> List[Dict]:
+def extract_search_results(
+    html: str, query: str, num_results: int = 5, engine: str = "bing"
+) -> List[Dict]:
     """优化的搜索结果提取 - 支持更多搜索引擎"""
     soup = BeautifulSoup(html, "lxml")  # 使用lxml解析器（更快）
     results = []
@@ -76,14 +80,14 @@ def extract_search_results(html: str, query: str, num_results: int = 5, engine: 
             "result": "#b_results > li.b_algo",
             "title": "h2 a",
             "snippet": ".b_caption p",
-            "link": "h2 a"
+            "link": "h2 a",
         },
         "baidu": {
             "result": "div.result, div.c-container",
             "title": "h3 a",
             "snippet": "div.c-abstract, div.c-span-last",
-            "link": "h3 a"
-        }
+            "link": "h3 a",
+        },
     }
 
     engine_selectors = selectors.get(engine, selectors["bing"])
@@ -118,16 +122,8 @@ def extract_search_results(html: str, query: str, num_results: int = 5, engine: 
 
             # 生成唯一ID
             result_id = generate_id(engine)
-            result = {
-                "id": result_id,
-                "title": title,
-                "link": link,
-                "snippet": snippet
-            }
-            search_results_cache[result_id] = {
-                **result,
-                "timestamp": time.time()
-            }
+            result = {"id": result_id, "title": title, "link": link, "snippet": snippet}
+            search_results_cache[result_id] = {**result, "timestamp": time.time()}
             results.append(result)
 
         except Exception as e:
@@ -141,9 +137,11 @@ def extract_search_results(html: str, query: str, num_results: int = 5, engine: 
         fallback_result = {
             "id": fallback_id,
             "title": f"{engine.upper()}搜索: {query}",
-            "link": f"https://www.baidu.com/s?wd={query}" if engine == "baidu" else f"https://cn.bing.com/search?q={query}",
+            "link": f"https://www.baidu.com/s?wd={query}"
+            if engine == "baidu"
+            else f"https://cn.bing.com/search?q={query}",
             "snippet": f"未能解析关于 '{query}' 的搜索结果，您可以访问搜索页面查看。",
-            "timestamp": time.time()
+            "timestamp": time.time(),
         }
         search_results_cache[fallback_id] = fallback_result
         results.append(fallback_result)
@@ -157,23 +155,44 @@ def extract_page_content(html: str, url: str = "") -> str:
     soup = BeautifulSoup(html, "lxml")
 
     # 移除不需要的标签
-    for tag in soup(["script", "style", "iframe", "noscript", "header", "footer", "nav", "aside", "ad"]):
+    for tag in soup(
+        [
+            "script",
+            "style",
+            "iframe",
+            "noscript",
+            "header",
+            "footer",
+            "nav",
+            "aside",
+            "ad",
+        ]
+    ):
         tag.decompose()
 
     # 优先级选择器（按重要性排序）
     main_selectors = [
         # 语义化标签
-        "main", "article",
+        "main",
+        "article",
         # 常见的文章类名
-        "[class*='article']", "[class*='post']",
-        "[class*='content']", "[id*='content']",
-        "[class*='detail']", "[id*='detail']",
-        "[class*='text']", "[id*='text']",
+        "[class*='article']",
+        "[class*='post']",
+        "[class*='content']",
+        "[id*='content']",
+        "[class*='detail']",
+        "[id*='detail']",
+        "[class*='text']",
+        "[id*='text']",
         # 通用容器
-        ".entry-content", ".post-content",
-        ".article-body", ".post-body",
-        ".main-content", "#main-content",
-        ".text-content", ".rich-text",
+        ".entry-content",
+        ".post-content",
+        ".article-body",
+        ".post-body",
+        ".main-content",
+        "#main-content",
+        ".text-content",
+        ".rich-text",
     ]
 
     content = ""
@@ -224,11 +243,14 @@ def extract_page_content(html: str, url: str = "") -> str:
     if len(content) > max_len:
         content = content[:max_len] + "\n\n... (内容已截断)"
 
-    logger.debug(f"成功提取内容: {len(content)} 字符 (选择器: {best_selector or 'fallback'})")
+    logger.debug(
+        f"成功提取内容: {len(content)} 字符 (选择器: {best_selector or 'fallback'})"
+    )
     return content
 
 
 # ==================== 异步网络请求 ====================
+
 
 async def fetch_html_async(url: str, headers: dict, timeout: int = 10) -> str:
     """异步获取HTML内容（更快速）"""
@@ -246,6 +268,7 @@ async def fetch_html_async(url: str, headers: dict, timeout: int = 10) -> str:
 
 
 # ==================== LangGraph 工具 ====================
+
 
 class Web_Search_Tool(BaseModel):
     query: str = Field(description="搜索关键词")
@@ -278,6 +301,7 @@ def web_search_tool(query: str, num_results: int = 5, use_baidu: bool = False):
 
     # 使用同步requests（兼容现有代码）
     import requests
+
     try:
         logger.info(f"开始{engine.upper()}搜索: {query}")
         resp = requests.get(url, headers=headers, timeout=10)
@@ -288,7 +312,8 @@ def web_search_tool(query: str, num_results: int = 5, use_baidu: bool = False):
         # 清理过期缓存
         current_time = time.time()
         expired_ids = [
-            k for k, v in search_results_cache.items()
+            k
+            for k, v in search_results_cache.items()
             if current_time - v.get("timestamp", 0) > CACHE_TTL
         ]
         for eid in expired_ids:
@@ -302,7 +327,7 @@ def web_search_tool(query: str, num_results: int = 5, use_baidu: bool = False):
             "id": generate_id("error"),
             "title": "搜索请求失败",
             "link": url,
-            "snippet": f"无法访问搜索结果 (HTTP {e.response.status_code}): {str(e)}"
+            "snippet": f"无法访问搜索结果 (HTTP {e.response.status_code}): {str(e)}",
         }
         return json.dumps([error_result], ensure_ascii=False, indent=2)
 
@@ -312,7 +337,7 @@ def web_search_tool(query: str, num_results: int = 5, use_baidu: bool = False):
             "id": generate_id("timeout"),
             "title": "搜索请求超时",
             "link": url,
-            "snippet": "搜索请求超时，请稍后重试"
+            "snippet": "搜索请求超时，请稍后重试",
         }
         return json.dumps([error_result], ensure_ascii=False, indent=2)
 
@@ -322,7 +347,7 @@ def web_search_tool(query: str, num_results: int = 5, use_baidu: bool = False):
             "id": generate_id("error"),
             "title": "搜索请求错误",
             "link": url,
-            "snippet": f"搜索请求失败: {str(e)}"
+            "snippet": f"搜索请求失败: {str(e)}",
         }
         return json.dumps([error_result], ensure_ascii=False, indent=2)
 
@@ -350,10 +375,13 @@ def fetch_webpage_tool(result_id: str):
     url = search_results_cache[result_id]["link"]
     headers = {
         "User-Agent": get_user_agent(),
-        "Referer": "https://cn.bing.com/" if "bing" in result_id else "https://www.baidu.com/"
+        "Referer": "https://cn.bing.com/"
+        if "bing" in result_id
+        else "https://www.baidu.com/",
     }
 
     import requests
+
     try:
         logger.info(f"获取网页内容: {url}")
         resp = requests.get(url, headers=headers, timeout=10)

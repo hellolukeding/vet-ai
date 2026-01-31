@@ -1,6 +1,7 @@
 """
 用药安全检查节点 - 对药物建议进行安全性和合理性检查
 """
+
 from datetime import datetime
 from typing import Dict, List
 
@@ -16,16 +17,22 @@ from core.langgraph.state import MedicationItem, VetAgentState
 
 class MedicationWithWarning(BaseModel):
     """带安全警告的药物"""
+
     symptom: str = Field(..., description="症状/诊断")
     drug_name: str = Field(..., description="药物名称")
     dosage: str = Field(..., description="剂量")
     frequency: str = Field(..., description="用药频率")
-    safety_warning: str = Field(..., description="该药物的安全警告（如果没有警告则返回'✅ 无特殊安全警告'）")
+    safety_warning: str = Field(
+        ..., description="该药物的安全警告（如果没有警告则返回'✅ 无特殊安全警告'）"
+    )
 
 
 class SafetyCheckSchema(BaseModel):
     """用药安全检查结果schema"""
-    safe_medications: List[MedicationWithWarning] = Field(..., description="通过安全检查的药物列表（每个药物包含安全警告）")
+
+    safe_medications: List[MedicationWithWarning] = Field(
+        ..., description="通过安全检查的药物列表（每个药物包含安全警告）"
+    )
     review_summary: str = Field(..., description="安全审查总结")
 
 
@@ -48,7 +55,9 @@ async def SafetyCheckNode(state: VetAgentState) -> Dict:
 
     # 获取诊断和用药
     diagnosis = getattr(state, "diagnosis", []) or state.get("diagnosis", [])
-    medications: List[MedicationItem] = getattr(state, "medications", []) or state.get("medications", [])
+    medications: List[MedicationItem] = getattr(state, "medications", []) or state.get(
+        "medications", []
+    )
 
     if not medications:
         logger.warning("安全检查：没有用药建议需要检查")
@@ -64,17 +73,29 @@ async def SafetyCheckNode(state: VetAgentState) -> Dict:
     # 构建诊断信息
     diagnosis_text = "诊断结果：\n"
     for d in diagnosis[:5]:  # 最多显示5个诊断
-        symptom = getattr(d, "symptom", "") or (d.get("symptom") if isinstance(d, dict) else "")
-        prob = getattr(d, "probability", None) or (d.get("probability") if isinstance(d, dict) else 0)
+        symptom = getattr(d, "symptom", "") or (
+            d.get("symptom") if isinstance(d, dict) else ""
+        )
+        prob = getattr(d, "probability", None) or (
+            d.get("probability") if isinstance(d, dict) else 0
+        )
         diagnosis_text += f"- {symptom} (概率: {prob})\n"
 
     # 构建用药信息
     med_text = "当前用药建议：\n"
     for idx, m in enumerate(medications, 1):
-        symptom = getattr(m, "symptom", "") or (m.get("symptom") if isinstance(m, dict) else "")
-        drug = getattr(m, "drug_name", "") or (m.get("drug_name") if isinstance(m, dict) else "")
-        dosage = getattr(m, "dosage", "") or (m.get("dosage") if isinstance(m, dict) else "")
-        freq = getattr(m, "frequency", "") or (m.get("frequency") if isinstance(m, dict) else "")
+        symptom = getattr(m, "symptom", "") or (
+            m.get("symptom") if isinstance(m, dict) else ""
+        )
+        drug = getattr(m, "drug_name", "") or (
+            m.get("drug_name") if isinstance(m, dict) else ""
+        )
+        dosage = getattr(m, "dosage", "") or (
+            m.get("dosage") if isinstance(m, dict) else ""
+        )
+        freq = getattr(m, "frequency", "") or (
+            m.get("frequency") if isinstance(m, dict) else ""
+        )
         med_text += f"{idx}. {drug} - {symptom}\n   剂量: {dosage}, 频率: {freq}\n"
 
     system_instructions = f"""
@@ -144,14 +165,18 @@ async def SafetyCheckNode(state: VetAgentState) -> Dict:
     - 严格只输出 JSON，不要使用Markdown代码块
     """
 
-    prompt = ChatPromptTemplate.from_messages([
-        SystemMessage(content=system_instructions),
-        HumanMessage(content=diagnosis_text + "\n" + med_text)
-    ])
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            SystemMessage(content=system_instructions),
+            HumanMessage(content=diagnosis_text + "\n" + med_text),
+        ]
+    )
 
     try:
         logger.info("开始用药安全检查")
-        structured_llm = llm.with_structured_output(SafetyCheckSchema, method="json_schema")
+        structured_llm = llm.with_structured_output(
+            SafetyCheckSchema, method="json_schema"
+        )
         messages = prompt.format_messages()
         response = await structured_llm.ainvoke(messages)
 
@@ -166,13 +191,15 @@ async def SafetyCheckNode(state: VetAgentState) -> Dict:
         safe_meds = response_dict.get("safe_medications", [])
         normalized = []
         for item in safe_meds:
-            normalized.append(MedicationItem(
-                symptom=item.get("symptom", ""),
-                drug_name=item.get("drug_name", ""),
-                dosage=item.get("dosage", ""),
-                frequency=item.get("frequency", ""),
-                safety_warning=item.get("safety_warning", "")
-            ))
+            normalized.append(
+                MedicationItem(
+                    symptom=item.get("symptom", ""),
+                    drug_name=item.get("drug_name", ""),
+                    dosage=item.get("dosage", ""),
+                    frequency=item.get("frequency", ""),
+                    safety_warning=item.get("safety_warning", ""),
+                )
+            )
 
         logger.info(f"用药安全检查完成，{len(normalized)} 个药物通过检查")
 

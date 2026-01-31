@@ -37,11 +37,12 @@ async def FinalOutputNode(state: State) -> Dict:
 
     if nutrition_ready:
         summary_lines.append(
-            f"✓ 营养计划：每日 {state.nutrition_plan.daily_calories}kcal")
+            f"✓ 营养计划：每日 {state.nutrition_plan.daily_calories}kcal"
+        )
         summary_lines.append(
-            f"  - 推荐食物 {len(state.nutrition_plan.recommended_foods)} 项")
-        summary_lines.append(
-            f"  - 补充剂 {len(state.nutrition_plan.supplements)} 项")
+            f"  - 推荐食物 {len(state.nutrition_plan.recommended_foods)} 项"
+        )
+        summary_lines.append(f"  - 补充剂 {len(state.nutrition_plan.supplements)} 项")
     else:
         summary_lines.append("✗ 营养计划生成失败")
 
@@ -63,12 +64,13 @@ async def FinalOutputNode(state: State) -> Dict:
 
     if state.reasoning.contradictions:
         summary_lines.append(
-            f"\n发现 {len(state.reasoning.contradictions)} 个潜在问题需要注意")
+            f"\n发现 {len(state.reasoning.contradictions)} 个潜在问题需要注意"
+        )
 
     summary = "\n".join(summary_lines)
-    logger.info("="*50)
+    logger.info("=" * 50)
     logger.info(summary)
-    logger.info("="*50)
+    logger.info("=" * 50)
 
     # 标记最终输出已准备好
     final_ready = nutrition_ready and care_ready
@@ -78,8 +80,4 @@ async def FinalOutputNode(state: State) -> Dict:
     else:
         logger.warning("【FinalOutputNode】部分计划生成失败")
 
-    return {
-        "flags": {
-            "final_output_ready": "true" if final_ready else "false"
-        }
-    }
+    return {"flags": {"final_output_ready": "true" if final_ready else "false"}}

@@ -67,6 +67,4 @@ class VetAgent:
 
 graph = VetAgent().graph
 
-__all__ = [
-    "graph"
-]
+__all__ = ["graph"]

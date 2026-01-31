@@ -1,6 +1,7 @@
 """
 中药方剂推荐节点 - 根据证型推荐中药方剂
 """
+
 import json
 from datetime import datetime
 from typing import Dict, List
@@ -12,16 +13,23 @@ from pydantic import BaseModel, Field
 
 from backend.settings import settings
 from config.logger import logger
-from core.langgraph.state_herb import HerbalPrescriptionItem, TCMZhengmingItem, TCAgentState
+from core.langgraph.state_herb import (
+    HerbalPrescriptionItem,
+    TCMZhengmingItem,
+    TCAgentState,
+)
 from utils.json.extract_json_from_markdown import extract_json_from_markdown
 
 
 class HerbalPrescriptionSchema(BaseModel):
     """中药方剂schema"""
+
     prescriptions: List[HerbalPrescriptionItem] = Field(..., description="方剂列表")
 
 
-async def HerbPharmacistNode(state: TCAgentState) -> Dict[str, List[HerbalPrescriptionItem]]:
+async def HerbPharmacistNode(
+    state: TCAgentState,
+) -> Dict[str, List[HerbalPrescriptionItem]]:
     """根据中医证型推荐中药方剂
 
     Args:
@@ -38,7 +46,9 @@ async def HerbPharmacistNode(state: TCAgentState) -> Dict[str, List[HerbalPrescr
 
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    zhengming: List[TCMZhengmingItem] = getattr(state, "zhengming", []) or state.get("zhengming", [])
+    zhengming: List[TCMZhengmingItem] = getattr(state, "zhengming", []) or state.get(
+        "zhengming", []
+    )
 
     if not zhengming:
         logger.warning("中药方剂：没有证型诊断结果")
@@ -54,11 +64,21 @@ async def HerbPharmacistNode(state: TCAgentState) -> Dict[str, List[HerbalPrescr
     # 构建证型信息
     zhengming_text = "中医证型诊断：\n"
     for idx, z in enumerate(zhengming[:5], 1):
-        name = getattr(z, "zhengming", "") or (z.get("zhengming") if isinstance(z, dict) else "")
-        desc = getattr(z, "description", "") or (z.get("description") if isinstance(z, dict) else "")
-        prob = getattr(z, "probability", None) or (z.get("probability") if isinstance(z, dict) else 0)
-        therapy = getattr(z, "therapy", "") or (z.get("therapy") if isinstance(z, dict) else "")
-        zhengming_text += f"{idx}. {name} (概率: {prob})\n   治法: {therapy}\n   依据: {desc}\n"
+        name = getattr(z, "zhengming", "") or (
+            z.get("zhengming") if isinstance(z, dict) else ""
+        )
+        desc = getattr(z, "description", "") or (
+            z.get("description") if isinstance(z, dict) else ""
+        )
+        prob = getattr(z, "probability", None) or (
+            z.get("probability") if isinstance(z, dict) else 0
+        )
+        therapy = getattr(z, "therapy", "") or (
+            z.get("therapy") if isinstance(z, dict) else ""
+        )
+        zhengming_text += (
+            f"{idx}. {name} (概率: {prob})\n   治法: {therapy}\n   依据: {desc}\n"
+        )
 
     # 中药方剂系统提示
     system_instructions = f"""
@@ -114,15 +134,19 @@ async def HerbPharmacistNode(state: TCAgentState) -> Dict[str, List[HerbalPrescr
     - 严格只输出 JSON，不要使用Markdown代码块包装结果
     """
 
-    prompt = ChatPromptTemplate.from_messages([
-        SystemMessage(content=system_instructions),
-        HumanMessage(content=zhengming_text)
-    ])
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            SystemMessage(content=system_instructions),
+            HumanMessage(content=zhengming_text),
+        ]
+    )
 
     # 尝试使用结构化输出
     try:
         logger.info("尝试使用结构化输出推荐中药方剂")
-        structured_llm = llm.with_structured_output(HerbalPrescriptionSchema, method="json_schema")
+        structured_llm = llm.with_structured_output(
+            HerbalPrescriptionSchema, method="json_schema"
+        )
         messages = prompt.format_messages()
         response = await structured_llm.ainvoke(messages)
         logger.info("中药方剂结构化输出成功")
@@ -146,9 +170,13 @@ async def HerbPharmacistNode(state: TCAgentState) -> Dict[str, List[HerbalPrescr
     try:
         if hasattr(response, "model_dump"):
             response = response.model_dump()
-            logger.debug(f"转换为字典: {list(response.keys()) if isinstance(response, dict) else type(response)}")
+            logger.debug(
+                f"转换为字典: {list(response.keys()) if isinstance(response, dict) else type(response)}"
+            )
 
-        prescription_list = response.get("prescriptions") if isinstance(response, dict) else None
+        prescription_list = (
+            response.get("prescriptions") if isinstance(response, dict) else None
+        )
         if not isinstance(prescription_list, list):
             logger.warning(f"prescriptions 字段不是列表: {type(prescription_list)}")
             prescription_list = []
@@ -160,13 +188,15 @@ async def HerbPharmacistNode(state: TCAgentState) -> Dict[str, List[HerbalPrescr
             prescription_name = item.get("prescription_name", "")
             composition = item.get("composition", "")
             usage = item.get("usage", "")
-            normalized.append(HerbalPrescriptionItem(
-                zhengming=zhengming,
-                prescription_type=prescription_type,
-                prescription_name=prescription_name,
-                composition=composition,
-                usage=usage
-            ))
+            normalized.append(
+                HerbalPrescriptionItem(
+                    zhengming=zhengming,
+                    prescription_type=prescription_type,
+                    prescription_name=prescription_name,
+                    composition=composition,
+                    usage=usage,
+                )
+            )
 
         logger.info(f"成功规范化 {len(normalized)} 个中药方剂")
         return {"prescriptions": normalized}

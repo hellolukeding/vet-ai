@@ -67,7 +67,8 @@ class PetCareAgent:
         async def wait_for_plans(state: State) -> Dict:
             """等待节点：不做任何操作，只是等待两个计划完成"""
             logger.debug(
-                f"等待节点检查 - 营养: {state.flags.nutrition_plan_ready}, 护理: {state.flags.care_plan_ready}")
+                f"等待节点检查 - 营养: {state.flags.nutrition_plan_ready}, 护理: {state.flags.care_plan_ready}"
+            )
             return {}
 
         # 添加节点
@@ -191,7 +192,4 @@ class PetCareAgent:
 # 导出全局图实例
 graph = PetCareAgent().graph
 
-__all__ = [
-    "PetCareAgent",
-    "graph"
-]
+__all__ = ["PetCareAgent", "graph"]

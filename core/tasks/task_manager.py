@@ -18,11 +18,12 @@ from config.logger import logger
 
 class TaskStatus(str, Enum):
     """任务状态枚举"""
-    PENDING = "pending"       # 等待执行
-    PROCESSING = "processing" # 执行中
-    COMPLETED = "completed"   # 已完成
-    FAILED = "failed"         # 失败
-    CANCELLED = "cancelled"   # 已取消
+
+    PENDING = "pending"  # 等待执行
+    PROCESSING = "processing"  # 执行中
+    COMPLETED = "completed"  # 已完成
+    FAILED = "failed"  # 失败
+    CANCELLED = "cancelled"  # 已取消
 
 
 class TaskQueueManager:
@@ -37,19 +38,19 @@ class TaskQueueManager:
     """
 
     # Redis键前缀
-    TASK_QUEUE_KEY = "task_queue:pet_care"       # 任务队列
-    TASK_DATA_KEY = "task_data:"                 # 任务数据
-    TASK_STATUS_KEY = "task_status:"             # 任务状态
-    TASK_RESULT_KEY = "task_result:"             # 任务结果
-    TASK_PROGRESS_KEY = "task_progress:"         # 任务进度
-    CONCURRENCY_LOCK_KEY = "concurrency_lock"    # 并发控制锁
+    TASK_QUEUE_KEY = "task_queue:pet_care"  # 任务队列
+    TASK_DATA_KEY = "task_data:"  # 任务数据
+    TASK_STATUS_KEY = "task_status:"  # 任务状态
+    TASK_RESULT_KEY = "task_result:"  # 任务结果
+    TASK_PROGRESS_KEY = "task_progress:"  # 任务进度
+    CONCURRENCY_LOCK_KEY = "concurrency_lock"  # 并发控制锁
 
     def __init__(
         self,
         redis_client: Redis,
         max_concurrent_tasks: int = 5,
-        task_timeout: int = 600,         # 任务超时时间（秒）
-        result_expire_time: int = 3600   # 结果过期时间（秒）
+        task_timeout: int = 600,  # 任务超时时间（秒）
+        result_expire_time: int = 3600,  # 结果过期时间（秒）
     ):
         """
         初始化任务队列管理器
@@ -69,10 +70,7 @@ class TaskQueueManager:
         self._worker_task: Optional[asyncio.Task] = None
 
     def submit_task(
-        self,
-        task_type: str,
-        task_data: Dict[str, Any],
-        priority: int = 0
+        self, task_type: str, task_data: Dict[str, Any], priority: int = 0
     ) -> str:
         """
         提交任务到队列
@@ -94,7 +92,7 @@ class TaskQueueManager:
             "data": task_data,
             "priority": priority,
             "created_at": datetime.now().isoformat(),
-            "status": TaskStatus.PENDING
+            "status": TaskStatus.PENDING,
         }
 
         try:
@@ -102,23 +100,20 @@ class TaskQueueManager:
             self.redis.setex(
                 f"{self.TASK_DATA_KEY}{task_id}",
                 self.task_timeout + 60,  # 数据保存时间比超时时间长一些
-                json.dumps(task)
+                json.dumps(task),
             )
 
             # 初始化任务状态
             self.redis.setex(
                 f"{self.TASK_STATUS_KEY}{task_id}",
                 self.task_timeout + 60,
-                TaskStatus.PENDING
+                TaskStatus.PENDING,
             )
 
             # 添加到队列（使用有序集合实现优先级队列）
             # score = priority + timestamp，确保相同优先级按时间排序
             score = priority + datetime.now().timestamp() / 10000000
-            self.redis.zadd(
-                self.TASK_QUEUE_KEY,
-                {task_id: score}
-            )
+            self.redis.zadd(self.TASK_QUEUE_KEY, {task_id: score})
 
             logger.info(
                 f"任务已提交: task_id={task_id}, "
@@ -147,17 +142,13 @@ class TaskQueueManager:
             if not status_data:
                 return None
 
-            status = status_data.decode('utf-8')
+            status = status_data.decode("utf-8")
 
             # 获取进度信息
             progress_data = self.redis.get(f"{self.TASK_PROGRESS_KEY}{task_id}")
             progress = json.loads(progress_data) if progress_data else None
 
-            return {
-                "task_id": task_id,
-                "status": status,
-                "progress": progress
-            }
+            return {"task_id": task_id, "status": status, "progress": progress}
 
         except Exception as e:
             logger.error(f"获取任务状态失败: {e}")
@@ -200,7 +191,7 @@ class TaskQueueManager:
             if not status_data:
                 return False
 
-            status = status_data.decode('utf-8')
+            status = status_data.decode("utf-8")
             if status != TaskStatus.PENDING:
                 logger.warning(f"任务不在可取消状态: {status}")
                 return False
@@ -212,7 +203,7 @@ class TaskQueueManager:
             self.redis.setex(
                 f"{self.TASK_STATUS_KEY}{task_id}",
                 self.task_timeout + 60,
-                TaskStatus.CANCELLED
+                TaskStatus.CANCELLED,
             )
 
             logger.info(f"任务已取消: {task_id}")
@@ -223,11 +214,7 @@ class TaskQueueManager:
             return False
 
     def update_task_progress(
-        self,
-        task_id: str,
-        stage: str,
-        progress: int,
-        message: str = ""
+        self, task_id: str, stage: str, progress: int, message: str = ""
     ):
         """
         更新任务进度
@@ -243,18 +230,16 @@ class TaskQueueManager:
                 "stage": stage,
                 "progress": progress,
                 "message": message,
-                "updated_at": datetime.now().isoformat()
+                "updated_at": datetime.now().isoformat(),
             }
 
             self.redis.setex(
                 f"{self.TASK_PROGRESS_KEY}{task_id}",
                 self.task_timeout + 60,
-                json.dumps(progress_data)
+                json.dumps(progress_data),
             )
 
-            logger.debug(
-                f"任务进度更新: {task_id}, {stage}, {progress}%"
-            )
+            logger.debug(f"任务进度更新: {task_id}, {stage}, {progress}%")
 
         except Exception as e:
             logger.error(f"更新任务进度失败: {e}")
@@ -265,7 +250,7 @@ class TaskQueueManager:
             self.redis.setex(
                 f"{self.TASK_STATUS_KEY}{task_id}",
                 self.task_timeout + 60,
-                TaskStatus.PROCESSING
+                TaskStatus.PROCESSING,
             )
             logger.info(f"任务开始处理: {task_id}")
         except Exception as e:
@@ -278,14 +263,14 @@ class TaskQueueManager:
             self.redis.setex(
                 f"{self.TASK_RESULT_KEY}{task_id}",
                 self.result_expire_time,
-                json.dumps(result)
+                json.dumps(result),
             )
 
             # 更新状态
             self.redis.setex(
                 f"{self.TASK_STATUS_KEY}{task_id}",
                 self.result_expire_time,
-                TaskStatus.COMPLETED
+                TaskStatus.COMPLETED,
             )
 
             # 更新进度为100%
@@ -304,14 +289,14 @@ class TaskQueueManager:
             self.redis.setex(
                 f"{self.TASK_RESULT_KEY}{task_id}",
                 self.result_expire_time,
-                json.dumps(error_result)
+                json.dumps(error_result),
             )
 
             # 更新状态
             self.redis.setex(
                 f"{self.TASK_STATUS_KEY}{task_id}",
                 self.result_expire_time,
-                TaskStatus.FAILED
+                TaskStatus.FAILED,
             )
 
             logger.error(f"任务失败: {task_id}, error={error}")
@@ -333,13 +318,13 @@ class TaskQueueManager:
                 self.TASK_QUEUE_KEY,
                 0,
                 0,
-                desc=True  # 降序，最高优先级在前
+                desc=True,  # 降序，最高优先级在前
             )
 
             if not tasks:
                 return None
 
-            task_id = tasks[0].decode('utf-8')
+            task_id = tasks[0].decode("utf-8")
 
             # 从队列中移除
             self.redis.zrem(self.TASK_QUEUE_KEY, task_id)
@@ -376,7 +361,7 @@ class TaskQueueManager:
             count = 0
             for key in self.redis.scan_iter(match=pattern):
                 status = self.redis.get(key)
-                if status and status.decode('utf-8') == TaskStatus.PROCESSING:
+                if status and status.decode("utf-8") == TaskStatus.PROCESSING:
                     count += 1
             return count
         except Exception as e:
@@ -393,11 +378,12 @@ def get_task_manager() -> TaskQueueManager:
     global _task_manager
     if _task_manager is None:
         from backend.settings import settings
+
         redis_client = Redis.from_url(settings.REDIS_URL)
         _task_manager = TaskQueueManager(
             redis_client=redis_client,
             max_concurrent_tasks=5,  # 最多同时处理5个任务
-            task_timeout=600,        # 10分钟超时
-            result_expire_time=3600  # 结果保存1小时
+            task_timeout=600,  # 10分钟超时
+            result_expire_time=3600,  # 结果保存1小时
         )
     return _task_manager

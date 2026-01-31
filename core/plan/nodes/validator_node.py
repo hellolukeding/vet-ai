@@ -47,11 +47,12 @@ async def ValidatorNode(state: State) -> Dict:
     care_ready = state.flags.care_plan_ready == "true"
     if not nutrition_ready or not care_ready:
         logger.warning(
-            f"计划未完成，跳过验证 - 营养计划: {nutrition_ready}, 护理计划: {care_ready}")
+            f"计划未完成，跳过验证 - 营养计划: {nutrition_ready}, 护理计划: {care_ready}"
+        )
         return {
             "reasoning": {
                 "risk_analysis": "营养或护理计划未完成，无法进行完整的风险评估。建议咨询专业兽医进行个性化评估。",
-                "contradictions": []
+                "contradictions": [],
             }
         }
 
@@ -64,8 +65,9 @@ async def ValidatorNode(state: State) -> Dict:
     )
 
     # 构建验证上下文
-    health_str = ", ".join(
-        pet.health_conditions) if pet.health_conditions else "无特殊健康问题"
+    health_str = (
+        ", ".join(pet.health_conditions) if pet.health_conditions else "无特殊健康问题"
+    )
     allergies_str = ", ".join(pet.allergies) if pet.allergies else "无已知过敏"
 
     validation_context = f"""
@@ -110,10 +112,12 @@ async def ValidatorNode(state: State) -> Dict:
 不要返回JSON，只需要自然语言文本。
 """
 
-    prompt = ChatPromptTemplate.from_messages([
-        SystemMessage(content=system_instructions),
-        HumanMessage(content=validation_context)
-    ])
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            SystemMessage(content=system_instructions),
+            HumanMessage(content=validation_context),
+        ]
+    )
 
     # 调用LLM
     risk_analysis = ""
@@ -132,7 +136,11 @@ async def ValidatorNode(state: State) -> Dict:
             line = line.strip()
             if line.startswith("- ") or line.startswith("• "):
                 contradiction = line[2:].strip()
-                if contradiction and "未发现" not in contradiction and "无明显" not in contradiction:
+                if (
+                    contradiction
+                    and "未发现" not in contradiction
+                    and "无明显" not in contradiction
+                ):
                     contradictions.append(contradiction)
 
         if contradictions:
@@ -145,8 +153,5 @@ async def ValidatorNode(state: State) -> Dict:
         risk_analysis = f"验证过程出错，建议咨询专业兽医进行人工审核：{e}"
 
     return {
-        "reasoning": {
-            "risk_analysis": risk_analysis,
-            "contradictions": contradictions
-        }
+        "reasoning": {"risk_analysis": risk_analysis, "contradictions": contradictions}
     }

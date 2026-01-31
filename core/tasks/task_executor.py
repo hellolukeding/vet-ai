@@ -61,9 +61,7 @@ class TaskExecutor:
         return self._pet_care_agent
 
     async def execute_diagnosis(
-        self,
-        task_id: str,
-        task_data: Dict[str, Any]
+        self, task_id: str, task_data: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         执行西医诊断任务
@@ -95,19 +93,14 @@ class TaskExecutor:
 
             logger.info(f"西医诊断任务完成: {task_id}, 结果数量: {len(result)}")
 
-            return {
-                "diagnoses": result,
-                "symptoms": symptoms
-            }
+            return {"diagnoses": result, "symptoms": symptoms}
 
         except Exception as e:
             logger.error(f"西医诊断任务执行失败: {task_id}, 错误: {e}")
             raise
 
     async def execute_herb_diagnosis(
-        self,
-        task_id: str,
-        task_data: Dict[str, Any]
+        self, task_id: str, task_data: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         执行中医诊断任务
@@ -139,19 +132,14 @@ class TaskExecutor:
 
             logger.info(f"中医诊断任务完成: {task_id}, 结果数量: {len(result)}")
 
-            return {
-                "diagnoses": result,
-                "symptoms": symptoms
-            }
+            return {"diagnoses": result, "symptoms": symptoms}
 
         except Exception as e:
             logger.error(f"中医诊断任务执行失败: {task_id}, 错误: {e}")
             raise
 
     async def execute_graph_diagnosis(
-        self,
-        task_id: str,
-        task_data: Dict[str, Any]
+        self, task_id: str, task_data: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         执行LangGraph智能诊断任务
@@ -197,9 +185,7 @@ class TaskExecutor:
             raise
 
     async def execute_pet_care_plan(
-        self,
-        task_id: str,
-        task_data: Dict[str, Any]
+        self, task_id: str, task_data: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         执行宠物护理计划任务
@@ -223,7 +209,7 @@ class TaskExecutor:
                 "pet_age": "age",
                 "pet_weight": "weight",
                 "pet_sex": "sex",
-                "pet_neutered": "neutered"
+                "pet_neutered": "neutered",
             }
 
             for task_field, agent_field in field_mapping.items():
@@ -237,10 +223,7 @@ class TaskExecutor:
                     else:
                         pet_info[agent_field] = value
 
-            logger.info(
-                f"开始宠物护理计划任务: {task_id}, "
-                f"查询: {user_query[:50]}..."
-            )
+            logger.info(f"开始宠物护理计划任务: {task_id}, 查询: {user_query[:50]}...")
 
             # 更新进度
             self.task_manager.update_task_progress(
@@ -259,7 +242,7 @@ class TaskExecutor:
             result = await agent.run(
                 user_query=user_query,
                 pet_info=pet_info if pet_info else None,
-                progress_callback=progress_callback
+                progress_callback=progress_callback,
             )
 
             # 更新进度
@@ -276,10 +259,7 @@ class TaskExecutor:
             raise
 
     async def execute_task(
-        self,
-        task_type: str,
-        task_id: str,
-        task_data: Dict[str, Any]
+        self, task_type: str, task_id: str, task_data: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         执行任务（统一入口）

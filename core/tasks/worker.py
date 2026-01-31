@@ -19,11 +19,7 @@ class TaskWorker:
     从队列获取任务并执行，支持并发控制。
     """
 
-    def __init__(
-        self,
-        task_manager: TaskQueueManager,
-        max_concurrent_tasks: int = 5
-    ):
+    def __init__(self, task_manager: TaskQueueManager, max_concurrent_tasks: int = 5):
         """
         初始化Worker
 
@@ -100,9 +96,7 @@ class TaskWorker:
                 self._active_tasks.add(async_task)
 
                 # 任务完成后从活跃集合中移除
-                async_task.add_done_callback(
-                    self._active_tasks.discard
-                )
+                async_task.add_done_callback(self._active_tasks.discard)
 
             except asyncio.CancelledError:
                 logger.info("Worker循环被取消")
@@ -134,9 +128,7 @@ class TaskWorker:
             # 使用信号量控制并发
             async with self._semaphore:
                 # 执行任务
-                result = await self.executor.execute_task(
-                    task_type, task_id, task_data
-                )
+                result = await self.executor.execute_task(task_type, task_id, task_data)
 
                 # 标记任务完成
                 self.task_manager.set_task_completed(task_id, result)
@@ -166,7 +158,7 @@ async def start_worker():
     task_manager = get_task_manager()
     _worker = TaskWorker(
         task_manager=task_manager,
-        max_concurrent_tasks=task_manager.max_concurrent_tasks
+        max_concurrent_tasks=task_manager.max_concurrent_tasks,
     )
 
     await _worker.start()
@@ -189,15 +181,11 @@ async def stop_worker():
 def get_worker_status() -> dict:
     """获取Worker状态"""
     if _worker is None:
-        return {
-            "running": False,
-            "active_tasks": 0,
-            "max_concurrent": 0
-        }
+        return {"running": False, "active_tasks": 0, "max_concurrent": 0}
 
     return {
         "running": _worker._running,
         "active_tasks": len(_worker._active_tasks),
         "max_concurrent": _worker.max_concurrent_tasks,
-        "queue_size": _worker.task_manager.get_queue_size()
+        "queue_size": _worker.task_manager.get_queue_size(),
     }

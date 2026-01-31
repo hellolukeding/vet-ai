@@ -1,6 +1,7 @@
 """
 中医文献搜索节点 - 搜索中医古籍和现代中医文献
 """
+
 import json
 from typing import Dict, List
 
@@ -42,13 +43,15 @@ async def HerbLiteratureSearchNode(state: TCAgentState) -> Dict[str, List[TCMRef
     try:
         for query in search_queries[:2]:  # 最多执行2个查询
             try:
-                results_raw = web_search_tool.invoke({
-                    "query": query,
-                    "num_results": 3,
-                    "use_baidu": use_baidu
-                })
+                results_raw = web_search_tool.invoke(
+                    {"query": query, "num_results": 3, "use_baidu": use_baidu}
+                )
 
-                results = json.loads(results_raw) if isinstance(results_raw, str) else results_raw
+                results = (
+                    json.loads(results_raw)
+                    if isinstance(results_raw, str)
+                    else results_raw
+                )
 
                 if not results:
                     continue
@@ -68,7 +71,11 @@ async def HerbLiteratureSearchNode(state: TCAgentState) -> Dict[str, List[TCMRef
                         rid = r.get("id", "")
                         if rid:
                             content_raw = fetch_webpage_tool.invoke(rid)
-                            content = content_raw if isinstance(content_raw, str) else str(content_raw)
+                            content = (
+                                content_raw
+                                if isinstance(content_raw, str)
+                                else str(content_raw)
+                            )
 
                             # 限制内容长度
                             if len(content) > 2000:
@@ -79,7 +86,7 @@ async def HerbLiteratureSearchNode(state: TCAgentState) -> Dict[str, List[TCMRef
 
                     literature_item = TCMRefItem(
                         title=title,
-                        content=snippet + "\n" + content if content else snippet
+                        content=snippet + "\n" + content if content else snippet,
                     )
                     all_literature.append(literature_item)
 

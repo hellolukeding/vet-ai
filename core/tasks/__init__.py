@@ -18,5 +18,5 @@ __all__ = [
     "TaskWorker",
     "start_worker",
     "stop_worker",
-    "get_worker_status"
+    "get_worker_status",
 ]

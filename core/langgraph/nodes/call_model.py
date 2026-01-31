@@ -1,5 +1,4 @@
-from langchain_core.messages import (AIMessage, HumanMessage, SystemMessage,
-                                     ToolMessage)
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_openai import ChatOpenAI
 
 from backend.settings import settings
@@ -22,13 +21,14 @@ def get_llm():
 
 
 async def call_model(state: VetAgentState) -> VetAgentState:
-
     # 确保我们有消息且最后一条消息是正确的类型
-    if state['messages']:
-        last_message = state['messages'][-1]
-        if not isinstance(last_message, (AIMessage, SystemMessage, HumanMessage, ToolMessage)):
+    if state["messages"]:
+        last_message = state["messages"][-1]
+        if not isinstance(
+            last_message, (AIMessage, SystemMessage, HumanMessage, ToolMessage)
+        ):
             last_message = HumanMessage(content=last_message.content)
-            state['messages'][-1] = last_message
+            state["messages"][-1] = last_message
 
     # 提取 messages 中最后一个 HumanMessage（从后向前查找）
     messages = state.get("messages", [])

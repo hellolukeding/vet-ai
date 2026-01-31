@@ -40,8 +40,7 @@ async def DiagnosisNode(state: VetAgentState) -> Dict[str, List[DiagnosisItem]]:
     temperature = 0.6
 
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    description = getattr(state, "description",
-                          "") or state.get("description", "")
+    description = getattr(state, "description", "") or state.get("description", "")
 
     if not description:
         return {"diagnosis": []}
@@ -108,9 +107,15 @@ async def DiagnosisNode(state: VetAgentState) -> Dict[str, List[DiagnosisItem]]:
     if literature:
         human_content += "\n\n## 医学文献参考\n"
         for idx, lit in enumerate(literature[:5], 1):  # 最多参考5条
-            title = getattr(lit, "title", "") or (lit.get("title") if isinstance(lit, dict) else "")
-            snippet = getattr(lit, "snippet", "") or (lit.get("snippet") if isinstance(lit, dict) else "")
-            content = getattr(lit, "content", "") or (lit.get("content") if isinstance(lit, dict) else "")
+            title = getattr(lit, "title", "") or (
+                lit.get("title") if isinstance(lit, dict) else ""
+            )
+            snippet = getattr(lit, "snippet", "") or (
+                lit.get("snippet") if isinstance(lit, dict) else ""
+            )
+            content = getattr(lit, "content", "") or (
+                lit.get("content") if isinstance(lit, dict) else ""
+            )
 
             human_content += f"\n文献{idx}：{title}\n"
             if snippet:
@@ -119,16 +124,19 @@ async def DiagnosisNode(state: VetAgentState) -> Dict[str, List[DiagnosisItem]]:
                 human_content += f"内容摘要：{content[:300]}...\n"
         logger.info(f"诊断节点使用 {len(literature)} 条文献参考")
 
-    prompt = ChatPromptTemplate.from_messages([
-        SystemMessage(content=system_instructions),
-        HumanMessage(content=human_content)
-    ])
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            SystemMessage(content=system_instructions),
+            HumanMessage(content=human_content),
+        ]
+    )
 
     # 尝试使用结构化输出
     try:
         logger.info("尝试使用结构化输出进行诊断")
         structured_llm = llm.with_structured_output(
-            DiagnosisSchema, method="json_schema")
+            DiagnosisSchema, method="json_schema"
+        )
         messages = prompt.format_messages()
         response = await structured_llm.ainvoke(messages)
         logger.info(f"结构化输出成功: {response}")
@@ -138,16 +146,22 @@ async def DiagnosisNode(state: VetAgentState) -> Dict[str, List[DiagnosisItem]]:
         try:
             messages = prompt.format_messages()
             raw_response = await llm.ainvoke(messages)
-            logger.info(f"LLM 原始响应: {raw_response.content[:500]}...")  # 记录前500字符
+            logger.info(
+                f"LLM 原始响应: {raw_response.content[:500]}..."
+            )  # 记录前500字符
 
             # 尝试从原始响应中提取JSON
             content = extract_json_from_markdown(raw_response.content)
             logger.debug(f"提取的 JSON 内容: {content}")
             response = json.loads(content)
-            logger.info(f"JSON 解析成功: {list(response.keys()) if isinstance(response, dict) else type(response)}")
+            logger.info(
+                f"JSON 解析成功: {list(response.keys()) if isinstance(response, dict) else type(response)}"
+            )
         except Exception as e2:
             logger.error(f"诊断调用完全失败: {e2}")
-            logger.error(f"LLM 原始内容: {raw_response.content if 'raw_response' in locals() else 'N/A'}")
+            logger.error(
+                f"LLM 原始内容: {raw_response.content if 'raw_response' in locals() else 'N/A'}"
+            )
 
             # 返回错误而非默认建议（医学项目必须严谨）
             logger.warning("诊断LLM调用失败，不提供默认诊断建议以确保安全性")
@@ -159,13 +173,16 @@ async def DiagnosisNode(state: VetAgentState) -> Dict[str, List[DiagnosisItem]]:
         # If the structured output returned a pydantic BaseModel, convert to dict
         if hasattr(response, "model_dump"):
             response = response.model_dump()
-            logger.debug(f"转换为字典: {list(response.keys()) if isinstance(response, dict) else type(response)}")
+            logger.debug(
+                f"转换为字典: {list(response.keys()) if isinstance(response, dict) else type(response)}"
+            )
 
-        diag_list = response.get("diagnosis") if isinstance(
-            response, dict) else None
+        diag_list = response.get("diagnosis") if isinstance(response, dict) else None
         if not isinstance(diag_list, list):
             # try to extract from nested structure
-            logger.warning(f"diagnosis 字段不是列表: {type(diag_list)}, response={response}")
+            logger.warning(
+                f"diagnosis 字段不是列表: {type(diag_list)}, response={response}"
+            )
             diag_list = []
 
         normalized: List[DiagnosisItem] = []
@@ -174,8 +191,9 @@ async def DiagnosisNode(state: VetAgentState) -> Dict[str, List[DiagnosisItem]]:
             symptom = item.get("symptom", "")
             reason = item.get("reason", "")
             probability = float(item.get("probability", 0))
-            normalized.append(DiagnosisItem(
-                symptom=symptom, reason=reason, probability=probability))
+            normalized.append(
+                DiagnosisItem(symptom=symptom, reason=reason, probability=probability)
+            )
 
         logger.info(f"成功规范化 {len(normalized)} 个诊断结果")
         # Return as a simple dict compatible with VetAgentState

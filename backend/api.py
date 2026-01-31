@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # 导入诊断路由
 from backend.routers import diagnosis_router, graph_router, pet_care_router
+
 # 导入应用配置
 from backend.settings import settings
 from config.logger import logger
@@ -30,8 +31,9 @@ FORMAT = (
 )
 
 # 配置日志文件输出
-logger.add("server.log", format=FORMAT, level="INFO",
-           rotation="1 week", retention="90 days")
+logger.add(
+    "server.log", format=FORMAT, level="INFO", rotation="1 week", retention="90 days"
+)
 
 # API前缀
 prefix = "/api/v1"
@@ -47,6 +49,7 @@ async def lifespan(app: FastAPI):
         # 启动任务队列Worker
         logger.info("正在启动任务队列Worker...")
         from core.tasks.worker import start_worker
+
         await start_worker()
         logger.info("任务队列Worker已启动")
 
@@ -63,6 +66,7 @@ async def lifespan(app: FastAPI):
         # 停止任务队列Worker
         try:
             from core.tasks.worker import stop_worker
+
             await stop_worker()
             logger.info("任务队列Worker已停止")
         except Exception as e:
@@ -333,7 +337,7 @@ if __name__ == "__main__":
         host=settings.HOST,
         port=settings.PORT,
         reload=settings.DEBUG,
-        log_level="info"
+        log_level="info",
     )
 
 # 创建应用实例

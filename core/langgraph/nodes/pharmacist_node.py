@@ -19,6 +19,7 @@ class PharmacistSchema(BaseModel):
     药剂师节点的状态 schema。
     包含药品建议列表。
     """
+
     medications: List[MedicationItem] = Field(..., description="药品建议列表")
 
 
@@ -34,8 +35,7 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # retrieve diagnosis list from state (could be list of pydantic models or dicts)
-    diagnosis = getattr(state, "diagnosis", None) or state.get(
-        "diagnosis", None)
+    diagnosis = getattr(state, "diagnosis", None) or state.get("diagnosis", None)
     if not diagnosis or not isinstance(diagnosis, list):
         return {"medications": []}
 
@@ -52,7 +52,8 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
         for diag in diagnosis[:5]:
             # diag may be a pydantic model or dict
             name = getattr(diag, "symptom", None) or (
-                diag.get("symptom") if isinstance(diag, dict) else str(diag))
+                diag.get("symptom") if isinstance(diag, dict) else str(diag)
+            )
             if not name:
                 continue
 
@@ -60,11 +61,13 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
             query = f"宠物 {name} 常用治疗药物及剂量"
             # tools in core.langgraph.tools are synchronous and return JSON strings
             try:
-                results_raw = web_search_tool.invoke({
-                    "query": query,
-                    "num_results": 3,
-                    "use_baidu": use_baidu  # 使用百度搜索（中文医学内容更好）
-                })
+                results_raw = web_search_tool.invoke(
+                    {
+                        "query": query,
+                        "num_results": 3,
+                        "use_baidu": use_baidu,  # 使用百度搜索（中文医学内容更好）
+                    }
+                )
                 # web_search_tool may return a JSON string
                 if isinstance(results_raw, str):
                     results = json.loads(results_raw)
@@ -83,11 +86,23 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
                 # fetch full content if available -- pass the result id (tool expects id)
                 try:
                     content_raw = fetch_webpage_tool(rid)
-                    content = content_raw if isinstance(content_raw, str) else str(content_raw)
+                    content = (
+                        content_raw
+                        if isinstance(content_raw, str)
+                        else str(content_raw)
+                    )
                 except Exception:
                     content = ""
 
-                top_results.append({"id": rid, "title": title, "link": link, "snippet": snippet, "content": content})
+                top_results.append(
+                    {
+                        "id": rid,
+                        "title": title,
+                        "link": link,
+                        "snippet": snippet,
+                        "content": content,
+                    }
+                )
 
             search_context.append({"diagnosis": name, "results": top_results})
     except Exception as e:
@@ -145,9 +160,11 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
     context_lines = ["诊断列表:"]
     for d in diagnosis:
         name = getattr(d, "symptom", None) or (
-            d.get("symptom") if isinstance(d, dict) else str(d))
+            d.get("symptom") if isinstance(d, dict) else str(d)
+        )
         prob = getattr(d, "probability", None) or (
-            d.get("probability") if isinstance(d, dict) else None)
+            d.get("probability") if isinstance(d, dict) else None
+        )
         if prob is not None:
             context_lines.append(f"- {name} (可能性: {prob})")
         else:
@@ -156,21 +173,24 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
     context_lines.append("\n检索到的证据（每个诊断最多列出3条标题与摘要）:")
     for entry in search_context:
         context_lines.append(f"诊断: {entry['diagnosis']}")
-        for r in entry['results']:
+        for r in entry["results"]:
             context_lines.append(f"  标题: {r.get('title', '')}")
-            if r.get('snippet'):
+            if r.get("snippet"):
                 context_lines.append(f"  摘要: {r.get('snippet')}")
 
-    prompt = ChatPromptTemplate.from_messages([
-        SystemMessage(content=system_instructions),
-        HumanMessage(content="\n".join(context_lines))
-    ])
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            SystemMessage(content=system_instructions),
+            HumanMessage(content="\n".join(context_lines)),
+        ]
+    )
 
     # 尝试使用结构化输出
     try:
         logger.info("尝试使用结构化输出生成药物建议")
         structured_llm = llm.with_structured_output(
-            PharmacistSchema, method="json_schema")
+            PharmacistSchema, method="json_schema"
+        )
         messages = prompt.format_messages()
         response = await structured_llm.ainvoke(messages)
         logger.info(f"结构化输出成功: {response}")
@@ -180,16 +200,22 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
         try:
             messages = prompt.format_messages()
             raw_response = await llm.ainvoke(messages)
-            logger.info(f"LLM 原始响应: {raw_response.content[:500]}...")  # 记录前500字符
+            logger.info(
+                f"LLM 原始响应: {raw_response.content[:500]}..."
+            )  # 记录前500字符
 
             # 尝试从原始响应中提取JSON
             content = extract_json_from_markdown(raw_response.content)
             logger.debug(f"提取的 JSON 内容: {content}")
             response = json.loads(content)
-            logger.info(f"JSON 解析成功: {list(response.keys()) if isinstance(response, dict) else type(response)}")
+            logger.info(
+                f"JSON 解析成功: {list(response.keys()) if isinstance(response, dict) else type(response)}"
+            )
         except Exception as e2:
             logger.error(f"药剂师节点调用完全失败: {e2}")
-            logger.error(f"LLM 原始内容: {raw_response.content if 'raw_response' in locals() else 'N/A'}")
+            logger.error(
+                f"LLM 原始内容: {raw_response.content if 'raw_response' in locals() else 'N/A'}"
+            )
 
             # 返回空列表而非默认药物建议（医学项目必须严谨）
             logger.warning("药物LLM调用失败，不提供默认药物建议以确保安全性")
@@ -200,11 +226,15 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
         # Convert pydantic structured output to dict if needed
         if hasattr(response, "model_dump"):
             response = response.model_dump()
-            logger.debug(f"转换为字典: {list(response.keys()) if isinstance(response, dict) else type(response)}")
+            logger.debug(
+                f"转换为字典: {list(response.keys()) if isinstance(response, dict) else type(response)}"
+            )
 
         meds = response.get("medications") if isinstance(response, dict) else None
         if not isinstance(meds, list):
-            logger.warning(f"medications 字段不是列表: {type(meds)}, response={response}")
+            logger.warning(
+                f"medications 字段不是列表: {type(meds)}, response={response}"
+            )
             meds = []
 
         normalized: List[MedicationItem] = []
@@ -213,8 +243,14 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
             drug_name = item.get("drug_name", "")
             dosage = item.get("dosage", "")
             frequency = item.get("frequency", "")
-            normalized.append(MedicationItem(
-                symptom=symptom, drug_name=drug_name, dosage=dosage, frequency=frequency))
+            normalized.append(
+                MedicationItem(
+                    symptom=symptom,
+                    drug_name=drug_name,
+                    dosage=dosage,
+                    frequency=frequency,
+                )
+            )
 
         logger.info(f"成功规范化 {len(normalized)} 个药物建议")
         return {"medications": normalized}

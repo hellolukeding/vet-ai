@@ -10,7 +10,7 @@ from typing import Callable, TypeVar
 
 from config.logger import logger
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class GlobalRateLimiter:
@@ -38,7 +38,7 @@ class GlobalRateLimiter:
         return cls._instance
 
     @classmethod
-    async def get_limiter(cls, max_concurrent: int = 1) -> 'GlobalRateLimiter':
+    async def get_limiter(cls, max_concurrent: int = 1) -> "GlobalRateLimiter":
         """
         获取速率限制器实例（线程安全）
 

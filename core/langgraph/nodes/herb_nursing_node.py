@@ -1,6 +1,7 @@
 """
 中医护理建议节点 - 根据证型生成中医护理建议
 """
+
 import json
 from datetime import datetime
 from typing import Dict, List
@@ -18,6 +19,7 @@ from utils.json.extract_json_from_markdown import extract_json_from_markdown
 
 class NursingSchema(BaseModel):
     """中医护理建议schema"""
+
     nursing: List[TCMNursingItem] = Field(..., description="护理建议列表")
 
 
@@ -38,7 +40,9 @@ async def HerbNursingNode(state: TCAgentState) -> Dict[str, List[TCMNursingItem]
 
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    zhengming: List[TCMZhengmingItem] = getattr(state, "zhengming", []) or state.get("zhengming", [])
+    zhengming: List[TCMZhengmingItem] = getattr(state, "zhengming", []) or state.get(
+        "zhengming", []
+    )
 
     if not zhengming:
         logger.warning("中医护理：没有证型诊断结果")
@@ -54,9 +58,15 @@ async def HerbNursingNode(state: TCAgentState) -> Dict[str, List[TCMNursingItem]
     # 构建证型信息
     zhengming_text = "中医证型诊断：\n"
     for idx, z in enumerate(zhengming[:5], 1):
-        name = getattr(z, "zhengming", "") or (z.get("zhengming") if isinstance(z, dict) else "")
-        desc = getattr(z, "description", "") or (z.get("description") if isinstance(z, dict) else "")
-        therapy = getattr(z, "therapy", "") or (z.get("therapy") if isinstance(z, dict) else "")
+        name = getattr(z, "zhengming", "") or (
+            z.get("zhengming") if isinstance(z, dict) else ""
+        )
+        desc = getattr(z, "description", "") or (
+            z.get("description") if isinstance(z, dict) else ""
+        )
+        therapy = getattr(z, "therapy", "") or (
+            z.get("therapy") if isinstance(z, dict) else ""
+        )
         zhengming_text += f"{idx}. {name}\n   治法: {therapy}\n   依据: {desc}\n"
 
     # 中医护理系统提示
@@ -96,10 +106,12 @@ async def HerbNursingNode(state: TCAgentState) -> Dict[str, List[TCMNursingItem]
     - 严格只输出 JSON，不要使用Markdown代码块包装结果
     """
 
-    prompt = ChatPromptTemplate.from_messages([
-        SystemMessage(content=system_instructions),
-        HumanMessage(content=zhengming_text)
-    ])
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            SystemMessage(content=system_instructions),
+            HumanMessage(content=zhengming_text),
+        ]
+    )
 
     # 尝试使用结构化输出
     try:
@@ -123,17 +135,28 @@ async def HerbNursingNode(state: TCAgentState) -> Dict[str, List[TCMNursingItem]
             logger.error(f"中医护理建议生成失败: {e2}")
             # 返回默认护理建议
             logger.warning("使用默认中医护理建议")
-            return {"nursing": [
-                TCMNursingItem(category="base", content="饮食清淡易消化，保持环境温暖干燥，适当运动"),
-                TCMNursingItem(category="continue", content="观察症状变化，监测精神状态和体温"),
-                TCMNursingItem(category="suggest", content="持续呕吐腹泻或高热应立即就医")
-            ]}
+            return {
+                "nursing": [
+                    TCMNursingItem(
+                        category="base",
+                        content="饮食清淡易消化，保持环境温暖干燥，适当运动",
+                    ),
+                    TCMNursingItem(
+                        category="continue", content="观察症状变化，监测精神状态和体温"
+                    ),
+                    TCMNursingItem(
+                        category="suggest", content="持续呕吐腹泻或高热应立即就医"
+                    ),
+                ]
+            }
 
     # 规范化输出
     try:
         if hasattr(response, "model_dump"):
             response = response.model_dump()
-            logger.debug(f"转换为字典: {list(response.keys()) if isinstance(response, dict) else type(response)}")
+            logger.debug(
+                f"转换为字典: {list(response.keys()) if isinstance(response, dict) else type(response)}"
+            )
 
         nursing_list = response.get("nursing") if isinstance(response, dict) else None
         if not isinstance(nursing_list, list):
@@ -144,10 +167,7 @@ async def HerbNursingNode(state: TCAgentState) -> Dict[str, List[TCMNursingItem]
         for item in nursing_list:
             category = item.get("category", "")
             content = item.get("content", "")
-            normalized.append(TCMNursingItem(
-                category=category,
-                content=content
-            ))
+            normalized.append(TCMNursingItem(category=category, content=content))
 
         logger.info(f"成功规范化 {len(normalized)} 条护理建议")
         return {"nursing": normalized}
@@ -155,8 +175,17 @@ async def HerbNursingNode(state: TCAgentState) -> Dict[str, List[TCMNursingItem]
     except Exception as e:
         logger.error(f"中医护理建议解析失败: {e}", exc_info=True)
         logger.warning("使用默认中医护理建议")
-        return {"nursing": [
-            TCMNursingItem(category="base", content="饮食清淡易消化，保持环境温暖干燥，适当运动"),
-            TCMNursingItem(category="continue", content="观察症状变化，监测精神状态和体温"),
-            TCMNursingItem(category="suggest", content="持续呕吐腹泻或高热应立即就医")
-        ]}
+        return {
+            "nursing": [
+                TCMNursingItem(
+                    category="base",
+                    content="饮食清淡易消化，保持环境温暖干燥，适当运动",
+                ),
+                TCMNursingItem(
+                    category="continue", content="观察症状变化，监测精神状态和体温"
+                ),
+                TCMNursingItem(
+                    category="suggest", content="持续呕吐腹泻或高热应立即就医"
+                ),
+            ]
+        }

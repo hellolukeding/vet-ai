@@ -18,7 +18,7 @@ def extract_json_from_markdown(text: str) -> str:
         str: 提取出的纯JSON字符串
     """
     # 匹配```json ... ```或``` ... ```格式的代码块
-    pattern = r'```(?:json)?\s*([\s\S]*?)\s*```'
+    pattern = r"```(?:json)?\s*([\s\S]*?)\s*```"
     match = re.search(pattern, text)
     if match:
         return match.group(1).strip()
@@ -49,7 +49,4 @@ def parse_markdown_json(text: str) -> Union[Dict[str, Any], List[Any], None]:
     return None
 
 
-__all__ = [
-    "extract_json_from_markdown",
-    "parse_markdown_json"
-]
+__all__ = ["extract_json_from_markdown", "parse_markdown_json"]

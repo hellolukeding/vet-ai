@@ -15,6 +15,7 @@ class PetInfo(BaseModel):
 
     存储宠物的基本属性和健康相关信息，用于后续的营养和护理计划制定。
     """
+
     name: Optional[str] = None  # 宠物名称
     species: Optional[str] = None  # 物种类型，如: dog/cat/rabbit等
     breed: Optional[str] = None  # 品种，如: 金毛、波斯猫等
@@ -36,8 +37,11 @@ class NutritionPlan(BaseModel):
     包含宠物的每日营养需求、推荐食物、禁忌食物、补充剂和喂养时间表。
     由营养代理(nutrition agent)生成和维护。
     """
+
     daily_calories: Optional[str] = None  # 每日卡路里需求（单位：kcal），字符串格式
-    macro_ratio: Dict[str, str] = {}  # 宏量营养素比例，键为: protein/fat/carbs，值为字符串格式的百分比
+    macro_ratio: Dict[
+        str, str
+    ] = {}  # 宏量营养素比例，键为: protein/fat/carbs，值为字符串格式的百分比
     recommended_foods: List[str] = []  # 推荐食物列表
     avoid_foods: List[str] = []  # 应避免的食物列表（基于过敏或健康状况）
     supplements: List[str] = []  # 推荐的营养补充剂列表
@@ -51,6 +55,7 @@ class CarePlan(BaseModel):
     包含宠物的日常护理、医疗、运动、疫苗接种和环境管理建议。
     由护理代理(care agent)生成和维护。
     """
+
     grooming: List[str] = []  # 美容护理建议列表，如：刷牙、梳毛、洗澡频率等
     medical: List[str] = []  # 医疗护理建议列表，如：定期体检、用药提醒等
     exercise: List[str] = []  # 运动建议列表，如：每日散步时长、运动类型等
@@ -64,6 +69,7 @@ class IntermediateReasoning(BaseModel):
 
     记录各个代理(agent)的推理笔记、风险分析和潜在冲突，用于调试和审计。
     """
+
     nutrition_agent_notes: Optional[str] = None  # 营养代理的推理笔记和决策依据
     care_agent_notes: Optional[str] = None  # 护理代理的推理笔记和决策依据
     risk_analysis: Optional[str] = None  # 风险评估分析结果
@@ -76,6 +82,7 @@ class WorkflowFlags(BaseModel):
 
     控制LangGraph工作流的执行流程，标记各个阶段的完成状态。
     """
+
     need_pet_info_completion: str = "false"  # 是否需要补全宠物信息，"true" 或 "false"
     nutrition_plan_ready: str = "false"  # 营养计划是否已准备就绪，"true" 或 "false"
     care_plan_ready: str = "false"  # 护理计划是否已准备就绪，"true" 或 "false"
@@ -160,6 +167,7 @@ class State(BaseModel):
         flags: 工作流执行标志
         messages: LangGraph消息存储，记录各节点之间的消息传递
     """
+
     user_query: Optional[str] = None  # 用户的原始查询输入
     pet: PetInfo = PetInfo()  # 宠物信息实例
 
@@ -167,15 +175,18 @@ class State(BaseModel):
     care_plan: CarePlan = CarePlan()  # 护理计划实例
 
     # 使用Annotated和reducer来处理并行节点的并发更新
-    reasoning: Annotated[IntermediateReasoning,
-                         merge_reasoning_dicts] = IntermediateReasoning()  # 推理过程记录实例
-    flags: Annotated[WorkflowFlags,
-                     merge_flags_dicts] = WorkflowFlags()  # 工作流标志实例
+    reasoning: Annotated[IntermediateReasoning, merge_reasoning_dicts] = (
+        IntermediateReasoning()
+    )  # 推理过程记录实例
+    flags: Annotated[WorkflowFlags, merge_flags_dicts] = (
+        WorkflowFlags()
+    )  # 工作流标志实例
 
     messages: List[Dict[str, Any]] = []  # LangGraph消息存储列表，用于节点间通信
 
     class Config:
         """Pydantic配置"""
+
         arbitrary_types_allowed = True  # 允许任意类型
 
     @classmethod
@@ -197,19 +208,26 @@ class State(BaseModel):
             processed_data["pet"] = PetInfo(**processed_data["pet"])
 
         # 处理nutrition_plan字段
-        if "nutrition_plan" in processed_data and isinstance(processed_data["nutrition_plan"], dict):
+        if "nutrition_plan" in processed_data and isinstance(
+            processed_data["nutrition_plan"], dict
+        ):
             processed_data["nutrition_plan"] = NutritionPlan(
-                **processed_data["nutrition_plan"])
+                **processed_data["nutrition_plan"]
+            )
 
         # 处理care_plan字段
-        if "care_plan" in processed_data and isinstance(processed_data["care_plan"], dict):
-            processed_data["care_plan"] = CarePlan(
-                **processed_data["care_plan"])
+        if "care_plan" in processed_data and isinstance(
+            processed_data["care_plan"], dict
+        ):
+            processed_data["care_plan"] = CarePlan(**processed_data["care_plan"])
 
         # 处理reasoning字段
-        if "reasoning" in processed_data and isinstance(processed_data["reasoning"], dict):
+        if "reasoning" in processed_data and isinstance(
+            processed_data["reasoning"], dict
+        ):
             processed_data["reasoning"] = IntermediateReasoning(
-                **processed_data["reasoning"])
+                **processed_data["reasoning"]
+            )
 
         # 处理flags字段
         if "flags" in processed_data and isinstance(processed_data["flags"], dict):
@@ -243,7 +261,9 @@ class State(BaseModel):
                     # 创建新的模型实例
                     model_class = type(current_value)
                     setattr(new_state, key, model_class(**current_dict))
-                elif isinstance(current_value, BaseModel) and isinstance(value, BaseModel):
+                elif isinstance(current_value, BaseModel) and isinstance(
+                    value, BaseModel
+                ):
                     # 如果传入的是Pydantic模型，直接替换
                     setattr(new_state, key, value)
                 else:

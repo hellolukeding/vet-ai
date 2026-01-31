@@ -4,12 +4,10 @@
 提供基于LangGraph的宠物护理计划生成接口，包括营养计划和护理计划。
 """
 
-
 from fastapi import APIRouter, Query, status
 from fastapi.responses import JSONResponse
 
-from backend.element.ele_pet_care import (CreatePetCarePlanRequest,
-                                          PetCarePlanResponse)
+from backend.element.ele_pet_care import CreatePetCarePlanRequest, PetCarePlanResponse
 from config.logger import logger
 from core.plan.agent import PetCareAgent
 from core.tasks import TaskType, get_task_manager
@@ -74,29 +72,29 @@ router = APIRouter()
                                 "species": "狗",
                                 "breed": "金毛",
                                 "age": "3岁",
-                                "weight": "30.0"
+                                "weight": "30.0",
                             },
                             "nutrition_plan": {
                                 "daily_calories": "1600 kcal",
                                 "macro_ratio": {
                                     "protein": "30%",
                                     "fat": "20%",
-                                    "carbs": "50%"
-                                }
+                                    "carbs": "50%",
+                                },
                             },
                             "care_plan": {
                                 "grooming": ["每周梳理毛发2-3次"],
-                                "medical": ["每年进行一次全面体检"]
+                                "medical": ["每年进行一次全面体检"],
                             },
                             "status": {
                                 "nutrition_plan_ready": "true",
-                                "care_plan_ready": "true"
-                            }
+                                "care_plan_ready": "true",
+                            },
                         },
-                        "code": 200
+                        "code": 200,
                     }
                 }
-            }
+            },
         },
         206: {
             "description": "部分计划生成成功（部分计划失败）",
@@ -122,7 +120,9 @@ async def create_pet_care_plan(
         """.strip(),
     ),
 ) -> JSONResponse:
-    logger.info(f"收到宠物护理计划请求: {request.user_query[:50]}..., async_mode={async_mode}")
+    logger.info(
+        f"收到宠物护理计划请求: {request.user_query[:50]}..., async_mode={async_mode}"
+    )
 
     try:
         # 检查输入是否为空
@@ -133,8 +133,8 @@ async def create_pet_care_plan(
                 content={
                     "message": "用户查询不能为空",
                     "data": None,
-                    "code": status.HTTP_400_BAD_REQUEST
-                }
+                    "code": status.HTTP_400_BAD_REQUEST,
+                },
             )
 
         # 构建任务数据
@@ -158,21 +158,16 @@ async def create_pet_care_plan(
         if async_mode:
             task_manager = get_task_manager()
             task_id = task_manager.submit_task(
-                TaskType.PET_CARE_PLAN,
-                task_data,
-                priority=0
+                TaskType.PET_CARE_PLAN, task_data, priority=0
             )
             logger.info(f"宠物护理计划任务已提交: {task_id}")
             return JSONResponse(
                 status_code=status.HTTP_202_ACCEPTED,
                 content={
                     "message": "宠物护理计划任务已提交，请使用task_id查询结果",
-                    "data": {
-                        "task_id": task_id,
-                        "status": "pending"
-                    },
-                    "code": status.HTTP_202_ACCEPTED
-                }
+                    "data": {"task_id": task_id, "status": "pending"},
+                    "code": status.HTTP_202_ACCEPTED,
+                },
             )
 
         # 同步模式：直接执行并返回结果 (保持原有行为)
@@ -191,15 +186,16 @@ async def create_pet_care_plan(
         if request.pet_sex:
             pet_info["sex"] = request.pet_sex
         if request.pet_neutered is not None:
-            pet_info["neutered"] = "true" if request.pet_neutered else "false"  # 转换为字符串
+            pet_info["neutered"] = (
+                "true" if request.pet_neutered else "false"
+            )  # 转换为字符串
 
         logger.debug(f"初始宠物信息: {pet_info}")
 
         # 创建代理并执行工作流
         agent = PetCareAgent()
         result = await agent.run(
-            user_query=request.user_query,
-            pet_info=pet_info if pet_info else None
+            user_query=request.user_query, pet_info=pet_info if pet_info else None
         )
 
         logger.info("宠物护理计划生成完成")
@@ -216,7 +212,7 @@ async def create_pet_care_plan(
                 "neutered": result.pet.neutered,
                 "health_conditions": result.pet.health_conditions,
                 "allergies": result.pet.allergies,
-                "activity_level": result.pet.activity_level
+                "activity_level": result.pet.activity_level,
             },
             "nutrition_plan": {
                 "daily_calories": result.nutrition_plan.daily_calories,
@@ -224,24 +220,24 @@ async def create_pet_care_plan(
                 "recommended_foods": result.nutrition_plan.recommended_foods,
                 "avoid_foods": result.nutrition_plan.avoid_foods,
                 "supplements": result.nutrition_plan.supplements,
-                "feeding_schedule": result.nutrition_plan.feeding_schedule
+                "feeding_schedule": result.nutrition_plan.feeding_schedule,
             },
             "care_plan": {
                 "grooming": result.care_plan.grooming,
                 "medical": result.care_plan.medical,
                 "exercise": result.care_plan.exercise,
                 "vaccination": result.care_plan.vaccination,
-                "environment": result.care_plan.environment
+                "environment": result.care_plan.environment,
             },
             "validation": {
                 "risk_analysis": result.reasoning.risk_analysis,
-                "contradictions": result.reasoning.contradictions
+                "contradictions": result.reasoning.contradictions,
             },
             "status": {
                 "nutrition_plan_ready": result.flags.nutrition_plan_ready,
                 "care_plan_ready": result.flags.care_plan_ready,
-                "final_output_ready": result.flags.final_output_ready
-            }
+                "final_output_ready": result.flags.final_output_ready,
+            },
         }
 
         # 检查计划是否全部完成
@@ -252,12 +248,16 @@ async def create_pet_care_plan(
         failure_reasons = []
         if not nutrition_ready:
             if result.reasoning.nutrition_agent_notes:
-                failure_reasons.append(f"营养计划失败: {result.reasoning.nutrition_agent_notes}")
+                failure_reasons.append(
+                    f"营养计划失败: {result.reasoning.nutrition_agent_notes}"
+                )
             else:
                 failure_reasons.append("营养计划生成失败（原因未知）")
         if not care_ready:
             if result.reasoning.care_agent_notes:
-                failure_reasons.append(f"护理计划失败: {result.reasoning.care_agent_notes}")
+                failure_reasons.append(
+                    f"护理计划失败: {result.reasoning.care_agent_notes}"
+                )
             else:
                 failure_reasons.append("护理计划生成失败（原因未知）")
 
@@ -272,9 +272,9 @@ async def create_pet_care_plan(
                     "details": {
                         "nutrition_ready": nutrition_ready,
                         "care_ready": care_ready,
-                        "failure_reasons": failure_reasons
-                    }
-                }
+                        "failure_reasons": failure_reasons,
+                    },
+                },
             )
 
         logger.info("所有计划生成成功")
@@ -283,8 +283,8 @@ async def create_pet_care_plan(
             content={
                 "message": "宠物护理计划生成成功",
                 "data": response_data,
-                "code": status.HTTP_200_OK
-            }
+                "code": status.HTTP_200_OK,
+            },
         )
 
     except Exception as e:
@@ -294,8 +294,8 @@ async def create_pet_care_plan(
             content={
                 "message": f"护理计划生成服务暂时不可用: {str(e)}",
                 "data": None,
-                "code": status.HTTP_500_INTERNAL_SERVER_ERROR
-            }
+                "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            },
         )
 
 
@@ -322,10 +322,10 @@ async def create_pet_care_plan(
                         "message": "宠物护理计划服务运行正常",
                         "code": 200,
                         "service": "pet-care-plan",
-                        "version": "1.0.0"
+                        "version": "1.0.0",
                     }
                 }
-            }
+            },
         }
     },
     tags=["pet-care"],
@@ -337,8 +337,8 @@ async def health_check() -> JSONResponse:
             "message": "宠物护理计划服务运行正常",
             "code": status.HTTP_200_OK,
             "service": "pet-care-plan",
-            "version": "1.0.0"
-        }
+            "version": "1.0.0",
+        },
     )
 
 
@@ -378,10 +378,10 @@ async def health_check() -> JSONResponse:
                                 "data": {
                                     "pet_info": {"name": "Lucky"},
                                     "nutrition_plan": {"daily_calories": "1600 kcal"},
-                                    "care_plan": {"grooming": ["每周梳理毛发"]}
+                                    "care_plan": {"grooming": ["每周梳理毛发"]},
                                 },
-                                "code": 200
-                            }
+                                "code": 200,
+                            },
                         },
                         "processing": {
                             "summary": "处理中",
@@ -390,35 +390,33 @@ async def health_check() -> JSONResponse:
                                 "data": {
                                     "task_id": "abc123",
                                     "status": "processing",
-                                    "progress": {"stage": "生成营养计划", "percentage": 50}
+                                    "progress": {
+                                        "stage": "生成营养计划",
+                                        "percentage": 50,
+                                    },
                                 },
-                                "code": 200
-                            }
+                                "code": 200,
+                            },
                         },
                         "pending": {
                             "summary": "等待中",
                             "value": {
                                 "message": "任务排队中",
-                                "data": {
-                                    "task_id": "abc123",
-                                    "status": "pending"
-                                },
-                                "code": 200
-                            }
-                        }
+                                "data": {"task_id": "abc123", "status": "pending"},
+                                "code": 200,
+                            },
+                        },
                     }
                 }
-            }
+            },
         },
         404: {
             "description": "任务不存在或已过期",
-        }
+        },
     },
     tags=["pet-care"],
 )
-async def get_pet_care_plan_task_status(
-    task_id: str
-) -> JSONResponse:
+async def get_pet_care_plan_task_status(task_id: str) -> JSONResponse:
     task_manager = get_task_manager()
     status_info = task_manager.get_task_status(task_id)
 
@@ -428,8 +426,8 @@ async def get_pet_care_plan_task_status(
             content={
                 "message": "任务不存在或已过期",
                 "data": None,
-                "code": status.HTTP_404_NOT_FOUND
-            }
+                "code": status.HTTP_404_NOT_FOUND,
+            },
         )
 
     task_status = status_info["status"]
@@ -442,8 +440,8 @@ async def get_pet_care_plan_task_status(
             content={
                 "message": "宠物护理计划生成成功",
                 "data": result,
-                "code": status.HTTP_200_OK
-            }
+                "code": status.HTTP_200_OK,
+            },
         )
 
     # 任务失败
@@ -454,8 +452,8 @@ async def get_pet_care_plan_task_status(
             content={
                 "message": result.get("error", "宠物护理计划任务执行失败"),
                 "data": None,
-                "code": status.HTTP_200_OK
-            }
+                "code": status.HTTP_200_OK,
+            },
         )
 
     # 任务处理中
@@ -468,10 +466,10 @@ async def get_pet_care_plan_task_status(
                 "data": {
                     "task_id": task_id,
                     "status": "processing",
-                    "progress": progress
+                    "progress": progress,
                 },
-                "code": status.HTTP_200_OK
-            }
+                "code": status.HTTP_200_OK,
+            },
         )
 
     # 任务等待中
@@ -480,12 +478,9 @@ async def get_pet_care_plan_task_status(
             status_code=status.HTTP_200_OK,
             content={
                 "message": "任务排队中",
-                "data": {
-                    "task_id": task_id,
-                    "status": "pending"
-                },
-                "code": status.HTTP_200_OK
-            }
+                "data": {"task_id": task_id, "status": "pending"},
+                "code": status.HTTP_200_OK,
+            },
         )
 
 
@@ -519,35 +514,35 @@ async def get_pet_care_plan_task_status(
                             "value": {
                                 "message": "任务已取消",
                                 "data": {"task_id": "abc123", "cancelled": True},
-                                "code": 200
-                            }
+                                "code": 200,
+                            },
                         },
                         "failed": {
                             "summary": "无法取消",
                             "value": {
                                 "message": "任务无法取消（可能已完成或不存在）",
                                 "data": {"task_id": "abc123", "cancelled": False},
-                                "code": 200
-                            }
-                        }
+                                "code": 200,
+                            },
+                        },
                     }
                 }
-            }
+            },
         }
     },
     tags=["pet-care"],
 )
-async def cancel_pet_care_plan_task(
-    task_id: str
-) -> JSONResponse:
+async def cancel_pet_care_plan_task(task_id: str) -> JSONResponse:
     task_manager = get_task_manager()
     success = task_manager.cancel_task(task_id)
 
     return JSONResponse(
         status_code=status.HTTP_200_OK,
         content={
-            "message": "任务已取消" if success else "任务无法取消（可能已完成或不存在）",
+            "message": "任务已取消"
+            if success
+            else "任务无法取消（可能已完成或不存在）",
             "data": {"task_id": task_id, "cancelled": success},
-            "code": status.HTTP_200_OK
-        }
+            "code": status.HTTP_200_OK,
+        },
     )

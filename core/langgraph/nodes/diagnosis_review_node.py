@@ -1,6 +1,7 @@
 """
 诊断审查节点 - 对诊断结果进行质量审查和优化
 """
+
 from datetime import datetime
 from typing import Dict, List
 
@@ -16,6 +17,7 @@ from core.langgraph.state import DiagnosisItem, VetAgentState
 
 class DiagnosisReviewSchema(BaseModel):
     """诊断审查结果schema"""
+
     reviewed_diagnosis: List[DiagnosisItem] = Field(..., description="审查后的诊断列表")
     review_notes: str = Field(..., description="审查意见和改进说明")
 
@@ -38,7 +40,9 @@ async def DiagnosisReviewNode(state: VetAgentState) -> Dict[str, List[DiagnosisI
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # 获取诊断和文献
-    diagnosis: List[DiagnosisItem] = getattr(state, "diagnosis", []) or state.get("diagnosis", [])
+    diagnosis: List[DiagnosisItem] = getattr(state, "diagnosis", []) or state.get(
+        "diagnosis", []
+    )
     literature: List = getattr(state, "literature", []) or state.get("literature", [])
 
     if not diagnosis:
@@ -55,9 +59,15 @@ async def DiagnosisReviewNode(state: VetAgentState) -> Dict[str, List[DiagnosisI
     # 构建诊断信息
     diagnosis_text = "当前诊断结果：\n"
     for idx, d in enumerate(diagnosis, 1):
-        symptom = getattr(d, "symptom", "") or (d.get("symptom") if isinstance(d, dict) else "")
-        reason = getattr(d, "reason", "") or (d.get("reason") if isinstance(d, dict) else "")
-        prob = getattr(d, "probability", None) or (d.get("probability") if isinstance(d, dict) else 0)
+        symptom = getattr(d, "symptom", "") or (
+            d.get("symptom") if isinstance(d, dict) else ""
+        )
+        reason = getattr(d, "reason", "") or (
+            d.get("reason") if isinstance(d, dict) else ""
+        )
+        prob = getattr(d, "probability", None) or (
+            d.get("probability") if isinstance(d, dict) else 0
+        )
         diagnosis_text += f"{idx}. {symptom} (概率: {prob})\n   依据: {reason}\n"
 
     # 构建文献参考信息
@@ -65,9 +75,17 @@ async def DiagnosisReviewNode(state: VetAgentState) -> Dict[str, List[DiagnosisI
     if literature:
         lit_text = "\n医学文献参考：\n"
         for idx, lit in enumerate(literature[:3], 1):
-            title = getattr(lit, "title", "") or (lit.get("title") if isinstance(lit, dict) else "")
-            snippet = getattr(lit, "snippet", "") or (lit.get("snippet") if isinstance(lit, dict) else "")
-            lit_text += f"{idx}. {title}\n   {snippet[:200]}...\n" if snippet else f"{idx}. {title}\n"
+            title = getattr(lit, "title", "") or (
+                lit.get("title") if isinstance(lit, dict) else ""
+            )
+            snippet = getattr(lit, "snippet", "") or (
+                lit.get("snippet") if isinstance(lit, dict) else ""
+            )
+            lit_text += (
+                f"{idx}. {title}\n   {snippet[:200]}...\n"
+                if snippet
+                else f"{idx}. {title}\n"
+            )
 
     system_instructions = f"""
     当前时间：{current_time}
@@ -98,14 +116,18 @@ async def DiagnosisReviewNode(state: VetAgentState) -> Dict[str, List[DiagnosisI
     - 严格只输出 JSON，不要使用Markdown代码块
     """
 
-    prompt = ChatPromptTemplate.from_messages([
-        SystemMessage(content=system_instructions),
-        HumanMessage(content=diagnosis_text + lit_text)
-    ])
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            SystemMessage(content=system_instructions),
+            HumanMessage(content=diagnosis_text + lit_text),
+        ]
+    )
 
     try:
         logger.info("开始诊断审查")
-        structured_llm = llm.with_structured_output(DiagnosisReviewSchema, method="json_schema")
+        structured_llm = llm.with_structured_output(
+            DiagnosisReviewSchema, method="json_schema"
+        )
         messages = prompt.format_messages()
         response = await structured_llm.ainvoke(messages)
         logger.info(f"诊断审查成功: {response.review_notes}")
@@ -117,11 +139,13 @@ async def DiagnosisReviewNode(state: VetAgentState) -> Dict[str, List[DiagnosisI
         reviewed = response.get("reviewed_diagnosis", [])
         normalized = []
         for item in reviewed:
-            normalized.append(DiagnosisItem(
-                symptom=item.get("symptom", ""),
-                reason=item.get("reason", ""),
-                probability=float(item.get("probability", 0))
-            ))
+            normalized.append(
+                DiagnosisItem(
+                    symptom=item.get("symptom", ""),
+                    reason=item.get("reason", ""),
+                    probability=float(item.get("probability", 0)),
+                )
+            )
 
         logger.info(f"诊断审查完成，审查后 {len(normalized)} 个诊断")
         return {"diagnosis": normalized}

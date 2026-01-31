@@ -1,6 +1,7 @@
 """
 中医诊断 LangGraph 工作流
 """
+
 from langgraph.graph import END, START, StateGraph
 
 from core.langgraph.nodes.herb_diagnosis_node import HerbDiagnosisNode
@@ -61,6 +62,4 @@ class HerbAgent:
 
 herb_graph = HerbAgent().graph
 
-__all__ = [
-    "herb_graph"
-]
+__all__ = ["herb_graph"]

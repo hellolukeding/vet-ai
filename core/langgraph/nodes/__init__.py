@@ -1,4 +1,3 @@
-
 from .call_model import call_model
 from .diagnosis_node import DiagnosisNode
 from .diagnosis_review_node import DiagnosisReviewNode
@@ -14,5 +13,5 @@ __all__ = [
     "LiteratureSearchNode",
     "PharmacistNode",
     "ReportNode",
-    "SafetyCheckNode"
+    "SafetyCheckNode",
 ]

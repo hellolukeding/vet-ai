@@ -1,6 +1,7 @@
 """
 中医诊断报告节点 - 生成结构化中医诊断报告
 """
+
 from datetime import datetime
 from typing import List
 
@@ -18,14 +19,16 @@ async def HerbReportNode(state: TCAgentState) -> dict:
         dict compatible with TCAgentState
     """
     import logging
+
     logger = logging.getLogger(__name__)
     logger.debug("HerbReportNode 执行 - 验证修复是否生效")
-    description = getattr(state, "description",
-                          "") or state.get("description", "")
-    zhengming: List[TCMZhengmingItem] = getattr(
-        state, "zhengming", []) or state.get("zhengming", []) or []
-    prescriptions: List[HerbalPrescriptionItem] = getattr(
-        state, "prescriptions", []) or state.get("prescriptions", []) or []
+    description = getattr(state, "description", "") or state.get("description", "")
+    zhengming: List[TCMZhengmingItem] = (
+        getattr(state, "zhengming", []) or state.get("zhengming", []) or []
+    )
+    prescriptions: List[HerbalPrescriptionItem] = (
+        getattr(state, "prescriptions", []) or state.get("prescriptions", []) or []
+    )
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     lines = [f"中医诊断报告生成时间: {now}"]
@@ -37,13 +40,17 @@ async def HerbReportNode(state: TCAgentState) -> dict:
         lines.append("\n## 中医证型诊断（按概率排序）:")
         for idx, z in enumerate(zhengming, start=1):
             name = getattr(z, "zhengming", "") or (
-                z.get("zhengming") if isinstance(z, dict) else "")
+                z.get("zhengming") if isinstance(z, dict) else ""
+            )
             desc = getattr(z, "description", "") or (
-                z.get("description") if isinstance(z, dict) else "")
+                z.get("description") if isinstance(z, dict) else ""
+            )
             prob = getattr(z, "probability", None) or (
-                z.get("probability") if isinstance(z, dict) else None)
+                z.get("probability") if isinstance(z, dict) else None
+            )
             therapy = getattr(z, "therapy", "") or (
-                z.get("therapy") if isinstance(z, dict) else "")
+                z.get("therapy") if isinstance(z, dict) else ""
+            )
             prob_str = f"{float(prob):.3f}" if prob is not None else "-"
             lines.append(f"{idx}. {name} (置信度: {prob_str})")
             lines.append(f"   治法: {therapy}")
@@ -55,10 +62,12 @@ async def HerbReportNode(state: TCAgentState) -> dict:
     if prescriptions:
         # 按证型分组
         from collections import defaultdict
+
         grouped = defaultdict(list)
         for p in prescriptions:
             p_zhengming = getattr(p, "zhengming", "") or (
-                p.get("zhengming") if isinstance(p, dict) else "")
+                p.get("zhengming") if isinstance(p, dict) else ""
+            )
             grouped[p_zhengming].append(p)
 
         lines.append("\n## 中药方剂建议:")
@@ -67,13 +76,17 @@ async def HerbReportNode(state: TCAgentState) -> dict:
             lines.append(f"\n### 证型: {zhengming_name}")
             for idx, p in enumerate(preds, 1):
                 ptype = getattr(p, "prescription_type", "") or (
-                    p.get("prescription_type") if isinstance(p, dict) else "")
+                    p.get("prescription_type") if isinstance(p, dict) else ""
+                )
                 pname = getattr(p, "prescription_name", "") or (
-                    p.get("prescription_name") if isinstance(p, dict) else "")
+                    p.get("prescription_name") if isinstance(p, dict) else ""
+                )
                 composition = getattr(p, "composition", "") or (
-                    p.get("composition") if isinstance(p, dict) else "")
+                    p.get("composition") if isinstance(p, dict) else ""
+                )
                 usage = getattr(p, "usage", "") or (
-                    p.get("usage") if isinstance(p, dict) else "")
+                    p.get("usage") if isinstance(p, dict) else ""
+                )
 
                 lines.append(f"{idx}. [{ptype}] {pname}")
                 lines.append(f"   组成: {composition}")
@@ -116,13 +129,11 @@ async def HerbReportNode(state: TCAgentState) -> dict:
     report = "\n".join(lines)
 
     # 详细调试：检查返回值
-    logger.debug(f"HerbReportNode 准备返回 - zhengming type: {type(zhengming)}, len: {len(zhengming) if isinstance(zhengming, list) else 'N/A'}")
+    logger.debug(
+        f"HerbReportNode 准备返回 - zhengming type: {type(zhengming)}, len: {len(zhengming) if isinstance(zhengming, list) else 'N/A'}"
+    )
     if isinstance(zhengming, list) and len(zhengming) > 0:
         logger.debug(f"zhengming[0] type: {type(zhengming[0])}")
 
     # Return updated state-like dict
-    return {
-        "report": report,
-        "zhengming": zhengming,
-        "prescriptions": prescriptions
-    }
+    return {"report": report, "zhengming": zhengming, "prescriptions": prescriptions}

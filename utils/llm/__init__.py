@@ -11,5 +11,5 @@ __all__ = [
     "GlobalRateLimiter",
     "get_global_rate_limiter",
     "RetryConfig",
-    "retry_on_rate_limit"
+    "retry_on_rate_limit",
 ]

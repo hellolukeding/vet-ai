@@ -55,8 +55,11 @@ services:
       # Redis配置
       - REDIS_URL=redis://redis:6379/0
       # CORS配置
-      - ALLOWED_HOSTS=*
+      - ALLOWED_HOSTS=["*"]
       - CORS_ALLOW_CREDENTIALS=true
+      - CORS_ALLOW_METHODS=["GET","POST","PUT","DELETE","OPTIONS"]
+      - CORS_ALLOW_HEADERS=["*"]
+      - CORS_EXPOSE_HEADERS=["*"]
       # 调试模式（生产环境设为false）
       - DEBUG=false
       # API文档访问控制（生产环境也可设为true以查看文档）

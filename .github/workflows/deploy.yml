@@ -34,8 +34,9 @@ jobs:
           echo "测试服务器连接..."
           SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
           SERVER_USER="$(printf '%s' '${{ secrets.SERVER_USER }}' | xargs)"
+          SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
-            ssh -o StrictHostKeyChecking=no \
+            ssh ${SSH_OPTIONS} \
             "${SERVER_USER}@${SERVER_HOST}" \
             "echo '连接成功！' && pwd && ls -la /opt/vet-ai"
 
@@ -66,51 +67,80 @@ jobs:
           echo "上传 docker/.env 到服务器..."
           SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
           SERVER_USER="$(printf '%s' '${{ secrets.SERVER_USER }}' | xargs)"
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" rsync -avz \
-            -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
-            ./.deploy/docker.env \
-            "${SERVER_USER}@${SERVER_HOST}:/opt/vet-ai/docker/.env"
+          RSYNC_SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
+
+          for attempt in 1 2 3; do
+            if sshpass -p "${{ secrets.SERVER_PASSWORD }}" rsync -avz \
+              -e "${RSYNC_SSH}" \
+              ./.deploy/docker.env \
+              "${SERVER_USER}@${SERVER_HOST}:/opt/vet-ai/docker/.env"; then
+              exit 0
+            fi
+
+            if [ "$attempt" -lt 3 ]; then
+              echo "上传失败，10 秒后重试 (${attempt}/3)..."
+              sleep 10
+            fi
+          done
+
+          echo "上传 docker/.env 失败"
+          exit 1
 
       - name: 同步代码到服务器
         run: |
           echo "同步代码到服务器..."
           SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
           SERVER_USER="$(printf '%s' '${{ secrets.SERVER_USER }}' | xargs)"
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" rsync -rlptDz --delete \
-            --no-perms \
-            --no-owner \
-            --no-group \
-            --omit-dir-times \
-            --exclude='.git' \
-            --exclude='.agents' \
-            --exclude='.claude' \
-            --exclude='.deploy' \
-            --exclude='.env' \
-            --exclude='.github' \
-            --exclude='.vscode' \
-            --exclude='docker/.env' \
-            --exclude='docs' \
-            --exclude='frontend' \
-            --exclude='node_modules' \
-            --exclude='__pycache__' \
-            --exclude='*.pyc' \
-            --exclude='.venv' \
-            --exclude='logs' \
-            --exclude='.pytest_cache' \
-            --exclude='skills' \
-            --exclude='test' \
-            --exclude='tests' \
-            --exclude='*.log' \
-            -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
-            ./ "${SERVER_USER}@${SERVER_HOST}:/opt/vet-ai/"
+          RSYNC_SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
+
+          for attempt in 1 2 3; do
+            if sshpass -p "${{ secrets.SERVER_PASSWORD }}" rsync -rlptDz --delete \
+              --no-perms \
+              --no-owner \
+              --no-group \
+              --omit-dir-times \
+              --exclude='.git' \
+              --exclude='.agents' \
+              --exclude='.claude' \
+              --exclude='.deploy' \
+              --exclude='.env' \
+              --exclude='.github' \
+              --exclude='.vscode' \
+              --exclude='docker/.env' \
+              --exclude='docs' \
+              --exclude='frontend' \
+              --exclude='node_modules' \
+              --exclude='__pycache__' \
+              --exclude='*.pyc' \
+              --exclude='.venv' \
+              --exclude='logs' \
+              --exclude='.pytest_cache' \
+              --exclude='skills' \
+              --exclude='test' \
+              --exclude='tests' \
+              --exclude='*.log' \
+              -e "${RSYNC_SSH}" \
+              ./ "${SERVER_USER}@${SERVER_HOST}:/opt/vet-ai/"; then
+              exit 0
+            fi
+
+            if [ "$attempt" -lt 3 ]; then
+              echo "代码同步失败，15 秒后重试 (${attempt}/3)..."
+              sleep 15
+            fi
+          done
+
+          echo "同步代码到服务器失败"
+          exit 1
 
       - name: 重启 Docker 服务
         run: |
           echo "重启 Docker 服务..."
           SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
           SERVER_USER="$(printf '%s' '${{ secrets.SERVER_USER }}' | xargs)"
+          SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
-            ssh -o StrictHostKeyChecking=no \
+            ssh ${SSH_OPTIONS} \
             "${SERVER_USER}@${SERVER_HOST}" << 'ENDSSH'
             set -e
             cd /opt/vet-ai

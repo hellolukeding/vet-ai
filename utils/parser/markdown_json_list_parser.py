@@ -59,12 +59,14 @@ def clean_json_string(json_str: str) -> str:
     # 为没有引号的字符串值添加引号
     json_str = re.sub(
         r'(:\s*)([^\d\[\{\]\}\s"\'"][^,}\n]*?)([,\n}])',
-        lambda m: f'{m.group(1)}"{m.group(2).strip()}"{m.group(3)}'
-        if not (
-            m.group(2).strip().lower() in ["true", "false", "null"]
-            or re.match(r"^\d+\.?\d*$", m.group(2).strip())
-        )
-        else f"{m.group(1)}{m.group(2).strip()}{m.group(3)}",
+        lambda m: (
+            f'{m.group(1)}"{m.group(2).strip()}"{m.group(3)}'
+            if not (
+                m.group(2).strip().lower() in ["true", "false", "null"]
+                or re.match(r"^\d+\.?\d*$", m.group(2).strip())
+            )
+            else f"{m.group(1)}{m.group(2).strip()}{m.group(3)}"
+        ),
         json_str,
     )
 
@@ -161,12 +163,14 @@ def fix_json_format(json_str: str) -> str:
     original_json_str = json_str
     json_str = re.sub(
         r'([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*:)(\s*)([^"\'\d\[\{\]\}\s][^,}\n]*?|[^\s,}\n]*?)([,\n}])',
-        lambda m: f'{m.group(1)}"{m.group(2)}"{m.group(3)}{m.group(4)}"{m.group(5)}"{m.group(6)}'
-        if not (
-            m.group(5).lower() in ["true", "false", "null"]
-            or re.match(r"^\d+\.?\d*$", m.group(5))
-        )
-        else f'{m.group(1)}"{m.group(2)}"{m.group(3)}{m.group(4)}{m.group(5)}{m.group(6)}',
+        lambda m: (
+            f'{m.group(1)}"{m.group(2)}"{m.group(3)}{m.group(4)}"{m.group(5)}"{m.group(6)}'
+            if not (
+                m.group(5).lower() in ["true", "false", "null"]
+                or re.match(r"^\d+\.?\d*$", m.group(5))
+            )
+            else f'{m.group(1)}"{m.group(2)}"{m.group(3)}{m.group(4)}{m.group(5)}{m.group(6)}'
+        ),
         json_str,
     )
     if json_str != original_json_str:

@@ -18,7 +18,7 @@ import time
 from typing import Dict, List, Optional
 
 import aiohttp
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, FeatureNotFound
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
 
@@ -36,6 +36,8 @@ USER_AGENTS = [
 # 搜索结果缓存（5分钟TTL）
 search_results_cache: Dict[str, Dict] = {}
 CACHE_TTL = 300  # 5分钟
+ERROR_RESULT_PREFIXES = ("error_", "timeout_")
+ERROR_RESULT_TITLES = {"搜索请求失败", "搜索请求错误", "搜索请求超时"}
 
 
 def get_user_agent() -> str:
@@ -71,7 +73,7 @@ def extract_search_results(
     html: str, query: str, num_results: int = 5, engine: str = "bing"
 ) -> List[Dict]:
     """优化的搜索结果提取 - 支持更多搜索引擎"""
-    soup = BeautifulSoup(html, "lxml")  # 使用lxml解析器（更快）
+    soup = build_soup(html)
     results = []
 
     # 根据搜索引擎选择选择器
@@ -152,7 +154,7 @@ def extract_search_results(
 
 def extract_page_content(html: str, url: str = "") -> str:
     """优化的网页内容提取 - 多策略算法"""
-    soup = BeautifulSoup(html, "lxml")
+    soup = build_soup(html)
 
     # 移除不需要的标签
     for tag in soup(
@@ -247,6 +249,32 @@ def extract_page_content(html: str, url: str = "") -> str:
         f"成功提取内容: {len(content)} 字符 (选择器: {best_selector or 'fallback'})"
     )
     return content
+
+
+def build_soup(html: str):
+    """Parse HTML with a resilient parser fallback chain."""
+    try:
+        return BeautifulSoup(html, "lxml")
+    except FeatureNotFound:
+        logger.warning("lxml解析器不可用，回退到html.parser")
+        return BeautifulSoup(html, "html.parser")
+
+
+def is_search_result_usable(result: Dict) -> bool:
+    """Reject placeholder items that represent failed searches."""
+    result_id = str(result.get("id", "")).strip()
+    title = str(result.get("title", "")).strip()
+    snippet = str(result.get("snippet", "")).strip()
+
+    if not result_id:
+        return False
+    if result_id.startswith(ERROR_RESULT_PREFIXES):
+        return False
+    if title in ERROR_RESULT_TITLES:
+        return False
+    if snippet.startswith("搜索请求失败") or snippet.startswith("搜索请求超时"):
+        return False
+    return True
 
 
 # ==================== 异步网络请求 ====================

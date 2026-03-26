@@ -9,12 +9,14 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 # 导入诊断路由
 from backend.routers import diagnosis_router, graph_router, pet_care_router
 
 # 导入应用配置
 from backend.settings import settings
+from backend.runtime_checks import get_readiness_status
 from config.logger import logger
 
 # 将项目根目录添加到Python路径中
@@ -44,6 +46,11 @@ prefix = "/api/v1"
 async def lifespan(app: FastAPI):
     """应用生命周期管理函数"""
     logger.info("初始化系统资源")
+    readiness = get_readiness_status()
+    if readiness["ready"]:
+        logger.info("运行时自检通过")
+    else:
+        logger.warning(f"运行时自检未通过: {readiness['issues']}")
 
     try:
         # 启动任务队列Worker
@@ -325,6 +332,15 @@ curl "http://localhost:8080/api/v1/pet-care/plan/task/{task_id}"
     async def health_check():
         """健康检查端点"""
         return {"status": "healthy", "message": "服务运行正常"}
+
+    @app.get("/readyz", summary="就绪检查", tags=["health"])
+    async def readiness_check():
+        """运行时就绪检查端点"""
+        status = get_readiness_status()
+        return JSONResponse(
+            status_code=200 if status["ready"] else 503,
+            content=status,
+        )
 
     return app
 

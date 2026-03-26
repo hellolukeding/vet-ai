@@ -8,12 +8,11 @@ from typing import Dict, List
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
-from backend.settings import settings
 from config.logger import logger
 from core.langgraph.state_herb import TCMZhengmingItem, TCAgentState
+from core.llm_factory import create_chat_llm
 from utils.json.extract_json_from_markdown import extract_json_from_markdown
 
 
@@ -32,10 +31,6 @@ async def HerbDiagnosisNode(state: TCAgentState) -> Dict[str, List[TCMZhengmingI
     Returns:
         dict with zhengming key containing list of TCMZhengmingItem
     """
-    # 获取配置
-    model_name = settings.MODEL_NAME or "deepseek-ai/DeepSeek-V3"
-    base_url = settings.BASE_URL or "https://api-inference.modelscope.cn/v1"
-    api_key = settings.API_KEY or ""
     temperature = 0.6
 
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -46,12 +41,12 @@ async def HerbDiagnosisNode(state: TCAgentState) -> Dict[str, List[TCMZhengmingI
     if not description:
         return {"zhengming": []}
 
-    llm = ChatOpenAI(
-        model=model_name,
-        base_url=base_url,
-        api_key=api_key,
-        temperature=temperature,
-    )
+    try:
+        llm = create_chat_llm(temperature=temperature)
+    except Exception as e:
+        logger.error(f"中医辨证节点LLM初始化失败: {e}")
+        logger.warning("中医辨证LLM配置不可用，不提供默认证型以确保安全性")
+        return {"zhengming": []}
 
     # 中医辨证系统提示
     system_instructions = f"""

@@ -62,6 +62,31 @@ jobs:
         run: |
           mypy backend/ core/ --ignore-missing-imports --no-error-summary || true
 
+  # ================== 单元测试 ==================
+  test:
+    name: 单元测试
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置Python环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 运行单元测试
+        run: |
+          pytest -q
+
   # ================== Docker 构建测试 ==================
   docker-build:
     name: Docker镜像构建测试

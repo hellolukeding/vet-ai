@@ -7,12 +7,11 @@ from typing import Dict, List
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
-from backend.settings import settings
 from config.logger import logger
 from core.langgraph.state import MedicationItem, VetAgentState
+from core.llm_factory import create_chat_llm
 
 
 class MedicationWithWarning(BaseModel):
@@ -45,10 +44,6 @@ async def SafetyCheckNode(state: VetAgentState) -> Dict:
     Returns:
         dict with medications key (每个药物都包含对应的安全警告字段)
     """
-    # 获取配置
-    model_name = settings.MODEL_NAME or "deepseek-ai/DeepSeek-V3"
-    base_url = settings.BASE_URL or "https://api-inference.modelscope.cn/v1"
-    api_key = settings.API_KEY or ""
     temperature = 0.2  # 低温度以确保安全检查的一致性
 
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -63,12 +58,12 @@ async def SafetyCheckNode(state: VetAgentState) -> Dict:
         logger.warning("安全检查：没有用药建议需要检查")
         return {"medications": []}
 
-    llm = ChatOpenAI(
-        model=model_name,
-        base_url=base_url,
-        api_key=api_key,
-        temperature=temperature,
-    )
+    try:
+        llm = create_chat_llm(temperature=temperature)
+    except Exception as e:
+        logger.error(f"安全检查节点LLM初始化失败: {e}")
+        logger.warning("安全检查LLM配置不可用，返回原始用药建议并标记未审查")
+        return {"medications": medications}
 
     # 构建诊断信息
     diagnosis_text = "诊断结果：\n"

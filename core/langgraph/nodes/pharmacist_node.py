@@ -4,13 +4,13 @@ from typing import Dict, List
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
-from backend.settings import settings
 from config.logger import logger
 from core.langgraph.state import MedicationItem, VetAgentState
 from core.langgraph.tools import fetch_webpage_tool, web_search_tool
+from core.langgraph.tools.web_search import is_search_result_usable
+from core.llm_factory import create_chat_llm
 from utils.json.extract_json_from_markdown import extract_json_from_markdown
 
 
@@ -25,10 +25,6 @@ class PharmacistSchema(BaseModel):
 
 async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]]:
     # 在这里实现药剂师节点的逻辑
-    # 获取配置
-    model_name = settings.MODEL_NAME or "deepseek-ai/DeepSeek-V3"
-    base_url = settings.BASE_URL or "https://api-inference.modelscope.cn/v1"
-    api_key = settings.API_KEY or ""
     temperature = 0.2
     # 使用百度搜索（中文医学内容质量更好）
     use_baidu = True
@@ -39,12 +35,12 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
     if not diagnosis or not isinstance(diagnosis, list):
         return {"medications": []}
 
-    llm = ChatOpenAI(
-        model=model_name,
-        base_url=base_url,
-        api_key=api_key,
-        temperature=temperature,
-    )
+    try:
+        llm = create_chat_llm(temperature=temperature)
+    except Exception as e:
+        logger.error(f"药剂师节点LLM初始化失败: {e}")
+        logger.warning("药剂师节点LLM配置不可用，不提供默认用药建议以确保安全性")
+        return {"medications": []}
 
     # Build search snippets for context
     search_context = []
@@ -78,6 +74,10 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
 
             top_results = []
             for r in (results or [])[:3]:
+                if not is_search_result_usable(r):
+                    logger.debug(f"跳过不可用药物检索结果: {r}")
+                    continue
+
                 rid = r.get("id", "")
                 title = r.get("title", "")
                 link = r.get("link", "")

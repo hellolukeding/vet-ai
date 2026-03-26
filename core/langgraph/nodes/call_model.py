@@ -1,23 +1,12 @@
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
-from langchain_openai import ChatOpenAI
 
-from backend.settings import settings
 from core.langgraph.state import VetAgentState
+from core.llm_factory import create_chat_llm
 
 
 def get_llm():
     """创建并返回配置好的ChatOpenAI实例"""
-    model_name = settings.MODEL_NAME or "deepseek-ai/DeepSeek-V3"
-    base_url = settings.BASE_URL or "https://api-inference.modelscope.cn/v1"
-    api_key = settings.API_KEY or ""
-    temperature = 0.6
-
-    return ChatOpenAI(
-        model=model_name,
-        base_url=base_url,
-        api_key=api_key,
-        temperature=temperature,
-    )
+    return create_chat_llm(temperature=0.6)
 
 
 async def call_model(state: VetAgentState) -> VetAgentState:

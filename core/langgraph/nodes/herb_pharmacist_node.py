@@ -8,16 +8,15 @@ from typing import Dict, List
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
-from backend.settings import settings
 from config.logger import logger
 from core.langgraph.state_herb import (
     HerbalPrescriptionItem,
     TCMZhengmingItem,
     TCAgentState,
 )
+from core.llm_factory import create_chat_llm
 from utils.json.extract_json_from_markdown import extract_json_from_markdown
 
 
@@ -38,10 +37,6 @@ async def HerbPharmacistNode(
     Returns:
         dict with prescriptions key containing list of HerbalPrescriptionItem
     """
-    # 获取配置
-    model_name = settings.MODEL_NAME or "deepseek-ai/DeepSeek-V3"
-    base_url = settings.BASE_URL or "https://api-inference.modelscope.cn/v1"
-    api_key = settings.API_KEY or ""
     temperature = 0.4
 
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -54,12 +49,12 @@ async def HerbPharmacistNode(
         logger.warning("中药方剂：没有证型诊断结果")
         return {"prescriptions": []}
 
-    llm = ChatOpenAI(
-        model=model_name,
-        base_url=base_url,
-        api_key=api_key,
-        temperature=temperature,
-    )
+    try:
+        llm = create_chat_llm(temperature=temperature)
+    except Exception as e:
+        logger.error(f"中药方剂节点LLM初始化失败: {e}")
+        logger.warning("中药方剂LLM配置不可用，不提供默认方剂以确保安全性")
+        return {"prescriptions": []}
 
     # 构建证型信息
     zhengming_text = "中医证型诊断：\n"

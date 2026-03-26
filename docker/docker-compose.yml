@@ -38,6 +38,8 @@ services:
       context: ..
       dockerfile: docker/Dockerfile
     container_name: vet-ai-backend
+    env_file:
+      - .env
     ports:
       - "18082:8080"
     environment:
@@ -47,9 +49,6 @@ services:
       # 日志级别
       - LOG_LEVEL=INFO
       # API配置
-      - MODEL_NAME=${MODEL_NAME:-glm-4-plus}
-      - BASE_URL=${BASE_URL}
-      - API_KEY=${API_KEY}
       - HOST=0.0.0.0
       - PORT=8080
       # Redis配置

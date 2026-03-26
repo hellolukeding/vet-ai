@@ -7,12 +7,11 @@ from typing import Dict, List
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
-from backend.settings import settings
 from config.logger import logger
 from core.langgraph.state import DiagnosisItem, VetAgentState
+from core.llm_factory import create_chat_llm
 
 
 class DiagnosisReviewSchema(BaseModel):
@@ -31,10 +30,6 @@ async def DiagnosisReviewNode(state: VetAgentState) -> Dict[str, List[DiagnosisI
     Returns:
         dict with reviewed_diagnosis key
     """
-    # 获取配置
-    model_name = settings.MODEL_NAME or "deepseek-ai/DeepSeek-V3"
-    base_url = settings.BASE_URL or "https://api-inference.modelscope.cn/v1"
-    api_key = settings.API_KEY or ""
     temperature = 0.3  # 降低温度以获得更一致的审查结果
 
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -49,12 +44,12 @@ async def DiagnosisReviewNode(state: VetAgentState) -> Dict[str, List[DiagnosisI
         logger.warning("诊断审查：没有诊断结果需要审查")
         return {"reviewed_diagnosis": []}
 
-    llm = ChatOpenAI(
-        model=model_name,
-        base_url=base_url,
-        api_key=api_key,
-        temperature=temperature,
-    )
+    try:
+        llm = create_chat_llm(temperature=temperature)
+    except Exception as e:
+        logger.error(f"诊断审查节点LLM初始化失败: {e}")
+        logger.warning("诊断审查LLM配置不可用，跳过审查")
+        return {"reviewed_diagnosis": diagnosis}
 
     # 构建诊断信息
     diagnosis_text = "当前诊断结果：\n"

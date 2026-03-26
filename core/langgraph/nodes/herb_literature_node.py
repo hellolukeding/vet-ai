@@ -8,6 +8,7 @@ from typing import Dict, List
 from config.logger import logger
 from core.langgraph.state_herb import TCMRefItem, TCAgentState
 from core.langgraph.tools import fetch_webpage_tool, web_search_tool
+from core.langgraph.tools.web_search import is_search_result_usable
 
 
 async def HerbLiteratureSearchNode(state: TCAgentState) -> Dict[str, List[TCMRefItem]]:
@@ -57,6 +58,10 @@ async def HerbLiteratureSearchNode(state: TCAgentState) -> Dict[str, List[TCMRef
                     continue
 
                 for r in results[:3]:
+                    if not is_search_result_usable(r):
+                        logger.debug(f"跳过不可用中医搜索结果: {r}")
+                        continue
+
                     url = r.get("link", "")
                     if url in seen_urls:
                         continue

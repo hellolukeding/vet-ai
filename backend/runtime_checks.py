@@ -5,15 +5,21 @@ from typing import Dict
 
 from core.llm_factory import resolve_llm_config
 
-CRITICAL_DEPENDENCIES = ("bs4", "lxml")
+REQUIRED_DEPENDENCIES = ("bs4",)
+OPTIONAL_DEPENDENCIES = ("lxml",)
 
 
 def get_dependency_status() -> Dict[str, Dict[str, bool]]:
-    """Check whether critical runtime dependencies are importable."""
-    return {
-        name: {"installed": find_spec(name) is not None}
-        for name in CRITICAL_DEPENDENCIES
-    }
+    """Check whether runtime dependencies are importable."""
+    status: Dict[str, Dict[str, bool]] = {}
+
+    for name in REQUIRED_DEPENDENCIES:
+        status[name] = {"installed": find_spec(name) is not None, "required": True}
+
+    for name in OPTIONAL_DEPENDENCIES:
+        status[name] = {"installed": find_spec(name) is not None, "required": False}
+
+    return status
 
 
 def get_readiness_status() -> Dict[str, object]:
@@ -24,7 +30,12 @@ def get_readiness_status() -> Dict[str, object]:
     dependency_issues = [
         f"{name} 未安装"
         for name, info in dependencies.items()
-        if not info.get("installed", False)
+        if info.get("required", True) and not info.get("installed", False)
+    ]
+    dependency_warnings = [
+        f"{name} 未安装，将使用降级路径"
+        for name, info in dependencies.items()
+        if not info.get("required", True) and not info.get("installed", False)
     ]
     dependency_ready = not dependency_issues
 
@@ -43,7 +54,9 @@ def get_readiness_status() -> Dict[str, object]:
                 "ready": dependency_ready,
                 "details": dependencies,
                 "issues": dependency_issues,
+                "warnings": dependency_warnings,
             },
         },
         "issues": issues,
+        "warnings": dependency_warnings,
     }

@@ -2,7 +2,7 @@ name: Deploy - 自动部署
 
 on:
   push:
-    branches: [ main, langgraph ]
+    branches: [main, langgraph]
   workflow_dispatch:
 
 jobs:
@@ -10,6 +10,14 @@ jobs:
     name: 部署到服务器
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      SERVER_HOST_RAW: ${{ secrets.SERVER_HOST }}
+      SERVER_USER_RAW: ${{ secrets.SERVER_USER }}
+      SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+      API_KEY: ${{ secrets.API_KEY }}
+      MODEL_NAME: ${{ vars.MODEL_NAME }}
+      BASE_URL: ${{ vars.BASE_URL }}
+      SERVER_PORT: ${{ vars.SERVER_PORT }}
 
     steps:
       - name: 检出代码
@@ -21,213 +29,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y sshpass rsync
 
-      - name: 配置 SSH
+      - name: 执行部署
         run: |
-          echo "配置 SSH known_hosts..."
-          SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
-          mkdir -p ~/.ssh
-          ssh-keyscan -H "$SERVER_HOST" >> ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
-
-      - name: 验证连接
-        run: |
-          echo "测试服务器连接..."
-          SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
-          SERVER_USER="$(printf '%s' '${{ secrets.SERVER_USER }}' | xargs)"
-          SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
-            ssh ${SSH_OPTIONS} \
-            "${SERVER_USER}@${SERVER_HOST}" \
-            "echo '连接成功！' && pwd && ls -la /opt/vet-ai"
-
-      - name: 生成部署环境文件
-        env:
-          DEPLOY_MODEL_NAME: ${{ vars.MODEL_NAME }}
-          DEPLOY_BASE_URL: ${{ vars.BASE_URL }}
-          DEPLOY_API_KEY: ${{ secrets.API_KEY }}
-        run: |
-          set -e
-          DEPLOY_MODEL_NAME="${DEPLOY_MODEL_NAME:-Qwen/Qwen3-235B-A22B-Instruct-2507}"
-          DEPLOY_BASE_URL="${DEPLOY_BASE_URL:-https://api-inference.modelscope.cn/v1}"
-
-          if [ -z "$DEPLOY_API_KEY" ]; then
-            echo "缺少 GitHub Secret: API_KEY"
-            exit 1
-          fi
-
-          mkdir -p .deploy
-          cat > .deploy/docker.env <<EOF
-          MODEL_NAME=${DEPLOY_MODEL_NAME}
-          BASE_URL=${DEPLOY_BASE_URL}
-          API_KEY=${DEPLOY_API_KEY}
-          EOF
-
-      - name: 上传部署环境文件
-        run: |
-          echo "上传 docker/.env 到服务器..."
-          SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
-          SERVER_USER="$(printf '%s' '${{ secrets.SERVER_USER }}' | xargs)"
-          RSYNC_SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
-
-          for attempt in 1 2 3; do
-            if sshpass -p "${{ secrets.SERVER_PASSWORD }}" rsync -avz \
-              -e "${RSYNC_SSH}" \
-              ./.deploy/docker.env \
-              "${SERVER_USER}@${SERVER_HOST}:/opt/vet-ai/docker/.env"; then
-              exit 0
-            fi
-
-            if [ "$attempt" -lt 3 ]; then
-              echo "上传失败，10 秒后重试 (${attempt}/3)..."
-              sleep 10
-            fi
-          done
-
-          echo "上传 docker/.env 失败"
-          exit 1
-
-      - name: 同步代码到服务器
-        run: |
-          echo "同步代码到服务器..."
-          SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
-          SERVER_USER="$(printf '%s' '${{ secrets.SERVER_USER }}' | xargs)"
-          RSYNC_SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
-
-          for attempt in 1 2 3; do
-            if sshpass -p "${{ secrets.SERVER_PASSWORD }}" rsync -rlptDz --delete \
-              --no-perms \
-              --no-owner \
-              --no-group \
-              --omit-dir-times \
-              --exclude='.git' \
-              --exclude='.agents' \
-              --exclude='.claude' \
-              --exclude='.deploy' \
-              --exclude='.env' \
-              --exclude='.github' \
-              --exclude='.vscode' \
-              --exclude='docker/.env' \
-              --exclude='docs' \
-              --exclude='frontend' \
-              --exclude='node_modules' \
-              --exclude='__pycache__' \
-              --exclude='*.pyc' \
-              --exclude='.venv' \
-              --exclude='logs' \
-              --exclude='.pytest_cache' \
-              --exclude='skills' \
-              --exclude='test' \
-              --exclude='tests' \
-              --exclude='*.log' \
-              -e "${RSYNC_SSH}" \
-              ./ "${SERVER_USER}@${SERVER_HOST}:/opt/vet-ai/"; then
-              exit 0
-            fi
-
-            if [ "$attempt" -lt 3 ]; then
-              echo "代码同步失败，15 秒后重试 (${attempt}/3)..."
-              sleep 15
-            fi
-          done
-
-          echo "同步代码到服务器失败"
-          exit 1
-
-      - name: 重启 Docker 服务
-        run: |
-          echo "重启 Docker 服务..."
-          SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
-          SERVER_USER="$(printf '%s' '${{ secrets.SERVER_USER }}' | xargs)"
-          SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
-            ssh ${SSH_OPTIONS} \
-            "${SERVER_USER}@${SERVER_HOST}" << 'ENDSSH'
-            set -e
-            cd /opt/vet-ai
-            echo "当前目录: $(pwd)"
-            if [ ! -f docker/.env ]; then
-              echo "缺少 docker/.env，停止部署"
-              exit 1
-            fi
-            if ! grep -Eq '^API_KEY=.+' docker/.env; then
-              echo "docker/.env 中缺少有效 API_KEY，停止部署"
-              exit 1
-            fi
-            echo "停止旧容器..."
-            docker-compose -f docker/docker-compose.yml down
-            echo "重新构建并启动..."
-            docker-compose -f docker/docker-compose.yml up -d --build
-            echo "清理未使用的镜像..."
-            docker image prune -f
-            echo "查看容器状态..."
-            docker-compose -f docker/docker-compose.yml ps
-            echo "部署完成！"
-          ENDSSH
-
-      - name: 健康检查
-        run: |
-          echo "等待服务启动..."
-          sleep 30
-
-          SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
-          SERVER_USER="$(printf '%s' '${{ secrets.SERVER_USER }}' | xargs)"
-          SERVER_PORT="${{ vars.SERVER_PORT }}"
-          SERVER_PORT="${SERVER_PORT:-18082}"
-          HEALTH_URL="http://${SERVER_HOST}:${SERVER_PORT}/readyz"
-          SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
-
-          echo "执行健康检查: $HEALTH_URL"
-
-          for i in {1..10}; do
-            echo "尝试 $i/10..."
-            BODY_FILE="$(mktemp)"
-            STATUS_CODE="$(curl -sS -o "$BODY_FILE" -w '%{http_code}' --connect-timeout 10 --max-time 30 "$HEALTH_URL" || true)"
-            cat "$BODY_FILE"
-            rm -f "$BODY_FILE"
-
-            if [ "$STATUS_CODE" = "200" ]; then
-              echo "健康检查通过！"
-              exit 0
-            fi
-
-            echo "健康检查未通过，HTTP 状态码: ${STATUS_CODE}"
-            echo "等待服务启动... ($i/10)"
-            sleep 10
-          done
-
-          echo "远程容器最近日志："
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
-            ssh ${SSH_OPTIONS} \
-            "${SERVER_USER}@${SERVER_HOST}" \
-            "cd /opt/vet-ai && docker-compose -f docker/docker-compose.yml logs --tail=200 vet-ai redis" || true
-
-          echo "健康检查失败！服务未能在预期时间内启动。"
-          exit 1
-
-      - name: 部署结果
-        if: always()
-        run: |
-          if [ "${{ job.status }}" == "success" ]; then
-            SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
-            SERVER_PORT="${{ vars.SERVER_PORT }}"
-            SERVER_PORT="${SERVER_PORT:-18082}"
-            echo "========================================="
-            echo "       部署成功！"
-            echo "========================================="
-            echo "服务地址: http://${SERVER_HOST}:${SERVER_PORT}"
-            echo "健康检查: http://${SERVER_HOST}:${SERVER_PORT}/health"
-            echo "API文档: http://${SERVER_HOST}:${SERVER_PORT}/docs"
-            echo "========================================="
-          else
-            echo "========================================="
-            echo "       部署失败！"
-            echo "========================================="
-            echo "请检查上方日志查看详细错误信息"
-            echo "========================================="
-            exit 1
-          fi
-
-      - name: 清理临时环境文件
-        if: always()
-        run: |
-          rm -f ./.deploy/docker.env
+          bash scripts/github-deploy.sh

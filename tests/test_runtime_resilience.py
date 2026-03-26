@@ -91,7 +91,10 @@ def test_readiness_status_reports_missing_llm_config(monkeypatch):
     )
     monkeypatch.setattr(
         "backend.runtime_checks.get_dependency_status",
-        lambda: {"lxml": {"installed": True}, "bs4": {"installed": True}},
+        lambda: {
+            "lxml": {"installed": True, "required": False},
+            "bs4": {"installed": True, "required": True},
+        },
     )
 
     status = get_readiness_status()
@@ -99,3 +102,29 @@ def test_readiness_status_reports_missing_llm_config(monkeypatch):
     assert status["ready"] is False
     assert status["checks"]["llm"]["ready"] is False
     assert status["checks"]["dependencies"]["ready"] is True
+
+
+def test_readiness_status_allows_optional_lxml_to_be_missing(monkeypatch):
+    monkeypatch.setattr(
+        "backend.runtime_checks.resolve_llm_config",
+        lambda: {
+            "ready": True,
+            "issues": [],
+            "model_name": "test-model",
+            "base_url": "https://example.com/v1",
+            "api_key_masked": "test***mask",
+        },
+    )
+    monkeypatch.setattr(
+        "backend.runtime_checks.get_dependency_status",
+        lambda: {
+            "lxml": {"installed": False, "required": False},
+            "bs4": {"installed": True, "required": True},
+        },
+    )
+
+    status = get_readiness_status()
+
+    assert status["ready"] is True
+    assert status["checks"]["dependencies"]["ready"] is True
+    assert status["warnings"] == ["lxml 未安装，将使用降级路径"]

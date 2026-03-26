@@ -3,7 +3,7 @@
 from typing import Any, List, Optional
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 def parse_list_env(value: Any) -> List[str]:
@@ -143,13 +143,12 @@ class Settings(BaseSettings):
         """验证并解析列表类型的字段"""
         return parse_list_env(v)
 
-    class Config:
-        """Pydantic configuration class."""
-
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
-        extra = "ignore"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
 
     @property
     def WEBSOCKET_CONFIG(self) -> dict:

@@ -49,6 +49,8 @@ async def lifespan(app: FastAPI):
     readiness = get_readiness_status()
     if readiness["ready"]:
         logger.info("运行时自检通过")
+        if readiness.get("warnings"):
+            logger.warning(f"运行时自检告警: {readiness['warnings']}")
     else:
         logger.warning(f"运行时自检未通过: {readiness['issues']}")
 

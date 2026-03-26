@@ -779,9 +779,6 @@ loguru==0.6.0 \
     # via
     #   agentscope
     #   pet-doctor
-lxml==6.0.2 \
-    --hash=sha256:90a345bbeaf9d0587a3aaffb7006aa39ccb6ff0e96a57286c0cb2fd1520ea192
-    # via pet-doctor
 markupsafe==3.0.2 \
     --hash=sha256:0bff5e0ae4ef2e1ae4fdf2dfd5b76c75e5c2fa4132d05fc1b0dabcd20c7e28c4 \
     --hash=sha256:0f4ca02bea9a23221c0182836703cbf8930c5e9454bacce27e767509fa286a30 \

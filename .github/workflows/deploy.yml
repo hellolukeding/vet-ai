@@ -114,7 +114,7 @@ jobs:
           sleep 30
 
           SERVER_HOST="${{ secrets.SERVER_HOST }}"
-          SERVER_PORT="${{ secrets.SERVER_PORT:-18082 }}"
+          SERVER_PORT="${{ vars.SERVER_PORT || '18082' }}"
           HEALTH_URL="http://${SERVER_HOST}:${SERVER_PORT}/readyz"
 
           echo "执行健康检查: $HEALTH_URL"

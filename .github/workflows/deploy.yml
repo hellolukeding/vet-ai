@@ -170,21 +170,36 @@ jobs:
           sleep 30
 
           SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
+          SERVER_USER="$(printf '%s' '${{ secrets.SERVER_USER }}' | xargs)"
           SERVER_PORT="${{ vars.SERVER_PORT }}"
           SERVER_PORT="${SERVER_PORT:-18082}"
           HEALTH_URL="http://${SERVER_HOST}:${SERVER_PORT}/readyz"
+          SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
 
           echo "执行健康检查: $HEALTH_URL"
 
           for i in {1..10}; do
             echo "尝试 $i/10..."
-            if curl -f --connect-timeout 10 --max-time 30 "$HEALTH_URL"; then
+            BODY_FILE="$(mktemp)"
+            STATUS_CODE="$(curl -sS -o "$BODY_FILE" -w '%{http_code}' --connect-timeout 10 --max-time 30 "$HEALTH_URL" || true)"
+            cat "$BODY_FILE"
+            rm -f "$BODY_FILE"
+
+            if [ "$STATUS_CODE" = "200" ]; then
               echo "健康检查通过！"
               exit 0
             fi
+
+            echo "健康检查未通过，HTTP 状态码: ${STATUS_CODE}"
             echo "等待服务启动... ($i/10)"
             sleep 10
           done
+
+          echo "远程容器最近日志："
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
+            ssh ${SSH_OPTIONS} \
+            "${SERVER_USER}@${SERVER_HOST}" \
+            "cd /opt/vet-ai && docker-compose -f docker/docker-compose.yml logs --tail=200 vet-ai redis" || true
 
           echo "健康检查失败！服务未能在预期时间内启动。"
           exit 1

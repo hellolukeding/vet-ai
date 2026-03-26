@@ -47,4 +47,3 @@ def get_readiness_status() -> Dict[str, object]:
         },
         "issues": issues,
     }
-

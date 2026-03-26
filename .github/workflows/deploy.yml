@@ -24,25 +24,31 @@ jobs:
       - name: 配置 SSH
         run: |
           echo "配置 SSH known_hosts..."
+          SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
           mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H "$SERVER_HOST" >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
       - name: 验证连接
         run: |
           echo "测试服务器连接..."
+          SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
+          SERVER_USER="$(printf '%s' '${{ secrets.SERVER_USER }}' | xargs)"
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
             ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
+            "${SERVER_USER}@${SERVER_HOST}" \
             "echo '连接成功！' && pwd && ls -la /opt/vet-ai"
 
       - name: 生成部署环境文件
         env:
-          DEPLOY_MODEL_NAME: ${{ vars.MODEL_NAME || 'Qwen/Qwen3-235B-A22B-Instruct-2507' }}
-          DEPLOY_BASE_URL: ${{ vars.BASE_URL || 'https://api-inference.modelscope.cn/v1' }}
+          DEPLOY_MODEL_NAME: ${{ vars.MODEL_NAME }}
+          DEPLOY_BASE_URL: ${{ vars.BASE_URL }}
           DEPLOY_API_KEY: ${{ secrets.API_KEY }}
         run: |
           set -e
+          DEPLOY_MODEL_NAME="${DEPLOY_MODEL_NAME:-Qwen/Qwen3-235B-A22B-Instruct-2507}"
+          DEPLOY_BASE_URL="${DEPLOY_BASE_URL:-https://api-inference.modelscope.cn/v1}"
+
           if [ -z "$DEPLOY_API_KEY" ]; then
             echo "缺少 GitHub Secret: API_KEY"
             exit 1
@@ -58,14 +64,18 @@ jobs:
       - name: 上传部署环境文件
         run: |
           echo "上传 docker/.env 到服务器..."
+          SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
+          SERVER_USER="$(printf '%s' '${{ secrets.SERVER_USER }}' | xargs)"
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" rsync -avz \
             -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
             ./.deploy/docker.env \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/vet-ai/docker/.env
+            "${SERVER_USER}@${SERVER_HOST}:/opt/vet-ai/docker/.env"
 
       - name: 同步代码到服务器
         run: |
           echo "同步代码到服务器..."
+          SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
+          SERVER_USER="$(printf '%s' '${{ secrets.SERVER_USER }}' | xargs)"
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" rsync -avz --delete \
             --exclude='.git' \
             --exclude='.env' \
@@ -78,14 +88,16 @@ jobs:
             --exclude='.pytest_cache' \
             --exclude='*.log' \
             -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
-            ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/vet-ai/
+            ./ "${SERVER_USER}@${SERVER_HOST}:/opt/vet-ai/"
 
       - name: 重启 Docker 服务
         run: |
           echo "重启 Docker 服务..."
+          SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
+          SERVER_USER="$(printf '%s' '${{ secrets.SERVER_USER }}' | xargs)"
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
             ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+            "${SERVER_USER}@${SERVER_HOST}" << 'ENDSSH'
             set -e
             cd /opt/vet-ai
             echo "当前目录: $(pwd)"
@@ -113,8 +125,9 @@ jobs:
           echo "等待服务启动..."
           sleep 30
 
-          SERVER_HOST="${{ secrets.SERVER_HOST }}"
-          SERVER_PORT="${{ vars.SERVER_PORT || '18082' }}"
+          SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
+          SERVER_PORT="${{ vars.SERVER_PORT }}"
+          SERVER_PORT="${SERVER_PORT:-18082}"
           HEALTH_URL="http://${SERVER_HOST}:${SERVER_PORT}/readyz"
 
           echo "执行健康检查: $HEALTH_URL"
@@ -136,12 +149,15 @@ jobs:
         if: always()
         run: |
           if [ "${{ job.status }}" == "success" ]; then
+            SERVER_HOST="$(printf '%s' '${{ secrets.SERVER_HOST }}' | xargs)"
+            SERVER_PORT="${{ vars.SERVER_PORT }}"
+            SERVER_PORT="${SERVER_PORT:-18082}"
             echo "========================================="
             echo "       部署成功！"
             echo "========================================="
-            echo "服务地址: http://${{ secrets.SERVER_HOST }}:18082"
-            echo "健康检查: http://${{ secrets.SERVER_HOST }}:18082/health"
-            echo "API文档: http://${{ secrets.SERVER_HOST }}:18082/docs"
+            echo "服务地址: http://${SERVER_HOST}:${SERVER_PORT}"
+            echo "健康检查: http://${SERVER_HOST}:${SERVER_PORT}/health"
+            echo "API文档: http://${SERVER_HOST}:${SERVER_PORT}/docs"
             echo "========================================="
           else
             echo "========================================="

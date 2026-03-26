@@ -47,7 +47,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             # main 和 langgraph 分支都打 latest 标签
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/langgraph' }}
+            type=raw,value=latest,enable=${{ contains(fromJSON('["refs/heads/main","refs/heads/langgraph"]'), github.ref) }}
 
       - name: 构建并推送镜像
         uses: docker/build-push-action@v5

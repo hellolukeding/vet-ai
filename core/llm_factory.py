@@ -24,9 +24,7 @@ def mask_secret(secret: Optional[str]) -> str:
 def resolve_llm_config() -> Dict[str, Any]:
     """Resolve LLM config from settings and report readiness."""
     model_name = (settings.MODEL_NAME or "deepseek-ai/DeepSeek-V3").strip()
-    base_url = (
-        settings.BASE_URL or "https://api-inference.modelscope.cn/v1"
-    ).strip()
+    base_url = (settings.BASE_URL or "https://api-inference.modelscope.cn/v1").strip()
     api_key = (settings.API_KEY or "").strip()
 
     issues = []

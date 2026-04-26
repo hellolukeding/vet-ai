@@ -137,10 +137,14 @@ else
   DC="docker compose -f docker/docker-compose.yml"
 fi
 
-echo "停止旧容器..."
-eval "$DC down"
-echo "重新构建并启动..."
-eval "$DC up -d --build"
+echo "使用经典 Docker builder 预构建镜像..."
+export DOCKER_BUILDKIT=0
+export COMPOSE_DOCKER_CLI_BUILD=0
+timeout 45m bash -lc "$DC build vet-ai"
+
+echo "使用已构建镜像更新服务..."
+eval "$DC up -d --no-build"
+
 echo "清理未使用的镜像..."
 docker image prune -f
 echo "查看容器状态..."

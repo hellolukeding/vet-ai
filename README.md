@@ -4,6 +4,10 @@
 
 ---
 
+## 更新日志
+
+- 2026.4.26 更换deepseek v4 flash
+
 ## 🌟 功能特性
 
 - 🩺 **智能诊断**：基于症状描述，提供专业的宠物疾病诊断建议
@@ -39,6 +43,7 @@
    ```
 
 4. **验证服务是否运行**
+
    ```bash
    curl http://localhost:8080/health
    ```
@@ -54,6 +59,7 @@
    ```
 
 2. **启动开发服务器**
+
    ```bash
    uv run uvicorn backend.api:app --host 0.0.0.0 --port 8080 --reload
    ```
@@ -630,5 +636,5 @@ vet-ai/
 
 ---
 
-> 💡 **提示**：本系统整合了 Apifox 等现代 API 工具链，支持高效调试与团队协作。  
+> 💡 **提示**：本系统整合了 Apifox 等现代 API 工具链，支持高效调试与团队协作。
 > 🌐 了解更多：[Apifox 官网](https://apifox.com)

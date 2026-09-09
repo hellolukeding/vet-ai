@@ -14,7 +14,9 @@ def format_herb_result(final_state: Any) -> List[Dict[str, Any]]:
     state = (
         final_state.model_dump()
         if hasattr(final_state, "model_dump")
-        else final_state if isinstance(final_state, dict) else vars(final_state)
+        else final_state
+        if isinstance(final_state, dict)
+        else vars(final_state)
     )
     zhengming = state.get("zhengming", [])
     prescriptions = state.get("prescriptions", [])

@@ -60,8 +60,8 @@ async def PetInfoNode(state: State) -> Dict:
     logger.debug(f"用户查询: {state.user_query[:100] if state.user_query else '空'}...")
 
     # 获取配置
-    model_name = settings.MODEL_NAME or "deepseek-ai/DeepSeek-V3"
-    base_url = settings.BASE_URL or "https://api-inference.modelscope.cn/v1"
+    model_name = settings.MODEL_NAME or "deepseek-v4-flash"
+    base_url = settings.BASE_URL or "https://api.deepseek.com"
     api_key = settings.API_KEY or ""
     temperature = 0.3
 

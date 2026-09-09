@@ -48,8 +48,8 @@ class HerbAgent:
         workflow.add_edge(START, "HerbLiteratureSearchNode")
         workflow.add_edge("HerbLiteratureSearchNode", "HerbDiagnosisNode")
         workflow.add_edge("HerbDiagnosisNode", "HerbPharmacistNode")
-        workflow.add_edge("HerbPharmacistNode", "HerbNursingNode")
-        workflow.add_edge("HerbNursingNode", "HerbReportNode")
+        workflow.add_edge("HerbDiagnosisNode", "HerbNursingNode")
+        workflow.add_edge(["HerbPharmacistNode", "HerbNursingNode"], "HerbReportNode")
         workflow.add_edge("HerbReportNode", END)
 
         # 编译工作流

@@ -2,7 +2,6 @@
 中药方剂推荐节点 - 根据证型推荐中药方剂
 """
 
-import json
 from datetime import datetime
 from typing import Dict, List
 
@@ -13,17 +12,18 @@ from pydantic import BaseModel, Field
 from config.logger import logger
 from core.langgraph.state_herb import (
     HerbalPrescriptionItem,
-    TCMZhengmingItem,
     TCAgentState,
+    TCMZhengmingItem,
 )
-from core.llm_factory import create_chat_llm
-from utils.json.extract_json_from_markdown import extract_json_from_markdown
+from core.llm_factory import create_chat_llm, invoke_json_model
 
 
 class HerbalPrescriptionSchema(BaseModel):
     """中药方剂schema"""
 
-    prescriptions: List[HerbalPrescriptionItem] = Field(..., description="方剂列表")
+    prescriptions: List[HerbalPrescriptionItem] = Field(
+        ..., max_length=6, description="方剂列表"
+    )
 
 
 async def HerbPharmacistNode(
@@ -44,6 +44,7 @@ async def HerbPharmacistNode(
     zhengming: List[TCMZhengmingItem] = getattr(state, "zhengming", []) or state.get(
         "zhengming", []
     )
+    description = getattr(state, "description", "") or state.get("description", "")
 
     if not zhengming:
         logger.warning("中药方剂：没有证型诊断结果")
@@ -85,10 +86,11 @@ async def HerbPharmacistNode(
 
     ## ⚠️ 安全要求（CRITICAL）
     1. **仅推荐经典方剂**：使用经过长期验证的经典方剂（如参苓白术散、银翘散等）
-    2. **剂量安全**：推荐常用剂量范围，明确单位（克g）
+    2. **信息不足时不猜剂量**：未提供物种、体重、年龄、肝肾功能和既往用药时，不给可直接执行的克数剂量
     3. **配伍禁忌**：注意十八反、十九畏等配伍禁忌
     4. **毒性药材**：谨慎使用有毒中药材（如附子、半夏等），需注明炮制方法
     5. **体质差异**：考虑宠物体重、年龄、体质差异
+    6. **避免过度治疗**：症状轻微、短暂，且精神、食欲、饮水、排便正常、无呼吸困难等危险信号时，prescriptions 必须返回空列表，优先观察
 
     ## 推理步骤
     1. **证型分析**：理解每个证型的病机
@@ -103,7 +105,7 @@ async def HerbPharmacistNode(
     ## 方剂类型说明
     - **基础方**：用于该证型的基础治疗方剂
     - **加减方**：根据病情变化对方剂进行加减
-    - **急救方**：用于急重症的救治方剂
+    - 急重症不推荐现场使用中药急救，prescription_type 不得填写“急救方”，应立即送医
 
     ## 方剂推荐示例
     证型：脾胃虚弱夹湿
@@ -123,43 +125,28 @@ async def HerbPharmacistNode(
     - `prescription_name` 方剂名称（优先使用经典方名）
     - `composition` 方剂组成，包括药物和剂量（单位：克g）
     - `usage` 用法用量，包括煎服方法、疗程、注意事项
-    - 每个证型最多推荐3个方剂（1个基础方，1个加减方，1个急救方）
-    - 整体不要超过15个方剂
-    - 剂量需根据宠物体重调整，提供参考范围
+    - 每个证型最多推荐2个方剂（1个基础方、1个加减方），整体不要超过6个方剂
+    - composition 可列组成思路；没有完整个体资料时不得给出可直接执行的剂量
+    - usage 必须说明需由专业中兽医面诊后按物种、体重和检查结果开具
     - 严格只输出 JSON，不要使用Markdown代码块包装结果
     """
 
     prompt = ChatPromptTemplate.from_messages(
         [
             SystemMessage(content=system_instructions),
-            HumanMessage(content=zhengming_text),
+            HumanMessage(content=f"原始症状描述：{description}\n\n{zhengming_text}"),
         ]
     )
 
-    # 尝试使用结构化输出
     try:
-        logger.info("尝试使用结构化输出推荐中药方剂")
-        structured_llm = llm.with_structured_output(
-            HerbalPrescriptionSchema, method="json_schema"
-        )
         messages = prompt.format_messages()
-        response = await structured_llm.ainvoke(messages)
-        logger.info("中药方剂结构化输出成功")
+        response = (
+            await invoke_json_model(llm, messages, HerbalPrescriptionSchema)
+        ).model_dump()
     except Exception as e:
-        logger.warning(f"结构化输出调用失败: {e}，尝试使用普通 LLM + JSON 解析")
-        try:
-            messages = prompt.format_messages()
-            raw_response = await llm.ainvoke(messages)
-            logger.info(f"LLM 原始响应: {raw_response.content[:500]}...")
-
-            content = extract_json_from_markdown(raw_response.content)
-            logger.debug(f"提取的 JSON 内容: {content}")
-            response = json.loads(content)
-            logger.info("JSON 解析成功")
-        except Exception as e2:
-            logger.error(f"中药方剂推荐完全失败: {e2}")
-            logger.warning("中药方剂推荐失败，返回空列表以确保安全性")
-            return {"prescriptions": []}
+        logger.error(f"中药方剂推荐失败: {e}")
+        logger.warning("中药方剂推荐失败，返回空列表以确保安全性")
+        return {"prescriptions": []}
 
     # 规范化输出
     try:

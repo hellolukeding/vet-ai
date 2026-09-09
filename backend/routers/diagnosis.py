@@ -1,8 +1,16 @@
+import asyncio
+
 from fastapi import APIRouter, Query, status
 from fastapi.responses import JSONResponse
 
 from backend.element.ele_diagnosis import CreateDiagnosisRequest
 from config.logger import logger
+from core.diagnosis_assessment import (
+    generate_assessment,
+    pending_assessment,
+    unavailable_assessment,
+)
+from core.herb_result import format_herb_result
 from core.langgraph.agent_herb import herb_graph
 from core.langgraph.state_herb import TCAgentState
 from core.tasks import TaskType, get_task_manager
@@ -60,6 +68,9 @@ router = APIRouter()
 - **continue_prescription_usage**：加减方剂用法
 - **suggest_prescription**：急救方剂
 - **suggest_prescription_usage**：急救方剂用法
+- **assessment.emergency**：紧急情况识别
+- **assessment.recommended_tests**：建议检查项目
+- **assessment.temporary_care**：就医前临时处置建议
 
 ### 💡 动态护理示例
 
@@ -152,6 +163,7 @@ async def create_herb_diagnosis(
         f"开始处理中医诊断请求: {diagnosis_data.description}, async_mode={async_mode}"
     )
 
+    assessment = unavailable_assessment()
     try:
         # 检查输入是否为空
         if not diagnosis_data.description or not diagnosis_data.description.strip():
@@ -163,6 +175,7 @@ async def create_herb_diagnosis(
                     "disclaimer": "⚠️ 本系统仅提供辅助诊断建议，不能替代专业中兽医的诊断和治疗。紧急情况请立即就医。",
                     "data": None,
                     "code": status.HTTP_400_BAD_REQUEST,
+                    "assessment": unavailable_assessment(),
                 },
             )
 
@@ -181,226 +194,28 @@ async def create_herb_diagnosis(
                     "message": "中医诊断任务已提交，请使用task_id查询结果",
                     "data": {"task_id": task_id, "status": "pending"},
                     "code": status.HTTP_202_ACCEPTED,
+                    "assessment": pending_assessment(),
                 },
             )
 
         # 同步模式：使用 LangGraph 工作流执行诊断
         state = TCAgentState(description=diagnosis_data.description)
 
-        # 运行中医诊断 Graph
-        final_state = await herb_graph.ainvoke(state)
-
-        # 返回最终结果
-        zhengming = (
-            final_state.get("zhengming")
-            if isinstance(final_state, dict)
-            else getattr(final_state, "zhengming", [])
+        # 附加评估与原诊断工作流互不依赖，并行可降低同步接口总时延。
+        assessment_task = asyncio.create_task(
+            generate_assessment(diagnosis_data.description)
         )
-        prescriptions = (
-            final_state.get("prescriptions")
-            if isinstance(final_state, dict)
-            else getattr(final_state, "prescriptions", [])
-        )
-        nursing = (
-            final_state.get("nursing")
-            if isinstance(final_state, dict)
-            else getattr(final_state, "nursing", [])
-        )
-
-        # 详细调试：检查数据类型
-        logger.debug(f"final_state type: {type(final_state)}")
-        logger.debug(
-            f"zhengming type: {type(zhengming)}, value: {zhengming if not isinstance(zhengming, list) or len(zhengming) < 5 else f'[list with {len(zhengming)} items]'}"
-        )
-        logger.debug(
-            f"prescriptions type: {type(prescriptions)}, count: {len(prescriptions) if isinstance(prescriptions, list) else 'N/A'}"
-        )
-        logger.debug(
-            f"nursing type: {type(nursing)}, count: {len(nursing) if isinstance(nursing, list) else 'N/A'}"
-        )
-
-        # 如果 zhengming 是字符串，需要解析它
-        if isinstance(zhengming, str):
-            logger.warning(f"zhengming 是字符串而非列表: {zhengming}")
-            # 尝试从 JSON 解析
-            try:
-                import json
-
-                zhengming = json.loads(zhengming)
-                logger.info(f"成功从 JSON 解析 zhengming: {len(zhengming)} 项")
-            except (json.JSONDecodeError, TypeError):
-                logger.error("无法解析 zhengming 字符串，设置为空列表")
-                zhengming = []
-
-        logger.info(
-            f"中医诊断完成，返回 {len(zhengming)} 个证型，{len(prescriptions)} 个方剂，{len(nursing)} 条护理建议"
-        )
-
-        # 提取护理建议（按类别分组）
-        base_nursing = next(
-            (n.content for n in nursing if getattr(n, "category", "") == "base"),
-            "饮食清淡易消化，保持环境温暖，适当运动",
-        )
-        continue_nursing = next(
-            (n.content for n in nursing if getattr(n, "category", "") == "continue"),
-            "观察症状变化，监测精神状态",
-        )
-        suggest_nursing = next(
-            (n.content for n in nursing if getattr(n, "category", "") == "suggest"),
-            "持续呕吐腹泻或高热应立即就医",
-        )
-
-        # 格式化返回数据以兼容原有格式
-        formatted_result = []
         try:
-            for idx, z in enumerate(zhengming):
-                logger.debug(f"处理证型 {idx}: type(z)={type(z)}, z={z}")
-                z_dict = z.dict() if hasattr(z, "dict") else z
-                # 确保 z_dict 是字典
-                if not isinstance(z_dict, dict):
-                    logger.warning(f"证型 {idx} 不是字典: {type(z_dict)}, 值: {z_dict}")
-                    continue
-                zhengming_name = z_dict.get("zhengming", "")
-                logger.debug(f"处理证型: {zhengming_name}")
-
-                # 查找对应方剂（使用更宽松的匹配）
-                related_prescriptions = []
-                for p in prescriptions:
-                    p_zhengming = getattr(p, "zhengming", "")
-                    # 使用包含匹配，因为证型名称可能有细微差异
-                    if p_zhengming and (
-                        p_zhengming == zhengming_name
-                        or zhengming_name in p_zhengming
-                        or p_zhengming in zhengming_name
-                    ):
-                        related_prescriptions.append(p)
-
-                logger.debug(f"找到 {len(related_prescriptions)} 个相关方剂")
-
-                # 安全地转换为字典列表
-                p_dict_list = []
-                for idx, p in enumerate(related_prescriptions):
-                    logger.debug(
-                        f"方剂 {idx} type={type(p)}, zhengming={getattr(p, 'zhengming', '')}, prescription_type={getattr(p, 'prescription_type', '')}"
-                    )
-                    if hasattr(p, "dict"):
-                        p_dict = p.dict()
-                        logger.debug(f"方剂字典: {p_dict}")
-                        # 验证必需字段存在且为字符串类型
-                        if isinstance(p_dict, dict):
-                            # 确保所有字段都是JSON可序列化类型
-                            safe_dict = {}
-                            for key, value in p_dict.items():
-                                if value is None:
-                                    safe_dict[key] = ""
-                                elif not isinstance(
-                                    value, (str, int, float, bool, list, dict)
-                                ):
-                                    safe_dict[key] = str(value)
-                                else:
-                                    safe_dict[key] = value
-                            p_dict_list.append(safe_dict)
-                        else:
-                            logger.warning(f"p.dict() 未返回字典: {type(p_dict)}")
-                    elif isinstance(p, dict):
-                        p_dict_list.append(p)
-                    else:
-                        logger.warning(f"跳过无效的方剂对象: {type(p)}, 值: {p}")
-
-                logger.debug(
-                    f"p_dict_list 包含 {len(p_dict_list)} 个方剂: {p_dict_list}"
-                )
-
-                # 分类方剂（确保是字典类型）
-                # 使用更严格的检查确保找到的是dict对象
-                base_presc = next(
-                    (
-                        p
-                        for p in p_dict_list
-                        if isinstance(p, dict)
-                        and p.get("prescription_type") == "基础方"
-                    ),
-                    {},
-                )
-                continue_presc = next(
-                    (
-                        p
-                        for p in p_dict_list
-                        if isinstance(p, dict)
-                        and p.get("prescription_type") == "加减方"
-                    ),
-                    {},
-                )
-                suggest_presc = next(
-                    (
-                        p
-                        for p in p_dict_list
-                        if isinstance(p, dict)
-                        and p.get("prescription_type") == "急救方"
-                    ),
-                    {},
-                )
-
-                # 额外安全检查：确保结果确实是dict
-                if not isinstance(base_presc, dict):
-                    logger.warning(
-                        f"base_presc 不是dict: {type(base_presc)}, 值: {base_presc}"
-                    )
-                    base_presc = {}
-                if not isinstance(continue_presc, dict):
-                    logger.warning(
-                        f"continue_presc 不是dict: {type(continue_presc)}, 值: {continue_presc}"
-                    )
-                    continue_presc = {}
-                if not isinstance(suggest_presc, dict):
-                    logger.warning(
-                        f"suggest_presc 不是dict: {type(suggest_presc)}, 值: {suggest_presc}"
-                    )
-                    suggest_presc = {}
-
-                logger.debug(
-                    f"分类后的方剂 - base: {base_presc}, continue: {continue_presc}, suggest: {suggest_presc}"
-                )
-
-                formatted_result.append(
-                    {
-                        "zhengming": zhengming_name,
-                        "description": z_dict.get("description", ""),
-                        "p": float(z_dict.get("probability", 0.0)),  # 确保是 float 类型
-                        "therapy": z_dict.get("therapy", ""),
-                        "base": str(base_nursing)
-                        if base_nursing
-                        else "",  # 确保是字符串
-                        "continue": str(continue_nursing) if continue_nursing else "",
-                        "suggest": str(suggest_nursing) if suggest_nursing else "",
-                        "base_prescription": base_presc.get("prescription_name", "")
-                        if isinstance(base_presc, dict)
-                        else "",
-                        "base_prescription_usage": base_presc.get("usage", "")
-                        if isinstance(base_presc, dict)
-                        else "",
-                        "continue_prescription": continue_presc.get(
-                            "prescription_name", ""
-                        )
-                        if isinstance(continue_presc, dict)
-                        else "",
-                        "continue_prescription_usage": continue_presc.get("usage", "")
-                        if isinstance(continue_presc, dict)
-                        else "",
-                        "suggest_prescription": suggest_presc.get(
-                            "prescription_name", ""
-                        )
-                        if isinstance(suggest_presc, dict)
-                        else "",
-                        "suggest_prescription_usage": suggest_presc.get("usage", "")
-                        if isinstance(suggest_presc, dict)
-                        else "",
-                    }
-                )
-        except Exception as format_error:
-            logger.error(f"格式化结果失败: {format_error}", exc_info=True)
+            final_state, assessment = await asyncio.gather(
+                herb_graph.ainvoke(state), assessment_task
+            )
+        except BaseException:
+            if not assessment_task.done():
+                assessment_task.cancel()
+            await asyncio.gather(assessment_task, return_exceptions=True)
             raise
 
+        formatted_result = format_herb_result(final_state)
         logger.info(f"成功格式化 {len(formatted_result)} 个证型结果")
 
         return JSONResponse(
@@ -410,11 +225,12 @@ async def create_herb_diagnosis(
                 "disclaimer": "⚠️ 重要声明：本系统提供AI辅助中医诊断建议，仅供参考。中药方剂需由专业中兽医根据宠物具体情况调整。急重症请立即中西医结合就医。",
                 "data": formatted_result,
                 "code": status.HTTP_200_OK,
+                "assessment": assessment,
             },
         )
     except Exception as e:
         error_msg = repr(e)
-        logger.error("中医诊断失败: %s", error_msg, exc_info=True)
+        logger.error("中医诊断失败: {}", error_msg, exc_info=True)
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
@@ -422,6 +238,7 @@ async def create_herb_diagnosis(
                 "disclaimer": "⚠️ 本系统仅提供辅助诊断建议，不能替代专业中兽医。如宠物症状持续或加重，请立即就医。",
                 "data": [],
                 "code": status.HTTP_200_OK,
+                "assessment": assessment,
             },
         )
 
@@ -458,6 +275,13 @@ async def get_herb_diagnosis_task_status(task_id: str) -> JSONResponse:
         )
 
     task_status = status_info["status"]
+    assessment = task_manager.get_task_assessment(task_id)
+    if assessment is None:
+        assessment = (
+            pending_assessment()
+            if task_status in ("pending", "processing")
+            else unavailable_assessment()
+        )
 
     # 任务完成
     if task_status == "completed":
@@ -468,6 +292,7 @@ async def get_herb_diagnosis_task_status(task_id: str) -> JSONResponse:
                 "message": "中医诊断成功",
                 "data": result.get("diagnoses", []),
                 "code": status.HTTP_200_OK,
+                "assessment": assessment,
             },
         )
 
@@ -480,6 +305,7 @@ async def get_herb_diagnosis_task_status(task_id: str) -> JSONResponse:
                 "message": result.get("error", "中医诊断任务执行失败"),
                 "data": [],
                 "code": status.HTTP_200_OK,
+                "assessment": assessment,
             },
         )
 
@@ -496,6 +322,7 @@ async def get_herb_diagnosis_task_status(task_id: str) -> JSONResponse:
                     "progress": progress,
                 },
                 "code": status.HTTP_200_OK,
+                "assessment": assessment,
             },
         )
 
@@ -507,6 +334,7 @@ async def get_herb_diagnosis_task_status(task_id: str) -> JSONResponse:
                 "message": "任务排队中",
                 "data": {"task_id": task_id, "status": "pending"},
                 "code": status.HTTP_200_OK,
+                "assessment": assessment,
             },
         )
 
@@ -526,9 +354,9 @@ async def cancel_herb_diagnosis_task(task_id: str) -> JSONResponse:
     return JSONResponse(
         status_code=status.HTTP_200_OK,
         content={
-            "message": "任务已取消"
-            if success
-            else "任务无法取消（可能已完成或不存在）",
+            "message": (
+                "任务已取消" if success else "任务无法取消（可能已完成或不存在）"
+            ),
             "data": {"task_id": task_id, "cancelled": success},
             "code": status.HTTP_200_OK,
         },

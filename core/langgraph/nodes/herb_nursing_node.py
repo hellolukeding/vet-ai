@@ -2,7 +2,6 @@
 中医护理建议节点 - 根据证型生成中医护理建议
 """
 
-import json
 from datetime import datetime
 from typing import Dict, List
 
@@ -11,15 +10,16 @@ from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
 from config.logger import logger
-from core.langgraph.state_herb import TCMNursingItem, TCMZhengmingItem, TCAgentState
-from core.llm_factory import create_chat_llm
-from utils.json.extract_json_from_markdown import extract_json_from_markdown
+from core.langgraph.state_herb import TCAgentState, TCMNursingItem, TCMZhengmingItem
+from core.llm_factory import create_chat_llm, invoke_json_model
 
 
 class NursingSchema(BaseModel):
     """中医护理建议schema"""
 
-    nursing: List[TCMNursingItem] = Field(..., description="护理建议列表")
+    nursing: List[TCMNursingItem] = Field(
+        ..., min_length=3, max_length=3, description="护理建议列表"
+    )
 
 
 async def HerbNursingNode(state: TCAgentState) -> Dict[str, List[TCMNursingItem]]:
@@ -95,7 +95,8 @@ async def HerbNursingNode(state: TCAgentState) -> Dict[str, List[TCMNursingItem]
     ## 要求
     - `category` 只能是：base、continue、suggest 三个值之一
     - `content` 详细说明具体的护理措施
-    - 每个类别最多提供 1-2 条建议
+    - base、continue、suggest 各返回1项，共3项
+    - 不建议自行喂药、催吐、强行喂食或用热水袋直接加热
     - 结合中医理论（如脾胃虚弱宜温补，寒湿困脾宜保暖等）
     - 内容要具体可操作，不要泛泛而谈
     - 严格只输出 JSON，不要使用Markdown代码块包装结果
@@ -108,42 +109,12 @@ async def HerbNursingNode(state: TCAgentState) -> Dict[str, List[TCMNursingItem]
         ]
     )
 
-    # 尝试使用结构化输出
     try:
-        logger.info("尝试使用结构化输出生成中医护理建议")
-        structured_llm = llm.with_structured_output(NursingSchema, method="json_schema")
         messages = prompt.format_messages()
-        response = await structured_llm.ainvoke(messages)
-        logger.info("中医护理结构化输出成功")
+        response = (await invoke_json_model(llm, messages, NursingSchema)).model_dump()
     except Exception as e:
-        logger.warning(f"结构化输出调用失败: {e}，尝试使用普通 LLM + JSON 解析")
-        try:
-            messages = prompt.format_messages()
-            raw_response = await llm.ainvoke(messages)
-            logger.info(f"LLM 原始响应: {raw_response.content[:500]}...")
-
-            content = extract_json_from_markdown(raw_response.content)
-            logger.debug(f"提取的 JSON 内容: {content}")
-            response = json.loads(content)
-            logger.info("JSON 解析成功")
-        except Exception as e2:
-            logger.error(f"中医护理建议生成失败: {e2}")
-            # 返回默认护理建议
-            logger.warning("使用默认中医护理建议")
-            return {
-                "nursing": [
-                    TCMNursingItem(
-                        category="base",
-                        content="饮食清淡易消化，保持环境温暖干燥，适当运动",
-                    ),
-                    TCMNursingItem(
-                        category="continue", content="观察症状变化，监测精神状态和体温"
-                    ),
-                    TCMNursingItem(
-                        category="suggest", content="持续呕吐腹泻或高热应立即就医"
-                    ),
-                ]
-            }
+        logger.error(f"中医护理建议生成失败: {e}")
+        return {"nursing": []}
 
     # 规范化输出
     try:

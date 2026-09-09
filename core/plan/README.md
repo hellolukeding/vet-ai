@@ -192,8 +192,8 @@ agent.get_graph_image("workflow.png")
 在 `backend/settings.py` 中配置以下参数：
 
 ```python
-MODEL_NAME = "deepseek-ai/DeepSeek-V3"
-BASE_URL = "https://api-inference.modelscope.cn/v1"
+MODEL_NAME = "deepseek-v4-flash"
+BASE_URL = "https://api.deepseek.com"
 API_KEY = "your-api-key"
 ```
 

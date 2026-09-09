@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from config.logger import logger
 from core.langgraph.state import DiagnosisItem, VetAgentState
-from core.llm_factory import create_chat_llm
+from core.llm_factory import create_chat_llm, invoke_json_model
 
 
 class DiagnosisReviewSchema(BaseModel):
@@ -120,16 +120,10 @@ async def DiagnosisReviewNode(state: VetAgentState) -> Dict[str, List[DiagnosisI
 
     try:
         logger.info("开始诊断审查")
-        structured_llm = llm.with_structured_output(
-            DiagnosisReviewSchema, method="json_schema"
-        )
         messages = prompt.format_messages()
-        response = await structured_llm.ainvoke(messages)
-        logger.info(f"诊断审查成功: {response.review_notes}")
-
-        # 转换为标准格式
-        if hasattr(response, "model_dump"):
-            response = response.model_dump()
+        validated = await invoke_json_model(llm, messages, DiagnosisReviewSchema)
+        logger.info(f"诊断审查成功: {validated.review_notes}")
+        response = validated.model_dump()
 
         reviewed = response.get("reviewed_diagnosis", [])
         normalized = []

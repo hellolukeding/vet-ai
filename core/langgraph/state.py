@@ -1,17 +1,17 @@
 from langgraph.graph import MessagesState
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class DiagnosisItem(BaseModel):
-    symptom: str
-    reason: str
-    probability: float
+    symptom: str = Field(min_length=1)
+    reason: str = Field(min_length=1)
+    probability: float = Field(ge=0, le=1)
 
 
 class MedicationItem(BaseModel):
-    symptom: str
-    drug_name: str
-    dosage: str  # 可以是 "10mg/kg" 这种格式
+    symptom: str = Field(min_length=1)
+    drug_name: str = Field(min_length=1)
+    dosage: str = Field(min_length=1)  # 可以是 "10mg/kg" 这种格式
     frequency: str = ""  # 可选字段
     safety_warning: str = ""  # 该药物的安全警告
 

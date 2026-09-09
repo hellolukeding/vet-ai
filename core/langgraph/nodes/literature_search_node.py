@@ -2,13 +2,14 @@
 文献搜索节点 - 在诊断前搜索相关医学文献
 """
 
+import asyncio
 import json
 from typing import Dict, List
 
 from config.logger import logger
 from core.langgraph.state import LiteratureItem, VetAgentState
 from core.langgraph.tools import fetch_webpage_tool, web_search_tool
-from core.langgraph.tools.web_search import is_search_result_usable
+from core.langgraph.tools.web_search import is_trusted_veterinary_source
 
 
 async def LiteratureSearchNode(state: VetAgentState) -> Dict[str, List[LiteratureItem]]:
@@ -31,77 +32,51 @@ async def LiteratureSearchNode(state: VetAgentState) -> Dict[str, List[Literatur
 
     # 构建搜索查询 - 针对兽医医学场景优化
     search_queries = [
-        f"宠物 {description} 兽医诊断",
-        f"狗狗 {description} 症状治疗",
-        f"猫咪 {description} 病因分析",
+        f"宠物 {description} 兽医 鉴别诊断",
+        f"宠物 {description} 小动物 临床检查",
     ]
 
     logger.info(f"开始文献搜索: {description}")
 
+    async def search(query: str) -> list[LiteratureItem]:
+        try:
+            raw = await web_search_tool.ainvoke(
+                {"query": query, "num_results": 3, "use_baidu": use_baidu}
+            )
+            results = json.loads(raw) if isinstance(raw, str) else raw
+            usable = [r for r in (results or [])[:3] if is_trusted_veterinary_source(r)]
+
+            async def to_item(result: dict) -> LiteratureItem:
+                content = ""
+                try:
+                    if result.get("id"):
+                        fetched = await fetch_webpage_tool.ainvoke(
+                            {"result_id": result["id"]}
+                        )
+                        content = str(fetched)[:2000]
+                except Exception as exc:
+                    logger.debug("获取网页内容失败: {}, {}", result.get("link"), exc)
+                return LiteratureItem(
+                    title=result.get("title", ""),
+                    snippet=result.get("snippet", ""),
+                    url=result.get("link", ""),
+                    content=content,
+                )
+
+            return list(await asyncio.gather(*(to_item(r) for r in usable)))
+        except Exception as exc:
+            logger.warning("搜索查询失败 [{}]: {}", query, exc)
+            return []
+
     all_literature = []
-    seen_urls = set()  # 避免重复
+    seen_urls = set()
 
     try:
-        for query in search_queries[:2]:  # 最多执行2个查询以控制时间
-            try:
-                results_raw = web_search_tool.invoke(
-                    {
-                        "query": query,
-                        "num_results": 3,  # 每个查询获取3个结果
-                        "use_baidu": use_baidu,
-                    }
-                )
-
-                results = (
-                    json.loads(results_raw)
-                    if isinstance(results_raw, str)
-                    else results_raw
-                )
-
-                if not results:
-                    continue
-
-                for r in results[:3]:
-                    if not is_search_result_usable(r):
-                        logger.debug(f"跳过不可用搜索结果: {r}")
-                        continue
-
-                    url = r.get("link", "")
-                    # 跳过已见过的URL
-                    if url in seen_urls:
-                        continue
-                    seen_urls.add(url)
-
-                    title = r.get("title", "")
-                    snippet = r.get("snippet", "")
-
-                    # 尝试获取完整内容
-                    content = ""
-                    try:
-                        rid = r.get("id", "")
-                        if rid:
-                            content_raw = fetch_webpage_tool.invoke(rid)
-                            content = (
-                                content_raw
-                                if isinstance(content_raw, str)
-                                else str(content_raw)
-                            )
-
-                            # 限制内容长度避免token浪费
-                            if len(content) > 2000:
-                                content = content[:2000] + "..."
-
-                    except Exception as e:
-                        logger.debug(f"获取网页内容失败: {url}, {e}")
-
-                    literature_item = LiteratureItem(
-                        title=title, snippet=snippet, url=url, content=content
-                    )
-                    all_literature.append(literature_item)
-
-            except Exception as e:
-                logger.warning(f"搜索查询失败 [{query}]: {e}")
-                continue
+        batches = await asyncio.gather(*(search(query) for query in search_queries))
+        for item in (item for batch in batches for item in batch):
+            if item.url and item.url not in seen_urls:
+                seen_urls.add(item.url)
+                all_literature.append(item)
 
         logger.info(f"文献搜索完成，获取 {len(all_literature)} 条参考")
 

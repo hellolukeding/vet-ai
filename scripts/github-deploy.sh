@@ -68,8 +68,8 @@ build_env_file() {
   TEMP_DIR="$(mktemp -d)"
   trap 'rm -rf "$TEMP_DIR"' EXIT
 
-  MODEL_NAME="${MODEL_NAME:-Qwen/Qwen3-235B-A22B-Instruct-2507}"
-  BASE_URL="${BASE_URL:-https://api-inference.modelscope.cn/v1}"
+  MODEL_NAME="${MODEL_NAME:-deepseek-v4-flash}"
+  BASE_URL="${BASE_URL:-https://api.deepseek.com}"
   SERVER_PORT="${SERVER_PORT:-18082}"
 
   cat > "${TEMP_DIR}/docker.env" <<EOF

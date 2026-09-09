@@ -1,11 +1,18 @@
+import asyncio
+
 from fastapi import APIRouter, Query, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from config.logger import logger
+from core.diagnosis_assessment import (
+    generate_assessment,
+    pending_assessment,
+    unavailable_assessment,
+)
 from core.langgraph.agent import graph
 from core.langgraph.state import VetAgentState
 from core.tasks import TaskType, get_task_manager
-from config.logger import logger
 
 router = APIRouter()
 
@@ -55,6 +62,9 @@ class DiagnosisRequest(BaseModel):
 - **description**：症状描述
 - **diagnosis**：诊断结果列表（包含疾病名称、依据、概率）
 - **medications**：推荐药物列表（每个药物包含安全警告）
+- **assessment.emergency**：紧急情况识别
+- **assessment.recommended_tests**：建议检查项目
+- **assessment.temporary_care**：就医前临时处置建议
 
 ### ⚠️ 安全警告
 
@@ -160,6 +170,7 @@ async def diagnose(
         f"开始处理LangGraph智能诊断请求: {request.description}, async_mode={async_mode}"
     )
 
+    assessment = unavailable_assessment()
     try:
         # 检查输入是否为空
         if not request.description or not request.description.strip():
@@ -171,6 +182,7 @@ async def diagnose(
                     "disclaimer": "⚠️ 本系统仅提供辅助诊断建议，不能替代专业兽医的诊断和治疗。紧急情况请立即就医。",
                     "data": None,
                     "code": status.HTTP_400_BAD_REQUEST,
+                    "assessment": unavailable_assessment(),
                 },
             )
 
@@ -187,14 +199,24 @@ async def diagnose(
                     "message": "智能诊断任务已提交，请使用task_id查询结果",
                     "data": {"task_id": task_id, "status": "pending"},
                     "code": status.HTTP_202_ACCEPTED,
+                    "assessment": pending_assessment(),
                 },
             )
 
         # 同步模式：直接执行并返回结果 (保持原有行为)
         state = VetAgentState(description=request.description)
 
-        # 运行 Graph
-        final_state = await graph.ainvoke(state)
+        # 附加评估与原诊断工作流互不依赖，并行可降低同步接口总时延。
+        assessment_task = asyncio.create_task(generate_assessment(request.description))
+        try:
+            final_state, assessment = await asyncio.gather(
+                graph.ainvoke(state), assessment_task
+            )
+        except BaseException:
+            if not assessment_task.done():
+                assessment_task.cancel()
+            await asyncio.gather(assessment_task, return_exceptions=True)
+            raise
 
         # 返回最终结果
         # 处理graph.ainvoke可能返回字典而不是对象的情况
@@ -226,18 +248,21 @@ async def diagnose(
                 "data": {
                     "description": description,
                     "diagnosis": [
-                        d.dict() if hasattr(d, "dict") else d for d in diagnosis
+                        d.model_dump() if hasattr(d, "model_dump") else d
+                        for d in diagnosis
                     ],
                     "medications": [
-                        m.dict() if hasattr(m, "dict") else m for m in medications
+                        m.model_dump() if hasattr(m, "model_dump") else m
+                        for m in medications
                     ],
                 },
                 "code": status.HTTP_200_OK,
+                "assessment": assessment,
             },
         )
     except Exception as e:
         error_msg = repr(e)
-        logger.error("LangGraph智能诊断失败: %s", error_msg, exc_info=True)
+        logger.error("LangGraph智能诊断失败: {}", error_msg, exc_info=True)
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
@@ -245,6 +270,7 @@ async def diagnose(
                 "disclaimer": "⚠️ 本系统仅提供辅助诊断建议，不能替代专业兽医。如宠物症状持续或加重，请立即就医。",
                 "data": None,
                 "code": status.HTTP_200_OK,
+                "assessment": assessment,
             },
         )
 
@@ -281,6 +307,13 @@ async def get_graph_diagnosis_task_status(task_id: str) -> JSONResponse:
         )
 
     task_status = status_info["status"]
+    assessment = task_manager.get_task_assessment(task_id)
+    if assessment is None:
+        assessment = (
+            pending_assessment()
+            if task_status in ("pending", "processing")
+            else unavailable_assessment()
+        )
 
     # 任务完成
     if task_status == "completed":
@@ -291,6 +324,7 @@ async def get_graph_diagnosis_task_status(task_id: str) -> JSONResponse:
                 "message": "智能诊断成功",
                 "data": result,
                 "code": status.HTTP_200_OK,
+                "assessment": assessment,
             },
         )
 
@@ -303,6 +337,7 @@ async def get_graph_diagnosis_task_status(task_id: str) -> JSONResponse:
                 "message": result.get("error", "智能诊断任务执行失败"),
                 "data": None,
                 "code": status.HTTP_200_OK,
+                "assessment": assessment,
             },
         )
 
@@ -319,6 +354,7 @@ async def get_graph_diagnosis_task_status(task_id: str) -> JSONResponse:
                     "progress": progress,
                 },
                 "code": status.HTTP_200_OK,
+                "assessment": assessment,
             },
         )
 
@@ -330,6 +366,7 @@ async def get_graph_diagnosis_task_status(task_id: str) -> JSONResponse:
                 "message": "任务排队中",
                 "data": {"task_id": task_id, "status": "pending"},
                 "code": status.HTTP_200_OK,
+                "assessment": assessment,
             },
         )
 
@@ -349,9 +386,9 @@ async def cancel_graph_diagnosis_task(task_id: str) -> JSONResponse:
     return JSONResponse(
         status_code=status.HTTP_200_OK,
         content={
-            "message": "任务已取消"
-            if success
-            else "任务无法取消（可能已完成或不存在）",
+            "message": (
+                "任务已取消" if success else "任务无法取消（可能已完成或不存在）"
+            ),
             "data": {"task_id": task_id, "cancelled": success},
             "code": status.HTTP_200_OK,
         },

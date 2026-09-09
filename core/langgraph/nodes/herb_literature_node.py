@@ -2,13 +2,14 @@
 中医文献搜索节点 - 搜索中医古籍和现代中医文献
 """
 
+import asyncio
 import json
 from typing import Dict, List
 
 from config.logger import logger
-from core.langgraph.state_herb import TCMRefItem, TCAgentState
+from core.langgraph.state_herb import TCAgentState, TCMRefItem
 from core.langgraph.tools import fetch_webpage_tool, web_search_tool
-from core.langgraph.tools.web_search import is_search_result_usable
+from core.langgraph.tools.web_search import is_trusted_veterinary_source
 
 
 async def HerbLiteratureSearchNode(state: TCAgentState) -> Dict[str, List[TCMRefItem]]:
@@ -31,73 +32,52 @@ async def HerbLiteratureSearchNode(state: TCAgentState) -> Dict[str, List[TCMRef
 
     # 构建搜索查询 - 针对中医场景优化
     search_queries = [
-        f"宠物 {description} 中医辨证",
-        f"{description} 中兽医 证型",
-        f"{description} 中药 方剂",
+        f"宠物 {description} 中兽医 辨证",
+        f"宠物 {description} 中兽医 方剂",
     ]
 
     logger.info(f"开始中医文献搜索: {description}")
+
+    async def search(query: str) -> list[tuple[str, TCMRefItem]]:
+        try:
+            raw = await web_search_tool.ainvoke(
+                {"query": query, "num_results": 3, "use_baidu": use_baidu}
+            )
+            results = json.loads(raw) if isinstance(raw, str) else raw
+            usable = [r for r in (results or [])[:3] if is_trusted_veterinary_source(r)]
+
+            async def to_item(result: dict) -> tuple[str, TCMRefItem]:
+                content = ""
+                try:
+                    if result.get("id"):
+                        fetched = await fetch_webpage_tool.ainvoke(
+                            {"result_id": result["id"]}
+                        )
+                        content = str(fetched)[:2000]
+                except Exception as exc:
+                    logger.debug(
+                        "获取中医网页内容失败: {}, {}", result.get("link"), exc
+                    )
+                snippet = result.get("snippet", "")
+                return result.get("link", ""), TCMRefItem(
+                    title=result.get("title", ""),
+                    content=snippet + "\n" + content if content else snippet,
+                )
+
+            return list(await asyncio.gather(*(to_item(r) for r in usable)))
+        except Exception as exc:
+            logger.warning("中医搜索查询失败 [{}]: {}", query, exc)
+            return []
 
     all_literature = []
     seen_urls = set()
 
     try:
-        for query in search_queries[:2]:  # 最多执行2个查询
-            try:
-                results_raw = web_search_tool.invoke(
-                    {"query": query, "num_results": 3, "use_baidu": use_baidu}
-                )
-
-                results = (
-                    json.loads(results_raw)
-                    if isinstance(results_raw, str)
-                    else results_raw
-                )
-
-                if not results:
-                    continue
-
-                for r in results[:3]:
-                    if not is_search_result_usable(r):
-                        logger.debug(f"跳过不可用中医搜索结果: {r}")
-                        continue
-
-                    url = r.get("link", "")
-                    if url in seen_urls:
-                        continue
-                    seen_urls.add(url)
-
-                    title = r.get("title", "")
-                    snippet = r.get("snippet", "")
-
-                    # 尝试获取完整内容
-                    content = ""
-                    try:
-                        rid = r.get("id", "")
-                        if rid:
-                            content_raw = fetch_webpage_tool.invoke(rid)
-                            content = (
-                                content_raw
-                                if isinstance(content_raw, str)
-                                else str(content_raw)
-                            )
-
-                            # 限制内容长度
-                            if len(content) > 2000:
-                                content = content[:2000] + "..."
-
-                    except Exception as e:
-                        logger.debug(f"获取中医网页内容失败: {url}, {e}")
-
-                    literature_item = TCMRefItem(
-                        title=title,
-                        content=snippet + "\n" + content if content else snippet,
-                    )
-                    all_literature.append(literature_item)
-
-            except Exception as e:
-                logger.warning(f"中医搜索查询失败 [{query}]: {e}")
-                continue
+        batches = await asyncio.gather(*(search(query) for query in search_queries))
+        for url, item in (item for batch in batches for item in batch):
+            if url and url not in seen_urls:
+                seen_urls.add(url)
+                all_literature.append(item)
 
         logger.info(f"中医文献搜索完成，获取 {len(all_literature)} 条参考")
 

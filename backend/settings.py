@@ -99,10 +99,10 @@ class Settings(BaseSettings):
 
     # LLM Configuration
     MODEL_NAME: Optional[str] = Field(
-        default="deepseek-ai/DeepSeek-V3", description="Model name for LLM"
+        default="deepseek-v4-flash", description="Model name for LLM"
     )
     BASE_URL: Optional[str] = Field(
-        default="https://api-inference.modelscope.cn/v1",
+        default="https://api.deepseek.com",
         description="Base URL for LLM API",
     )
     API_KEY: Optional[str] = Field(default="", description="API key for LLM service")

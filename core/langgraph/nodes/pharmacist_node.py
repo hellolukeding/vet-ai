@@ -1,3 +1,4 @@
+import asyncio
 import json
 from datetime import datetime
 from typing import Dict, List
@@ -9,9 +10,8 @@ from pydantic import BaseModel, Field
 from config.logger import logger
 from core.langgraph.state import MedicationItem, VetAgentState
 from core.langgraph.tools import fetch_webpage_tool, web_search_tool
-from core.langgraph.tools.web_search import is_search_result_usable
-from core.llm_factory import create_chat_llm
-from utils.json.extract_json_from_markdown import extract_json_from_markdown
+from core.langgraph.tools.web_search import is_trusted_veterinary_source
+from core.llm_factory import create_chat_llm, invoke_json_model
 
 
 class PharmacistSchema(BaseModel):
@@ -20,7 +20,9 @@ class PharmacistSchema(BaseModel):
     包含药品建议列表。
     """
 
-    medications: List[MedicationItem] = Field(..., description="药品建议列表")
+    medications: List[MedicationItem] = Field(
+        ..., max_length=5, description="药品建议列表"
+    )
 
 
 async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]]:
@@ -32,6 +34,7 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
 
     # retrieve diagnosis list from state (could be list of pydantic models or dicts)
     diagnosis = getattr(state, "diagnosis", None) or state.get("diagnosis", None)
+    description = getattr(state, "description", "") or state.get("description", "")
     if not diagnosis or not isinstance(diagnosis, list):
         return {"medications": []}
 
@@ -43,70 +46,47 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
         return {"medications": []}
 
     # Build search snippets for context
-    search_context = []
-    try:
-        for diag in diagnosis[:5]:
-            # diag may be a pydantic model or dict
-            name = getattr(diag, "symptom", None) or (
-                diag.get("symptom") if isinstance(diag, dict) else str(diag)
+    async def search_medication(diag) -> dict:
+        name = getattr(diag, "symptom", None) or (
+            diag.get("symptom") if isinstance(diag, dict) else str(diag)
+        )
+        if not name:
+            return {"diagnosis": "", "results": []}
+        try:
+            raw = await web_search_tool.ainvoke(
+                {
+                    "query": f"宠物 {name} 兽医 治疗指南 用药",
+                    "num_results": 3,
+                    "use_baidu": use_baidu,
+                }
             )
-            if not name:
-                continue
+            results = json.loads(raw) if isinstance(raw, str) else raw
+            usable = [r for r in (results or [])[:3] if is_trusted_veterinary_source(r)]
 
-            # run web search for medication guidance
-            query = f"宠物 {name} 常用治疗药物及剂量"
-            # tools in core.langgraph.tools are synchronous and return JSON strings
-            try:
-                results_raw = web_search_tool.invoke(
-                    {
-                        "query": query,
-                        "num_results": 3,
-                        "use_baidu": use_baidu,  # 使用百度搜索（中文医学内容更好）
-                    }
-                )
-                # web_search_tool may return a JSON string
-                if isinstance(results_raw, str):
-                    results = json.loads(results_raw)
-                else:
-                    results = results_raw
-            except Exception:
-                results = []
-
-            top_results = []
-            for r in (results or [])[:3]:
-                if not is_search_result_usable(r):
-                    logger.debug(f"跳过不可用药物检索结果: {r}")
-                    continue
-
-                rid = r.get("id", "")
-                title = r.get("title", "")
-                link = r.get("link", "")
-                snippet = r.get("snippet", "")
-
-                # fetch full content if available -- pass the result id (tool expects id)
+            async def enrich(result: dict) -> dict:
+                content = ""
                 try:
-                    content_raw = fetch_webpage_tool(rid)
-                    content = (
-                        content_raw
-                        if isinstance(content_raw, str)
-                        else str(content_raw)
-                    )
-                except Exception:
-                    content = ""
+                    if result.get("id"):
+                        content = str(
+                            await fetch_webpage_tool.ainvoke(
+                                {"result_id": result["id"]}
+                            )
+                        )[:2000]
+                except Exception as exc:
+                    logger.debug("获取药物网页失败: {}", exc)
+                return {**result, "content": content}
 
-                top_results.append(
-                    {
-                        "id": rid,
-                        "title": title,
-                        "link": link,
-                        "snippet": snippet,
-                        "content": content,
-                    }
-                )
+            return {
+                "diagnosis": name,
+                "results": list(await asyncio.gather(*(enrich(r) for r in usable))),
+            }
+        except Exception as exc:
+            logger.warning("药物检索失败 [{}]: {}", name, exc)
+            return {"diagnosis": name, "results": []}
 
-            search_context.append({"diagnosis": name, "results": top_results})
-    except Exception as e:
-        logger.error(f"药物检索过程发生错误: {e}", exc_info=True)
+    search_context = list(
+        await asyncio.gather(*(search_medication(d) for d in diagnosis[:3]))
+    )
 
     # Prompt the LLM to synthesize medication suggestions using the gathered evidence
     system_instructions = f"""
@@ -119,10 +99,11 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
     ## 安全要求（CRITICAL）
     ⚠️ 你是AI辅助系统，所有用药建议必须由执业兽医确认！
     1. **仅推荐标准处方药**：不要推荐未经验证的偏方或人用药
-    2. **剂量必须精确**：基于体重计算，明确单位（mg/kg, mcg/kg等）
+    2. **信息不足时不猜剂量**：未提供物种、体重、年龄、肝肾功能和既往用药时，dosage 写明“需由兽医按体重和检查结果确定”
     3. **禁忌症警示**：对于危险药物必须标注禁忌（如肾衰竭避免使用氨基糖苷类）
     4. **儿童/妊娠安全**：如果相关，说明幼年、妊娠、哺乳期注意事项
     5. **药物相互作用**：如果多药联用，提示潜在相互作用
+    6. **避免过度治疗**：症状轻微、短暂，且精神、食欲、饮水、排便正常、无呼吸困难等危险信号时，medications 必须返回空列表，优先观察和复诊
 
     ## 推理步骤
     1. **诊断分析**：理解每个诊断的病理生理机制
@@ -150,14 +131,15 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
       - `drug_name` 写常用药品通用名（中文或英文药名，优先使用通用名）
       - `dosage` 给出常用剂量表达（如 "10 mg/kg PO q12h" 或中文 "每千克体重10mg，口服，每12小时一次"）
       - `frequency` 可填写给药频率简写或说明（如 "q12h"、"每日一次"）
-      - 对每个诊断最多返回3条药物建议；整体不要超过15条
+      - 只为有明确适应证的高可能性诊断给出建议；可以返回空列表
+      - 对每个诊断最多返回1条药物建议；整体不要超过5条
       - 剂量必须明确给药途径（IV=静脉, IM=肌肉, PO=口服, SC=皮下）
       - 严格只输出 JSON，不要任何额外文本
       - 不要使用任何Markdown代码块格式（如```json）包装结果
     """
 
     # build human-readable context
-    context_lines = ["诊断列表:"]
+    context_lines = [f"原始症状描述: {description}", "诊断列表:"]
     for d in diagnosis:
         name = getattr(d, "symptom", None) or (
             d.get("symptom") if isinstance(d, dict) else str(d)
@@ -185,41 +167,15 @@ async def PharmacistNode(state: VetAgentState) -> Dict[str, List[MedicationItem]
         ]
     )
 
-    # 尝试使用结构化输出
     try:
-        logger.info("尝试使用结构化输出生成药物建议")
-        structured_llm = llm.with_structured_output(
-            PharmacistSchema, method="json_schema"
-        )
         messages = prompt.format_messages()
-        response = await structured_llm.ainvoke(messages)
-        logger.info(f"结构化输出成功: {response}")
+        response = (
+            await invoke_json_model(llm, messages, PharmacistSchema)
+        ).model_dump()
     except Exception as e:
-        logger.warning(f"结构化输出调用失败: {e}，尝试使用普通 LLM + JSON 解析")
-        # fallback to regular LLM call
-        try:
-            messages = prompt.format_messages()
-            raw_response = await llm.ainvoke(messages)
-            logger.info(
-                f"LLM 原始响应: {raw_response.content[:500]}..."
-            )  # 记录前500字符
-
-            # 尝试从原始响应中提取JSON
-            content = extract_json_from_markdown(raw_response.content)
-            logger.debug(f"提取的 JSON 内容: {content}")
-            response = json.loads(content)
-            logger.info(
-                f"JSON 解析成功: {list(response.keys()) if isinstance(response, dict) else type(response)}"
-            )
-        except Exception as e2:
-            logger.error(f"药剂师节点调用完全失败: {e2}")
-            logger.error(
-                f"LLM 原始内容: {raw_response.content if 'raw_response' in locals() else 'N/A'}"
-            )
-
-            # 返回空列表而非默认药物建议（医学项目必须严谨）
-            logger.warning("药物LLM调用失败，不提供默认药物建议以确保安全性")
-            return {"medications": []}
+        logger.error(f"药剂师节点调用失败: {e}")
+        logger.warning("药物LLM调用失败，不提供默认药物建议以确保安全性")
+        return {"medications": []}
 
     # Normalize output
     try:

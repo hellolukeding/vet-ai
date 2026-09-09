@@ -18,7 +18,7 @@ from config.logger import logger
 from core.plan.state import NutritionPlan, State
 from utils.json.extract_json_from_markdown import extract_json_from_markdown
 from utils.llm.rate_limiter import get_global_rate_limiter
-from utils.llm.retry_helper import retry_on_rate_limit, RetryConfig
+from utils.llm.retry_helper import RetryConfig, retry_on_rate_limit
 
 
 class NutritionPlanSchema(BaseModel):
@@ -60,8 +60,8 @@ async def NutritionNode(state: State) -> Dict:
     )
 
     # 获取配置
-    model_name = settings.MODEL_NAME or "deepseek-ai/DeepSeek-V3"
-    base_url = settings.BASE_URL or "https://api-inference.modelscope.cn/v1"
+    model_name = settings.MODEL_NAME or "deepseek-v4-flash"
+    base_url = settings.BASE_URL or "https://api.deepseek.com"
     api_key = settings.API_KEY or ""
     temperature = 0.2
 

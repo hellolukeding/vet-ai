@@ -72,8 +72,8 @@
 
 ```env
 # AI 模型配置
-MODEL_NAME=glm-4.5
-BASE_URL=https://open.bigmodel.cn/api/paas/v4
+MODEL_NAME=deepseek-v4-flash
+BASE_URL=https://api.deepseek.com
 API_KEY=your-api-key-here
 
 # 服务配置

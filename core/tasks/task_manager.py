@@ -43,6 +43,7 @@ class TaskQueueManager:
     TASK_STATUS_KEY = "task_status:"  # 任务状态
     TASK_RESULT_KEY = "task_result:"  # 任务结果
     TASK_PROGRESS_KEY = "task_progress:"  # 任务进度
+    TASK_ASSESSMENT_KEY = "task_assessment:"  # 附加诊疗评估
     CONCURRENCY_LOCK_KEY = "concurrency_lock"  # 并发控制锁
 
     def __init__(
@@ -96,24 +97,20 @@ class TaskQueueManager:
         }
 
         try:
-            # 保存任务数据
-            self.redis.setex(
+            pipeline = self.redis.pipeline(transaction=True)
+            pipeline.setex(
                 f"{self.TASK_DATA_KEY}{task_id}",
                 self.task_timeout + 60,  # 数据保存时间比超时时间长一些
                 json.dumps(task),
             )
-
-            # 初始化任务状态
-            self.redis.setex(
+            pipeline.setex(
                 f"{self.TASK_STATUS_KEY}{task_id}",
                 self.task_timeout + 60,
                 TaskStatus.PENDING,
             )
-
-            # 添加到队列（使用有序集合实现优先级队列）
-            # score = priority + timestamp，确保相同优先级按时间排序
-            score = priority + datetime.now().timestamp() / 10000000
-            self.redis.zadd(self.TASK_QUEUE_KEY, {task_id: score})
+            score = priority * 10_000_000_000 - datetime.now().timestamp()
+            pipeline.zadd(self.TASK_QUEUE_KEY, {task_id: score})
+            pipeline.execute()
 
             logger.info(
                 f"任务已提交: task_id={task_id}, "
@@ -173,6 +170,27 @@ class TaskQueueManager:
 
         except Exception as e:
             logger.error(f"获取任务结果失败: {e}")
+            return None
+
+    def set_task_assessment(self, task_id: str, assessment: Dict[str, Any]) -> bool:
+        """Save assessment separately, leaving the existing task result unchanged."""
+        try:
+            self.redis.setex(
+                f"{self.TASK_ASSESSMENT_KEY}{task_id}",
+                self.result_expire_time,
+                json.dumps(assessment, ensure_ascii=False),
+            )
+            return True
+        except Exception as exc:
+            logger.error("保存任务附加评估失败: {}", exc)
+            return False
+
+    def get_task_assessment(self, task_id: str) -> Optional[Dict[str, Any]]:
+        try:
+            data = self.redis.get(f"{self.TASK_ASSESSMENT_KEY}{task_id}")
+            return json.loads(data) if data else None
+        except Exception as exc:
+            logger.error("获取任务附加评估失败: {}", exc)
             return None
 
     def cancel_task(self, task_id: str) -> bool:
@@ -256,53 +274,69 @@ class TaskQueueManager:
         except Exception as e:
             logger.error(f"设置任务状态失败: {e}")
 
-    def set_task_completed(self, task_id: str, result: Dict[str, Any]):
+    def set_task_completed(self, task_id: str, result: Dict[str, Any]) -> bool:
         """标记任务完成并保存结果"""
         try:
-            # 保存结果
-            self.redis.setex(
+            progress_data = {
+                "stage": "completed",
+                "progress": 100,
+                "message": "任务已完成",
+                "updated_at": datetime.now().isoformat(),
+            }
+            pipeline = self.redis.pipeline(transaction=True)
+            pipeline.setex(
                 f"{self.TASK_RESULT_KEY}{task_id}",
                 self.result_expire_time,
-                json.dumps(result),
+                json.dumps(result, ensure_ascii=False),
             )
-
-            # 更新状态
-            self.redis.setex(
+            pipeline.setex(
                 f"{self.TASK_STATUS_KEY}{task_id}",
                 self.result_expire_time,
                 TaskStatus.COMPLETED,
             )
-
-            # 更新进度为100%
-            self.update_task_progress(task_id, "completed", 100, "任务已完成")
+            pipeline.setex(
+                f"{self.TASK_PROGRESS_KEY}{task_id}",
+                self.result_expire_time,
+                json.dumps(progress_data, ensure_ascii=False),
+            )
+            pipeline.expire(
+                f"{self.TASK_ASSESSMENT_KEY}{task_id}", self.result_expire_time
+            )
+            pipeline.execute()
 
             logger.info(f"任务完成: {task_id}")
+            return True
 
         except Exception as e:
             logger.error(f"设置任务完成状态失败: {e}")
+            return False
 
-    def set_task_failed(self, task_id: str, error: str):
+    def set_task_failed(self, task_id: str, error: str) -> bool:
         """标记任务失败"""
         try:
-            # 保存错误信息
             error_result = {"error": error}
-            self.redis.setex(
+            pipeline = self.redis.pipeline(transaction=True)
+            pipeline.setex(
                 f"{self.TASK_RESULT_KEY}{task_id}",
                 self.result_expire_time,
-                json.dumps(error_result),
+                json.dumps(error_result, ensure_ascii=False),
             )
-
-            # 更新状态
-            self.redis.setex(
+            pipeline.setex(
                 f"{self.TASK_STATUS_KEY}{task_id}",
                 self.result_expire_time,
                 TaskStatus.FAILED,
             )
+            pipeline.expire(
+                f"{self.TASK_ASSESSMENT_KEY}{task_id}", self.result_expire_time
+            )
+            pipeline.execute()
 
             logger.error(f"任务失败: {task_id}, error={error}")
+            return True
 
         except Exception as e:
             logger.error(f"设置任务失败状态失败: {e}")
+            return False
 
     def get_next_task(self) -> Optional[Dict[str, Any]]:
         """
@@ -312,22 +346,15 @@ class TaskQueueManager:
             Dict: 任务数据，如果没有任务返回None
         """
         try:
-            # 使用原子操作从有序集合获取并移除最高优先级的任务
-            # ZRANGEBYSCORE ... LIMIT 0 1 获取最高分（优先级）的任务
-            tasks = self.redis.zrange(
-                self.TASK_QUEUE_KEY,
-                0,
-                0,
-                desc=True,  # 降序，最高优先级在前
-            )
-
-            if not tasks:
+            claimed = self.redis.zpopmax(self.TASK_QUEUE_KEY, count=1)
+            if not claimed:
                 return None
-
-            task_id = tasks[0].decode("utf-8")
-
-            # 从队列中移除
-            self.redis.zrem(self.TASK_QUEUE_KEY, task_id)
+            raw_task_id = claimed[0][0]
+            task_id = (
+                raw_task_id.decode("utf-8")
+                if isinstance(raw_task_id, bytes)
+                else str(raw_task_id)
+            )
 
             # 获取任务数据
             task_data = self.redis.get(f"{self.TASK_DATA_KEY}{task_id}")

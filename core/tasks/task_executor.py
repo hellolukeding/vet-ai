@@ -4,12 +4,17 @@
 负责执行不同类型的AI任务，调用相应的Agent并处理结果。
 """
 
+import asyncio
 from typing import Any, Dict
 
 from config.logger import logger
 from core.ai_diagnosis.diagnosis import Diagnosis
-from core.ai_diagnosis.herb_diagnosis import HerbDiagnosis
+from core.diagnosis_assessment import generate_assessment
+from core.herb_result import format_herb_result
 from core.langgraph.agent import VetAgent
+from core.langgraph.agent_herb import herb_graph
+from core.langgraph.state import VetAgentState
+from core.langgraph.state_herb import TCAgentState
 from core.plan.agent import PetCareAgent
 from core.tasks.task_manager import TaskQueueManager
 
@@ -32,7 +37,6 @@ class TaskExecutor:
 
         # 延迟初始化Agent实例
         self._diagnosis_agent = None
-        self._herb_diagnosis_agent = None
         self._graph_diagnosis_agent = None
         self._pet_care_agent = None
 
@@ -41,12 +45,6 @@ class TaskExecutor:
         if self._diagnosis_agent is None:
             self._diagnosis_agent = Diagnosis()
         return self._diagnosis_agent
-
-    def _get_herb_diagnosis_agent(self) -> HerbDiagnosis:
-        """获取中医诊断Agent实例"""
-        if self._herb_diagnosis_agent is None:
-            self._herb_diagnosis_agent = HerbDiagnosis()
-        return self._herb_diagnosis_agent
 
     def _get_graph_diagnosis_agent(self) -> VetAgent:
         """获取LangGraph诊断Agent实例"""
@@ -84,7 +82,7 @@ class TaskExecutor:
 
             # 调用诊断Agent
             agent = self._get_diagnosis_agent()
-            result = agent.diagnosis(symptoms)
+            result = await asyncio.to_thread(agent.diagnosis, symptoms)
 
             # 更新进度
             self.task_manager.update_task_progress(
@@ -116,14 +114,25 @@ class TaskExecutor:
             symptoms = task_data.get("symptoms", "")
             logger.info(f"开始中医诊断任务: {task_id}, 症状: {symptoms[:50]}...")
 
-            # 更新进度
-            self.task_manager.update_task_progress(
-                task_id, "辨证分析", 20, "正在进行中医辨证分析"
+            assessment_task = asyncio.create_task(generate_assessment(symptoms))
+            diagnosis_task = asyncio.create_task(
+                herb_graph.ainvoke(TCAgentState(description=symptoms))
             )
+            try:
+                assessment = await assessment_task
+                self.task_manager.set_task_assessment(task_id, assessment)
 
-            # 调用中医诊断Agent
-            agent = self._get_herb_diagnosis_agent()
-            result = agent.diagnosis(symptoms)
+                self.task_manager.update_task_progress(
+                    task_id, "辨证分析", 20, "正在进行中医辨证分析"
+                )
+                result = format_herb_result(await diagnosis_task)
+            finally:
+                for running_task in (assessment_task, diagnosis_task):
+                    if not running_task.done():
+                        running_task.cancel()
+                await asyncio.gather(
+                    assessment_task, diagnosis_task, return_exceptions=True
+                )
 
             # 更新进度
             self.task_manager.update_task_progress(
@@ -162,14 +171,34 @@ class TaskExecutor:
 
             # 调用LangGraph诊断Agent
             agent = self._get_graph_diagnosis_agent()
-
-            # 创建进度回调
-            def progress_callback(stage: str, progress: int):
-                self.task_manager.update_task_progress(
-                    task_id, stage, progress, f"正在{stage}"
+            assessment_task = asyncio.create_task(generate_assessment(query))
+            diagnosis_task = asyncio.create_task(
+                agent.graph.ainvoke(VetAgentState(description=query))
+            )
+            try:
+                assessment = await assessment_task
+                self.task_manager.set_task_assessment(task_id, assessment)
+                final_state = await diagnosis_task
+            finally:
+                for running_task in (assessment_task, diagnosis_task):
+                    if not running_task.done():
+                        running_task.cancel()
+                await asyncio.gather(
+                    assessment_task, diagnosis_task, return_exceptions=True
                 )
-
-            result = await agent.run(query, progress_callback=progress_callback)
+            diagnosis = final_state.get("diagnosis", [])
+            medications = final_state.get("medications", [])
+            result = {
+                "description": final_state.get("description", query),
+                "diagnosis": [
+                    item.model_dump() if hasattr(item, "model_dump") else item
+                    for item in diagnosis
+                ],
+                "medications": [
+                    item.model_dump() if hasattr(item, "model_dump") else item
+                    for item in medications
+                ],
+            }
 
             # 更新进度
             self.task_manager.update_task_progress(

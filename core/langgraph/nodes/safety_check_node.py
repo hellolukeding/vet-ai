@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from config.logger import logger
 from core.langgraph.state import MedicationItem, VetAgentState
-from core.llm_factory import create_chat_llm
+from core.llm_factory import create_chat_llm, invoke_json_model
 
 
 class MedicationWithWarning(BaseModel):
@@ -33,6 +33,19 @@ class SafetyCheckSchema(BaseModel):
         ..., description="通过安全检查的药物列表（每个药物包含安全警告）"
     )
     review_summary: str = Field(..., description="安全审查总结")
+
+
+def _mark_unreviewed(medications: List[MedicationItem]) -> List[MedicationItem]:
+    warning = "⚠️ AI安全审查未完成，必须由执业兽医核对适应证、剂量和禁忌后使用"
+    return [
+        MedicationItem(
+            **{
+                **(m.model_dump() if hasattr(m, "model_dump") else dict(m)),
+                "safety_warning": warning,
+            }
+        )
+        for m in medications
+    ]
 
 
 async def SafetyCheckNode(state: VetAgentState) -> Dict:
@@ -63,7 +76,7 @@ async def SafetyCheckNode(state: VetAgentState) -> Dict:
     except Exception as e:
         logger.error(f"安全检查节点LLM初始化失败: {e}")
         logger.warning("安全检查LLM配置不可用，返回原始用药建议并标记未审查")
-        return {"medications": medications}
+        return {"medications": _mark_unreviewed(medications)}
 
     # 构建诊断信息
     diagnosis_text = "诊断结果：\n"
@@ -169,19 +182,10 @@ async def SafetyCheckNode(state: VetAgentState) -> Dict:
 
     try:
         logger.info("开始用药安全检查")
-        structured_llm = llm.with_structured_output(
-            SafetyCheckSchema, method="json_schema"
-        )
         messages = prompt.format_messages()
-        response = await structured_llm.ainvoke(messages)
-
-        logger.info(f"安全检查完成: {response.review_summary}")
-
-        # 转换为标准格式
-        if hasattr(response, "model_dump"):
-            response_dict = response.model_dump()
-        else:
-            response_dict = response
+        validated = await invoke_json_model(llm, messages, SafetyCheckSchema)
+        logger.info(f"安全检查完成: {validated.review_summary}")
+        response_dict = validated.model_dump()
 
         safe_meds = response_dict.get("safe_medications", [])
         normalized = []
@@ -214,4 +218,4 @@ async def SafetyCheckNode(state: VetAgentState) -> Dict:
         logger.warning(f"安全检查失败: {e}，保持原用药建议")
         # 安全检查失败时返回原用药，但记录警告
         logger.error("⚠️ 用药安全检查失败，建议由执业兽医人工审核所有用药")
-        return {"medications": medications}
+        return {"medications": _mark_unreviewed(medications)}

@@ -8,8 +8,8 @@ import asyncio
 from typing import Optional
 
 from config.logger import logger
-from core.tasks.task_manager import TaskQueueManager, get_task_manager
 from core.tasks.task_executor import TaskExecutor
+from core.tasks.task_manager import TaskQueueManager, get_task_manager
 
 
 class TaskWorker:
@@ -128,13 +128,21 @@ class TaskWorker:
             # 使用信号量控制并发
             async with self._semaphore:
                 # 执行任务
-                result = await self.executor.execute_task(task_type, task_id, task_data)
+                result = await asyncio.wait_for(
+                    self.executor.execute_task(task_type, task_id, task_data),
+                    timeout=self.task_manager.task_timeout,
+                )
 
                 # 标记任务完成
-                self.task_manager.set_task_completed(task_id, result)
+                if not self.task_manager.set_task_completed(task_id, result):
+                    raise RuntimeError("任务结果写入Redis失败")
 
                 logger.info(f"任务执行成功: {task_id}")
 
+        except asyncio.TimeoutError:
+            error_msg = f"任务执行超过{self.task_manager.task_timeout}秒，已超时终止"
+            logger.error(f"任务执行超时: {task_id}")
+            self.task_manager.set_task_failed(task_id, error_msg)
         except Exception as e:
             error_msg = str(e)
             logger.error(f"任务执行失败: {task_id}, 错误: {error_msg}")

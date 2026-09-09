@@ -16,6 +16,7 @@ import json
 import re
 import time
 from typing import Dict, List, Optional
+from urllib.parse import urlparse
 
 import aiohttp
 from bs4 import BeautifulSoup, FeatureNotFound
@@ -38,6 +39,19 @@ search_results_cache: Dict[str, Dict] = {}
 CACHE_TTL = 300  # 5分钟
 ERROR_RESULT_PREFIXES = ("error_", "timeout_")
 ERROR_RESULT_TITLES = {"搜索请求失败", "搜索请求错误", "搜索请求超时"}
+FALLBACK_RESULT_MARKER = "_fallback_"
+TRUSTED_VETERINARY_DOMAINS = (
+    "aaha.org",
+    "avma.org",
+    "cornell.edu",
+    "cvm.org.cn",
+    "ivis.org",
+    "merckvetmanual.com",
+    "msdvetmanual.com",
+    "ncbi.nlm.nih.gov",
+    "vcahospitals.com",
+    "wsava.org",
+)
 
 
 def get_user_agent() -> str:
@@ -139,9 +153,11 @@ def extract_search_results(
         fallback_result = {
             "id": fallback_id,
             "title": f"{engine.upper()}搜索: {query}",
-            "link": f"https://www.baidu.com/s?wd={query}"
-            if engine == "baidu"
-            else f"https://cn.bing.com/search?q={query}",
+            "link": (
+                f"https://www.baidu.com/s?wd={query}"
+                if engine == "baidu"
+                else f"https://cn.bing.com/search?q={query}"
+            ),
             "snippet": f"未能解析关于 '{query}' 的搜索结果，您可以访问搜索页面查看。",
             "timestamp": time.time(),
         }
@@ -270,11 +286,24 @@ def is_search_result_usable(result: Dict) -> bool:
         return False
     if result_id.startswith(ERROR_RESULT_PREFIXES):
         return False
+    if FALLBACK_RESULT_MARKER in result_id:
+        return False
     if title in ERROR_RESULT_TITLES:
         return False
     if snippet.startswith("搜索请求失败") or snippet.startswith("搜索请求超时"):
         return False
     return True
+
+
+def is_trusted_veterinary_source(result: Dict) -> bool:
+    """Only pass evidence from known veterinary or academic sources to the LLM."""
+    if not is_search_result_usable(result):
+        return False
+    hostname = (urlparse(str(result.get("link", ""))).hostname or "").lower()
+    return any(
+        hostname == domain or hostname.endswith(f".{domain}")
+        for domain in TRUSTED_VETERINARY_DOMAINS
+    )
 
 
 # ==================== 异步网络请求 ====================
@@ -403,9 +432,9 @@ def fetch_webpage_tool(result_id: str):
     url = search_results_cache[result_id]["link"]
     headers = {
         "User-Agent": get_user_agent(),
-        "Referer": "https://cn.bing.com/"
-        if "bing" in result_id
-        else "https://www.baidu.com/",
+        "Referer": (
+            "https://cn.bing.com/" if "bing" in result_id else "https://www.baidu.com/"
+        ),
     }
 
     import requests

@@ -2,7 +2,6 @@
 中医辨证论治节点 - 根据症状进行中医辨证
 """
 
-import json
 from datetime import datetime
 from typing import Dict, List
 
@@ -11,15 +10,16 @@ from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
 from config.logger import logger
-from core.langgraph.state_herb import TCMZhengmingItem, TCAgentState
-from core.llm_factory import create_chat_llm
-from utils.json.extract_json_from_markdown import extract_json_from_markdown
+from core.langgraph.state_herb import TCAgentState, TCMZhengmingItem
+from core.llm_factory import create_chat_llm, invoke_json_model
 
 
 class TCMZhengmingSchema(BaseModel):
     """中医证型诊断schema"""
 
-    zhengming_list: List[TCMZhengmingItem] = Field(..., description="中医证型列表")
+    zhengming_list: List[TCMZhengmingItem] = Field(
+        ..., max_length=5, description="中医证型列表"
+    )
 
 
 async def HerbDiagnosisNode(state: TCAgentState) -> Dict[str, List[TCMZhengmingItem]]:
@@ -86,11 +86,12 @@ async def HerbDiagnosisNode(state: TCAgentState) -> Dict[str, List[TCMZhengmingI
     }}
 
     ## 要求
-    - 必须输出至少5个中医证型，按概率从高到低排序
+    - 最多输出5个有依据的中医证型，按概率从高到低排序；信息不足时可以少于5个
     - `zhengming` 为中医证名（如脾胃虚弱、风寒感冒、肝火上炎等）
     - `description` 详细说明辨证依据，引用症状特点
     - `probability` 为 0 到 1 的小数，表示辨证可信度
     - `therapy` 写出治则治法（如健脾益气、疏风清热等）
+    - `therapy` 只写治则治法，不得包含具体方剂、药材或可执行用药建议
     - 结合中医理论，使用中医术语
     - 如果有提供的文献参考，请结合文献进行辨证
     - 严格只输出 JSON，不要使用Markdown代码块包装结果
@@ -120,30 +121,15 @@ async def HerbDiagnosisNode(state: TCAgentState) -> Dict[str, List[TCMZhengmingI
         ]
     )
 
-    # 尝试使用结构化输出
     try:
-        logger.info("尝试使用结构化输出进行中医辨证")
-        structured_llm = llm.with_structured_output(
-            TCMZhengmingSchema, method="json_schema"
-        )
         messages = prompt.format_messages()
-        response = await structured_llm.ainvoke(messages)
-        logger.info(f"中医辨证结构化输出成功: {response}")
+        response = (
+            await invoke_json_model(llm, messages, TCMZhengmingSchema)
+        ).model_dump()
     except Exception as e:
-        logger.warning(f"结构化输出调用失败: {e}，尝试使用普通 LLM + JSON 解析")
-        try:
-            messages = prompt.format_messages()
-            raw_response = await llm.ainvoke(messages)
-            logger.info(f"LLM 原始响应: {raw_response.content[:500]}...")
-
-            content = extract_json_from_markdown(raw_response.content)
-            logger.debug(f"提取的 JSON 内容: {content}")
-            response = json.loads(content)
-            logger.info("JSON 解析成功")
-        except Exception as e2:
-            logger.error(f"中医辨证调用完全失败: {e2}")
-            logger.warning("中医辨证失败，不提供默认证型以确保安全性")
-            return {"zhengming": []}
+        logger.error(f"中医辨证调用失败: {e}")
+        logger.warning("中医辨证失败，不提供默认证型以确保安全性")
+        return {"zhengming": []}
 
     # 规范化输出
     try:

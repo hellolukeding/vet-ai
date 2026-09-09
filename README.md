@@ -94,6 +94,8 @@ SECRET_KEY=your-secret-key
 - **Base URL**: `http://localhost:8080`
 - **Content-Type**: `application/json`
 - **响应格式**: 所有接口返回标准 JSON
+- **诊断评估对接文档**: [`docs/DIAGNOSIS_ASSESSMENT_API.md`](docs/DIAGNOSIS_ASSESSMENT_API.md)
+- **在线文档**: `/api/docs`（Swagger）、`/api/redoc`（ReDoc）、`/api/openapi.json`
 
 ---
 

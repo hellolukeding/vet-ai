@@ -260,11 +260,20 @@ curl 'http://localhost:8080/api/v1/vet/herb/task/<task_id>'
 
 轮询期间 `assessment.status` 可能先变为 `completed`，主诊断任务完成后 `data` 返回原有诊断结果结构。
 
+异步提交和任务查询响应还会在顶层返回新增字段 `task_status`。原有字段及 `data` 类型保持不变：
+
+- `pending`：等待执行，可以继续轮询。
+- `processing`：正在执行，可以继续轮询。
+- `completed`：执行完成，停止轮询并读取原有 `data`。
+- `failed`：执行失败，停止轮询并读取 `message`。
+- `expired`：任务不存在或结果已过期，停止轮询。
+
 ## 调用方建议
 
-1. 先读取 `assessment.status`。
-2. 再根据 `emergency.level` 决定提示级别。
-3. `emergency` 时应优先显示 `emergency.action`，不要等待主诊断内容。
-4. 检查项目按 `priority` 排序展示。
-5. `temporary_care` 仅用于就医前临时处置，不能作为治疗方案。
-6. 始终展示 `warnings` 和接口原有 `disclaimer`。
+1. 异步调用先读取 `task_status`，遇到 `completed`、`failed` 或 `expired` 立即停止轮询。
+2. 读取 `assessment.status`。
+3. 再根据 `emergency.level` 决定提示级别。
+4. `emergency` 时应优先显示 `emergency.action`，不要等待主诊断内容。
+5. 检查项目按 `priority` 排序展示。
+6. `temporary_care` 仅用于就医前临时处置，不能作为治疗方案。
+7. 始终展示 `warnings` 和接口原有 `disclaimer`。

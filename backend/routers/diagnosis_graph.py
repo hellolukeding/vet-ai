@@ -200,6 +200,7 @@ async def diagnose(
                     "data": {"task_id": task_id, "status": "pending"},
                     "code": status.HTTP_202_ACCEPTED,
                     "assessment": pending_assessment(),
+                    "task_status": "pending",
                 },
             )
 
@@ -303,6 +304,7 @@ async def get_graph_diagnosis_task_status(task_id: str) -> JSONResponse:
                 "message": "任务不存在或已过期",
                 "data": None,
                 "code": status.HTTP_404_NOT_FOUND,
+                "task_status": "expired",
             },
         )
 
@@ -325,6 +327,7 @@ async def get_graph_diagnosis_task_status(task_id: str) -> JSONResponse:
                 "data": result,
                 "code": status.HTTP_200_OK,
                 "assessment": assessment,
+                "task_status": "completed",
             },
         )
 
@@ -338,6 +341,7 @@ async def get_graph_diagnosis_task_status(task_id: str) -> JSONResponse:
                 "data": None,
                 "code": status.HTTP_200_OK,
                 "assessment": assessment,
+                "task_status": "failed",
             },
         )
 
@@ -355,6 +359,7 @@ async def get_graph_diagnosis_task_status(task_id: str) -> JSONResponse:
                 },
                 "code": status.HTTP_200_OK,
                 "assessment": assessment,
+                "task_status": "processing",
             },
         )
 
@@ -367,6 +372,7 @@ async def get_graph_diagnosis_task_status(task_id: str) -> JSONResponse:
                 "data": {"task_id": task_id, "status": "pending"},
                 "code": status.HTTP_200_OK,
                 "assessment": assessment,
+                "task_status": "pending",
             },
         )
 

@@ -367,3 +367,31 @@ def test_herb_async_executor_uses_same_graph_and_keeps_result_shape(monkeypatch)
     )
     assert result == {"diagnoses": [], "symptoms": "食欲下降"}
     assert manager.assessment == ASSESSMENT
+
+
+def test_failed_async_status_is_terminal_without_changing_existing_fields(monkeypatch):
+    class Manager:
+        def get_task_status(self, _task_id):
+            return {"status": "failed"}
+
+        def get_task_result(self, _task_id):
+            return {"error": "模型调用失败"}
+
+        def get_task_assessment(self, _task_id):
+            return ASSESSMENT
+
+    manager = Manager()
+    monkeypatch.setattr(western_router, "get_task_manager", lambda: manager)
+    monkeypatch.setattr(herb_router, "get_task_manager", lambda: manager)
+
+    western = response_json(
+        asyncio.run(western_router.get_graph_diagnosis_task_status("task-1"))
+    )
+    herb = response_json(
+        asyncio.run(herb_router.get_herb_diagnosis_task_status("task-1"))
+    )
+
+    assert western["data"] is None
+    assert herb["data"] == []
+    assert western["code"] == herb["code"] == 200
+    assert western["task_status"] == herb["task_status"] == "failed"

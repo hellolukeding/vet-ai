@@ -76,7 +76,10 @@ build_env_file() {
 MODEL_NAME=${MODEL_NAME}
 BASE_URL=${BASE_URL}
 API_KEY=${API_KEY}
+VET_AI_IMAGE=${DEPLOY_IMAGE}
+DEPLOY_REVISION=${DEPLOY_REVISION}
 EOF
+  chmod 600 "${TEMP_DIR}/docker.env"
 }
 
 configure_ssh() {
@@ -97,6 +100,7 @@ upload_env_file() {
     "${TEMP_DIR}/docker.env" \
     "${SERVER_USER}@${SERVER_HOST}:/opt/vet-ai/docker/.env" \
     -avz
+  sshpass_ssh "chmod 600 /opt/vet-ai/docker/.env"
 }
 
 sync_code() {
@@ -131,19 +135,40 @@ if ! grep -Eq '^API_KEY=.+' docker/.env; then
   exit 1
 fi
 
+DEPLOY_IMAGE="$(sed -n 's/^VET_AI_IMAGE=//p' docker/.env | head -1)"
+DEPLOY_REVISION="$(sed -n 's/^DEPLOY_REVISION=//p' docker/.env | head -1)"
+if [[ -z "$DEPLOY_IMAGE" || -z "$DEPLOY_REVISION" ]]; then
+  echo "docker/.env 中缺少部署镜像或版本，停止部署"
+  exit 1
+fi
+export VET_AI_IMAGE
+
 if command -v docker-compose >/dev/null 2>&1; then
   DC="docker-compose -f docker/docker-compose.yml"
 else
   DC="docker compose -f docker/docker-compose.yml"
 fi
 
-echo "使用经典 Docker builder 预构建镜像..."
-export DOCKER_BUILDKIT=0
-export COMPOSE_DOCKER_CLI_BUILD=0
-timeout 45m bash -lc "$DC build vet-ai"
+echo "等待并拉取提交镜像: $DEPLOY_IMAGE"
+for attempt in {1..30}; do
+  if docker pull "$DEPLOY_IMAGE"; then
+    IMAGE_REVISION="$(docker image inspect "$DEPLOY_IMAGE" --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')"
+    if [[ "$IMAGE_REVISION" == "$DEPLOY_REVISION" ]]; then
+      break
+    fi
+    echo "镜像版本不匹配: expected=$DEPLOY_REVISION actual=$IMAGE_REVISION"
+  fi
 
-echo "使用已构建镜像更新服务..."
-eval "$DC up -d --no-build"
+  if [[ "$attempt" == "30" ]]; then
+    echo "等待提交镜像超时"
+    exit 1
+  fi
+  echo "镜像尚未就绪，10 秒后重试 (${attempt}/30)..."
+  sleep 10
+done
+
+echo "使用已验证镜像更新服务..."
+eval "$DC up -d --no-build --force-recreate vet-ai"
 
 echo "清理未使用的镜像..."
 docker image prune -f
@@ -201,6 +226,8 @@ main() {
   require_env SERVER_USER_RAW
   require_env SERVER_PASSWORD
   require_env API_KEY
+  require_env DEPLOY_IMAGE
+  require_env DEPLOY_REVISION
 
   SERVER_HOST="$(trim "$SERVER_HOST_RAW")"
   SERVER_USER="$(trim "$SERVER_USER_RAW")"

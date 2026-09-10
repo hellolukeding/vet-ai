@@ -34,6 +34,7 @@ services:
 
   # ================== 主应用服务 ==================
   vet-ai:
+    image: ${VET_AI_IMAGE:-docker-vet-ai:latest}
     build:
       context: ..
       dockerfile: docker/Dockerfile

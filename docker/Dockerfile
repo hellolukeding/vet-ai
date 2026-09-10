@@ -8,7 +8,9 @@ FROM python:3.12-slim AS builder
 WORKDIR /build
 
 # 安装构建依赖
-RUN apt-get update && apt-get install -y --no-install-recommends \
+ARG APT_MIRROR=http://deb.debian.org/debian
+RUN sed -i "s|http://deb.debian.org/debian|${APT_MIRROR}|g" /etc/apt/sources.list.d/debian.sources \
+    && apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     curl \

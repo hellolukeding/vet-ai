@@ -22,8 +22,7 @@ jobs:
       MODEL_NAME: ${{ vars.MODEL_NAME }}
       BASE_URL: ${{ vars.BASE_URL }}
       SERVER_PORT: ${{ vars.SERVER_PORT }}
-      DEPLOY_IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}
-      DEPLOY_REVISION: ${{ github.sha }}
+      APT_MIRROR: https://mirrors.cloud.tencent.com/debian
 
     steps:
       - name: 检出代码

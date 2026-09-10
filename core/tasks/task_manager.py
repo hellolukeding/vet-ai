@@ -143,7 +143,7 @@ class TaskQueueManager:
 
             # 获取进度信息
             progress_data = self.redis.get(f"{self.TASK_PROGRESS_KEY}{task_id}")
-            progress = json.loads(progress_data) if progress_data else None
+            progress = json.loads(progress_data) if progress_data else {}
 
             return {"task_id": task_id, "status": status, "progress": progress}
 

@@ -85,6 +85,18 @@ def test_terminal_state_is_written_with_one_transaction_and_consistent_ttl():
     assert redis.expirations["task_assessment:t1"] == 123
 
 
+def test_processing_status_has_empty_progress_object_before_first_update():
+    redis = FakeRedis()
+    manager = TaskQueueManager(redis)
+    redis.values["task_status:t1"] = "processing"
+
+    assert manager.get_task_status("t1") == {
+        "task_id": "t1",
+        "status": "processing",
+        "progress": {},
+    }
+
+
 def test_worker_enforces_execution_timeout():
     class Manager:
         task_timeout = 0.01
